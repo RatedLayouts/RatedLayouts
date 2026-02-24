@@ -536,10 +536,11 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             int remainingRubies = rubyInfo.remaining;
             int calcAtPercent = rubyInfo.calcAtPercent;
 
-            bool animationEnabled = !Mod::get()->getSettingValue<bool>(
-                "disableRewardAnimation");
+            bool animationEnabled =
+                !Mod::get()->getSettingValue<bool>("disableRewardAnimation");
+            bool hasAnyReward = (rewardValue > 0 || remainingRubies > 0);
 
-            if (animationEnabled) {
+            if (animationEnabled && hasAnyReward) {
               log::debug("Ruby info - remaining: {}, calcAtPercent: {} for "
                          "difficulty {}",
                          remainingRubies, calcAtPercent, difficulty);
@@ -704,17 +705,20 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
               int newTotal = rubies + remainingRubies;
               Mod::get()->setSavedValue<int>("rubies", newTotal);
 
+              if (!animationEnabled) {
               Notification::create(
-                  std::string("Received ") + numToString(remainingRubies) + " rubies!",
+                  std::string("Received ") + numToString(remainingRubies) +
+                      " rubies!",
                   CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr))
                   ->show();
+              }
 
               int oldCollected = rubyInfo.collected;
               int newCollected = oldCollected + remainingRubies;
               if (newCollected > rubyInfo.total)
                 newCollected = rubyInfo.total;
-              bool wrote = persistCollectedRubies(levelId, rubyInfo.total,
-                                                  newCollected);
+              bool wrote =
+                  persistCollectedRubies(levelId, rubyInfo.total, newCollected);
               if (!wrote) {
                 log::warn("Failed to write rubies_collected.json: level {}",
                           levelId);
@@ -724,8 +728,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
               }
             }
 
-            if (animationEnabled) {
-              // fake wave remains only when animation is enabled (optional)
+            if (animationEnabled && hasAnyReward) {
               if (difficultySprite) {
                 auto fakeCircleWave =
                     CCCircleWave::create(10.f, 110.f, 0.5f, false);
@@ -1777,7 +1780,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
     bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
     bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-
 
     if (isClassicMod && !isPlatformer) {
       log::info("Role button clicked as Classic Mod");

@@ -713,7 +713,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
   void onUserManage(CCObject *sender) {
     // only leaderboard moderators may manage users
-    if (!Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
+    if (!Mod::get()->getSavedValue<bool>("isLeaderboardMod") && GJAccountManager::sharedState()->m_accountID != DEV_ACCOUNTID) {
       Notification::create("You don't have permission to manage users.",
                            NotificationIcon::Error)
           ->show();

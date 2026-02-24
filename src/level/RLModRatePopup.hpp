@@ -66,6 +66,7 @@ class RLModRatePopup : public geode::Popup {
       void onUnrateButton(CCObject* sender);
       void onSuggestButton(CCObject* sender);
       void onRejectButton(CCObject* sender);
+      void onDevRejectButton(CCObject* sender);
       void onToggleFeatured(CCObject* sender);
       void onToggleDemon(CCObject* sender);
       void onRatingButton(CCObject* sender);

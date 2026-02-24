@@ -1,4 +1,5 @@
 #include "RLModRatePopup.hpp"
+#include "Geode/ui/Popup.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include <fmt/format.h>
@@ -205,6 +206,16 @@ bool RLModRatePopup::init() {
       unsendSpr, this, menu_selector(RLModRatePopup::onUnsendButton));
   unsendButtonItem->setID("unsend-button");
   modActionMenu->addChild(unsendButtonItem);
+
+  // developer reject button
+  if (m_role == PopupRole::Dev) {
+    auto rejectSpr = ButtonSprite::create("Reject", 80, true, "goldFont.fnt",
+                                          "GJ_button_06.png", 30.f, 1.f);
+    auto rejectBtn = CCMenuItemSpriteExtra::create(
+        rejectSpr, this, menu_selector(RLModRatePopup::onDevRejectButton));
+    rejectBtn->setID("dev-reject-button");
+    modActionMenu->addChild(rejectBtn);
+  }
 
   // unrate and suggest buttons (only for admins)
   if (userRole == 2) {
@@ -582,10 +593,10 @@ void RLModRatePopup::onInfoButton(CCObject *sender) {
               "You previously <cr>rejected</c> <cc>{}</c>", self->m_levelName);
         }
         std::string isBannedStr =
-            isBanned
-                ? fmt::format("<cc>{}</c> is <cr>Level Banned</c>", self->m_levelName)
-                : fmt::format("<cc>{}</c> is <cg>Not Level banned</c>",
-                              self->m_levelName);
+            isBanned ? fmt::format("<cc>{}</c> is <cr>Level Banned</c>",
+                                   self->m_levelName)
+                     : fmt::format("<cc>{}</c> is <cg>Not Level banned</c>",
+                                   self->m_levelName);
         std::string creatorBannedStr =
             creatorBanned
                 ? fmt::format("<cc>{}</c> is <cr>Creator Banned</c>",
@@ -621,62 +632,71 @@ void RLModRatePopup::onInfoButton(CCObject *sender) {
 }
 
 void RLModRatePopup::onUnbanLevelButton(CCObject *sender) {
-  auto popup = UploadActionPopup::create(nullptr, "Unbanning level...");
-  popup->show();
-  log::info("Unbanning level - Level ID: {}", m_levelId);
-
-  // Get argon token
-  auto token = Mod::get()->getSavedValue<std::string>("argon_token");
-  if (token.empty()) {
-    log::error("Failed to get user token");
-    popup->showFailMessage("Token not found!");
-    return;
-  }
-
-  // matjson payload
-  matjson::Value jsonBody = matjson::Value::object();
-  jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
-  jsonBody["argonToken"] = token;
-  jsonBody["levelId"] = m_levelId;
-
-  log::debug("Sending request: {}", jsonBody.dump());
-
-  auto postReq = web::WebRequest();
-  postReq.bodyJSON(jsonBody);
-
-  Ref<RLModRatePopup> self = this;
-  Ref<UploadActionPopup> upopup = popup;
-  m_unbanLevelTask.spawn(
-      postReq.post("https://gdrate.arcticwoof.xyz/setUnban"),
-      [self, upopup](web::WebResponse response) {
-        if (!self || !upopup)
+  createQuickPopup(
+      "Unban Level?",
+      "Are you sure you want to <cg>unban</c> this level?\n<cy>This will allow "
+      "it "
+      "to be rated or featured again.</c>",
+      "No", "Unban", [this](auto, bool yes) {
+        if (!yes)
           return;
-        log::info("Received response from server");
+        auto popup = UploadActionPopup::create(nullptr, "Unbanning level...");
+        popup->show();
+        log::info("Unbanning level - Level ID: {}", m_levelId);
 
-        if (!response.ok()) {
-          log::warn("Server returned non-ok status: {}", response.code());
-          upopup->showFailMessage(
-              getResponseFailMessage(response, "Failed! Try again later."));
+        // Get argon token
+        auto token = Mod::get()->getSavedValue<std::string>("argon_token");
+        if (token.empty()) {
+          log::error("Failed to get user token");
+          popup->showFailMessage("Token not found!");
           return;
         }
 
-        auto jsonRes = response.json();
-        if (!jsonRes) {
-          log::warn("Failed to parse JSON response");
-          upopup->showFailMessage("Invalid server response.");
-          return;
-        }
+        // matjson payload
+        matjson::Value jsonBody = matjson::Value::object();
+        jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
+        jsonBody["argonToken"] = token;
+        jsonBody["levelId"] = m_levelId;
 
-        auto json = jsonRes.unwrap();
-        bool success = json["success"].asBool().unwrapOrDefault();
+        log::debug("Sending request: {}", jsonBody.dump());
 
-        if (success) {
-          log::info("Unban level successful!");
-          upopup->showSuccessMessage("Level unbanned!");
-        } else {
-          upopup->showFailMessage(
-              getResponseFailMessage(response, "Failed to unban level."));
-        }
+        auto postReq = web::WebRequest();
+        postReq.bodyJSON(jsonBody);
+
+        Ref<RLModRatePopup> self = this;
+        Ref<UploadActionPopup> upopup = popup;
+        m_unbanLevelTask.spawn(
+            postReq.post("https://gdrate.arcticwoof.xyz/setUnban"),
+            [self, upopup](web::WebResponse response) {
+              if (!self || !upopup)
+                return;
+              log::info("Received response from server");
+
+              if (!response.ok()) {
+                log::warn("Server returned non-ok status: {}", response.code());
+                upopup->showFailMessage(getResponseFailMessage(
+                    response, "Failed! Try again later."));
+                return;
+              }
+
+              auto jsonRes = response.json();
+              if (!jsonRes) {
+                log::warn("Failed to parse JSON response");
+                upopup->showFailMessage("Invalid server response.");
+                return;
+              }
+
+              auto json = jsonRes.unwrap();
+              bool success = json["success"].asBool().unwrapOrDefault();
+
+              if (success) {
+                log::info("Unban level successful!");
+                upopup->showSuccessMessage("Level unbanned!");
+              } else {
+                upopup->showFailMessage(
+                    getResponseFailMessage(response, "Failed to unban level."));
+              }
+            });
       });
 }
 
@@ -684,8 +704,8 @@ void RLModRatePopup::onBanLevelButton(CCObject *sender) {
   std::string title = std::string("Ban Level?");
   geode::createQuickPopup(
       "Ban Level?",
-      "Are you sure you want to <cr>ban</c> this level? This will prevent it "
-      "from being rated or featured.",
+      "Are you sure you want to <cr>ban</c> this level?\n<cy>This will prevent it "
+      "from being rated or featured.</c>",
       "No", "Ban", [this](auto, bool yes) {
         if (!yes)
           return;
@@ -1209,6 +1229,11 @@ void RLModRatePopup::onRejectButton(CCObject *sender) {
   updateDifficultySprite(0);
 }
 
+void RLModRatePopup::onDevRejectButton(CCObject *sender) {
+  m_isRejected = true;
+  this->onSubmitButton(sender);
+}
+
 void RLModRatePopup::onSuggestButton(CCObject *sender) {
   auto popup = UploadActionPopup::create(nullptr, "Suggesting layout...");
   popup->show();
@@ -1585,17 +1610,17 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
   }
 
   if (m_submitButtonItem) {
-      if (!m_isRejected) {
-          auto enabledSpr = ButtonSprite::create(
-              "Submit", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
-          m_submitButtonItem->setNormalImage(enabledSpr);
-          m_submitButtonItem->setEnabled(true);
-      } else {
-          auto disabledSpr = ButtonSprite::create(
-              "Submit", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
-          m_submitButtonItem->setNormalImage(disabledSpr);
-          m_submitButtonItem->setEnabled(false);
-      }
+    if (!m_isRejected) {
+      auto enabledSpr = ButtonSprite::create("Submit", 80, true, "goldFont.fnt",
+                                             "GJ_button_01.png", 30.f, 1.f);
+      m_submitButtonItem->setNormalImage(enabledSpr);
+      m_submitButtonItem->setEnabled(true);
+    } else {
+      auto disabledSpr = ButtonSprite::create(
+          "Submit", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
+      m_submitButtonItem->setNormalImage(disabledSpr);
+      m_submitButtonItem->setEnabled(false);
+    }
   }
 }
 

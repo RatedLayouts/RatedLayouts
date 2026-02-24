@@ -1,5 +1,6 @@
 #include "RLCreatorLayer.hpp"
 #include <Geode/Geode.hpp>
+#include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/ui/NineSlice.hpp>
 
 #include <Geode/binding/GameManager.hpp>
@@ -23,6 +24,8 @@
 #include "RLSearchLayer.hpp"
 #include "RLShopLayer.hpp"
 #include "ccTypes.h"
+
+const int DEV_ACCOUNTID = 7689052;
 
 struct ModInfo {
   std::string message;
@@ -670,7 +673,7 @@ void RLCreatorLayer::onFeaturedLayouts(CCObject *sender) {
 
 void RLCreatorLayer::onSentLayouts(CCObject *sender) {
   if (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
-      Mod::get()->getSavedValue<bool>("isPlatAdmin")) {
+      Mod::get()->getSavedValue<bool>("isPlatAdmin") || GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
     auto selectPopup = RLSelectSends::create();
     selectPopup->show();
     return;
