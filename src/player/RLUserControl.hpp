@@ -39,9 +39,19 @@ class RLUserControl : public geode::Popup {
       async::TaskHolder<web::WebResponse> m_setUserTask;
       async::TaskHolder<web::WebResponse> m_deleteUserTask;
       async::TaskHolder<web::WebResponse> m_promoteUserTask;
-      CCMenuItemSpriteExtra* m_promoteModButton = nullptr;
-      CCMenuItemSpriteExtra* m_promoteAdminButton = nullptr;
+      // promotion buttons
+      CCMenuItemSpriteExtra* m_promoteLeaderboardModButton = nullptr;
+      CCMenuItemSpriteExtra* m_promoteClassicModButton = nullptr;
+      CCMenuItemSpriteExtra* m_promoteClassicAdminButton = nullptr;
+      CCMenuItemSpriteExtra* m_promotePlatModButton = nullptr;
+      CCMenuItemSpriteExtra* m_promotePlatAdminButton = nullptr;
       CCMenuItemSpriteExtra* m_demoteButton = nullptr;
+      // tracked state of the target account's roles (for UI updates)
+      bool m_targetIsLeaderboardMod = false;
+      bool m_targetIsClassicMod = false;
+      bool m_targetIsClassicAdmin = false;
+      bool m_targetIsPlatMod = false;
+      bool m_targetIsPlatAdmin = false;
       void onOptionAction(CCObject* sender);
       void onWipeAction(CCObject* sender);
       void onPromoteAction(CCObject* sender);

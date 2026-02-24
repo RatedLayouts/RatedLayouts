@@ -27,8 +27,10 @@ bool RLSelectSends::init() {
   buttonMenu->setContentSize({m_mainLayer->getContentSize().width - 10,
                               m_mainLayer->getContentSize().height - 10});
   buttonMenu->setPosition(m_mainLayer->getContentSize() / 2);
-  buttonMenu->setLayout(ColumnLayout::create()->setGap(10.f)->setAxisAlignment(
-      AxisAlignment::Center)->setAxisReverse(true));
+  buttonMenu->setLayout(ColumnLayout::create()
+                            ->setGap(10.f)
+                            ->setAxisAlignment(AxisAlignment::Center)
+                            ->setAxisReverse(true));
 
   auto showAllBtn =
       CCMenuItemSpriteExtra::create(ButtonSprite::create("All Sent"), this,
@@ -46,6 +48,12 @@ bool RLSelectSends::init() {
       menu_selector(RLSelectSends::onLegendarySends));
   legendaryBtn->setPosition({270.f, 50.f});
   buttonMenu->addChild(legendaryBtn);
+
+  auto mostBtn =
+      CCMenuItemSpriteExtra::create(ButtonSprite::create("Most Sents"), this,
+                                    menu_selector(RLSelectSends::onMostSents));
+  mostBtn->setPosition({160.f, 80.f});
+  buttonMenu->addChild(mostBtn);
 
   m_mainLayer->addChild(buttonMenu);
   buttonMenu->updateLayout();
@@ -85,6 +93,18 @@ void RLSelectSends::onLegendarySends(CCObject *sender) {
   auto browserLayer =
       RLLevelBrowserLayer::create(RLLevelBrowserLayer::Mode::LegendarySends,
                                   params, "Legendary Sent Layouts");
+  auto scene = CCScene::create();
+  scene->addChild(browserLayer);
+  auto transitionFade = CCTransitionFade::create(0.5f, scene);
+  CCDirector::sharedDirector()->pushScene(transitionFade);
+  this->onClose(sender);
+}
+
+void RLSelectSends::onMostSents(CCObject *sender) {
+  RLLevelBrowserLayer::ParamList params;
+  params.emplace_back("type", "6");
+  auto browserLayer = RLLevelBrowserLayer::create(
+      RLLevelBrowserLayer::Mode::Sent, params, "Most Sent Layouts");
   auto scene = CCScene::create();
   scene->addChild(browserLayer);
   auto transitionFade = CCTransitionFade::create(0.5f, scene);

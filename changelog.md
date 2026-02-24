@@ -1,3 +1,17 @@
+# v0.4.2-beta.1
+
+- Refactored the Moderation system and introducing **Role Specific Badges**! Moderators and Admins will now have different badges to distinguish them in the comments and the leaderboard.
+  - **Platformer Layout Moderator** badge for moderators who can suggest platformer rated layouts.
+  - **Classic Layout Moderator** badge for moderators who can suggest classic rated layouts.
+  - **Platformer Layout Admin** badge for admins who can suggest/rate platformer rated layouts.
+  - **Classic Layout Admin** badge for admins who can suggest/rate classic rated layouts.
+  - **Leaderboard Layout Moderator** badge for moderators who can moderate the leaderboard.
+- Added **Badge API** back as a dependency
+- Added **Most Sends** for Admins and Mods in the Sent Layouts section.
+- Added **Classic & Platformer** filters on the Sent Layouts section.
+- Fixed issue where rubies isn't rewarded correctly at the End Level Layer.
+- Fixed issue where the **Disable Reward Animation** option isn't applying on rubies collection.
+
 # v0.4.1-beta.1
 
 - Bump to Geode v5.0.0 stable

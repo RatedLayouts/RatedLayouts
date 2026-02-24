@@ -463,7 +463,8 @@ class $modify(RLProfilePage, ProfilePage) {
           bool isBooster = json["isBooster"].asBool().unwrapOrDefault();
           // new flags
           bool isClassicMod = json["isClassicMod"].asBool().unwrapOrDefault();
-          bool isClassicAdmin = json["isClassicAdmin"].asBool().unwrapOrDefault();
+          bool isClassicAdmin =
+              json["isClassicAdmin"].asBool().unwrapOrDefault();
           bool isLeaderboardMod =
               json["isLeaderboardMod"].asBool().unwrapOrDefault();
           bool isPlatMod = json["isPlatMod"].asBool().unwrapOrDefault();
@@ -508,66 +509,73 @@ class $modify(RLProfilePage, ProfilePage) {
           CCMenu *usernameMenu = static_cast<CCMenu *>(
               pageRef->m_mainLayer->getChildByIDRecursive("username-menu"));
           if (usernameMenu) {
-            // if user is arcticwoof
-            if (pageRef->m_accountID == 7689052) {
-              if (!usernameMenu->getChildByID("rl-profile-owner-badge:200")) {
-                auto ownerBadgeSprite = CCSprite::createWithSpriteFrameName(
-                    "RL_badgeOwner.png"_spr);
-                ownerBadgeSprite->setID("rl-profile-owner-badge:200");
-                usernameMenu->addChild(ownerBadgeSprite);
-              }
-            }
-            if (!usernameMenu->getChildByID("rl-profile-classic-admin-badge:100") &&
+            auto addBadgeItem = [&](CCSprite *sprite, int tag, const char *id) {
+              if (!sprite)
+                return;
+              auto btn = CCMenuItemSpriteExtra::create(
+                  sprite, pageRef,
+                  menu_selector(RLProfilePage::onBadgeClicked));
+              btn->setTag(tag);
+              btn->setID(id);
+              usernameMenu->addChild(btn);
+            };
+
+            if (!usernameMenu->getChildByID(
+                    "rl-profile-classic-admin-badge:2") &&
                 pageRef->m_fields->isClassicAdmin) {
               auto adminBadgeSprite = CCSprite::createWithSpriteFrameName(
                   "RL_badgeAdmin01.png"_spr);
-              adminBadgeSprite->setID("rl-profile-classic-admin-badge:100");
-              usernameMenu->addChild(adminBadgeSprite);
+              addBadgeItem(adminBadgeSprite, 5,
+                           "rl-profile-classic-admin-badge:2");
             }
-            if (!usernameMenu->getChildByID("rl-profile-classic-mod-badge:99") &&
+            if (!usernameMenu->getChildByID("rl-profile-classic-mod-badge:3") &&
                 pageRef->m_fields->isClassicMod) {
               auto modBadgeSprite =
                   CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr);
-              modBadgeSprite->setID("rl-profile-classic-mod-badge:99");
-              usernameMenu->addChild(modBadgeSprite);
+              addBadgeItem(modBadgeSprite, 6, "rl-profile-classic-mod-badge:3");
             }
-            if (!usernameMenu->getChildByID("rl-profile-lb-mod-badge:98") &&
+            if (!usernameMenu->getChildByID("rl-profile-lb-mod-badge:3") &&
                 pageRef->m_fields->isLeaderboardMod) {
-              auto modBadgeSprite =
-                  CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr);
-              modBadgeSprite->setID("rl-profile-lb-mod-badge:98");
-              usernameMenu->addChild(modBadgeSprite);
+              auto modBadgeSprite = CCSprite::createWithSpriteFrameName(
+                  "RL_badgelbMod01.png"_spr);
+              addBadgeItem(modBadgeSprite, 9, "rl-profile-lb-mod-badge:3");
             }
-            if (!usernameMenu->getChildByID("rl-profile-plat-admin-badge:100") &&
+            if (!usernameMenu->getChildByID("rl-profile-plat-admin-badge:2") &&
                 pageRef->m_fields->isPlatAdmin) {
               auto adminBadgeSprite = CCSprite::createWithSpriteFrameName(
                   "RL_badgePlatAdmin01.png"_spr);
-              adminBadgeSprite->setID("rl-profile-plat-admin-badge:100");
-              usernameMenu->addChild(adminBadgeSprite);
+              addBadgeItem(adminBadgeSprite, 7,
+                           "rl-profile-plat-admin-badge:2");
             }
-            if (!usernameMenu->getChildByID("rl-profile-plat-mod-badge:99") &&
+            if (!usernameMenu->getChildByID("rl-profile-plat-mod-badge:3") &&
                 pageRef->m_fields->isPlatMod) {
               auto modBadgeSprite = CCSprite::createWithSpriteFrameName(
                   "RL_badgePlatMod01.png"_spr);
-              modBadgeSprite->setID("rl-profile-plat-mod-badge:99");
-              usernameMenu->addChild(modBadgeSprite);
+              addBadgeItem(modBadgeSprite, 8, "rl-profile-plat-mod-badge:3");
             }
             // if user is supporter
             if (pageRef->m_fields->isSupporter &&
-                !usernameMenu->getChildByID("rl-profile-supporter-badge")) {
+                !usernameMenu->getChildByID("rl-profile-supporter-badge:4")) {
               auto supporterSprite = CCSprite::createWithSpriteFrameName(
                   "RL_badgeSupporter.png"_spr);
-              supporterSprite->setID("rl-profile-supporter-badge");
-              usernameMenu->addChild(supporterSprite);
+              addBadgeItem(supporterSprite, 3, "rl-profile-supporter-badge:4");
             }
 
             // if user is booster
             if (pageRef->m_fields->isBooster &&
-                !usernameMenu->getChildByID("rl-profile-booster-badge")) {
+                !usernameMenu->getChildByID("rl-profile-booster-badge:4")) {
               auto boosterSprite = CCSprite::createWithSpriteFrameName(
                   "RL_badgeBooster.png"_spr);
-              boosterSprite->setID("rl-profile-booster-badge");
-              usernameMenu->addChild(boosterSprite);
+              addBadgeItem(boosterSprite, 4, "rl-profile-booster-badge:4");
+            }
+
+            // if user is arcticwoof
+            if (pageRef->m_accountID == 7689052) {
+              if (!usernameMenu->getChildByID("rl-profile-owner-badge:1")) {
+                auto ownerBadgeSprite = CCSprite::createWithSpriteFrameName(
+                    "RL_badgeOwner.png"_spr);
+                addBadgeItem(ownerBadgeSprite, 10, "rl-profile-owner-badge:1");
+              }
             }
             usernameMenu->updateLayout();
           }
@@ -625,6 +633,88 @@ class $modify(RLProfilePage, ProfilePage) {
             rlStatsMenu->updateLayout();
           }
         });
+  }
+
+  void onBadgeClicked(CCObject *sender) {
+    auto btn = static_cast<CCMenuItemSpriteExtra *>(sender);
+    if (!btn)
+      return;
+    int tag = btn->getTag();
+    switch (tag) {
+    case 3: // Supporters
+      FLAlertLayer::create(
+          "Layout Supporter",
+          "<cp>Layout Supporter</c> are those who have supported development "
+          "of "
+          "<cl>Rated "
+          "Layouts</c> through <cp>Ko-fi</c> membership donation.",
+          "OK")
+          ->show();
+      break;
+    case 4: // Boosters
+      FLAlertLayer::create(
+          "Layout Booster",
+          "<ca>Layout Booster</c> are those who boosted the <cl>Rated "
+          "Layouts Discord server</c>, they also have the same "
+          "benefits as <cp>Layout Supporter</c>.",
+          "OK")
+          ->show();
+      break;
+    case 5: // Classic Admins
+      FLAlertLayer::create("Classic Layout Admin",
+                           "<cr>Classic Layout Admin</c> has the ability to "
+                           "rate, suggest levels "
+                           "and <cg>manage Featured Layouts</c> for "
+                           "<cc>classic levels</c> of <cl>Rated Layouts</c>.",
+                           "OK")
+          ->show();
+      break;
+    case 6: // Classic Mods
+      FLAlertLayer::create(
+          "Classic Layout Mod",
+          "<cb>Classic Layout Moderator</c> can suggest levels "
+          "for classic layouts to <cr>Classic Layout Admins</c>.",
+          "OK")
+          ->show();
+      break;
+    case 7: // Plat Admins
+      FLAlertLayer::create(
+          "Platformer Layout Admin",
+          "<cr>Platformer Layout Admin</c> has the abilities to rate, suggest "
+          "levels and <cg>manage Featured Layouts</c> for "
+          "<cc>platformer levels</c> of <cl>Rated Layouts</c>.",
+          "OK")
+          ->show();
+      break;
+    case 8: // Plat Mods
+      FLAlertLayer::create(
+          "Platformer Layout Mod",
+          "<cb>Platformer Layout Mod</c> can suggest levels for "
+          "<cc>platformer layouts</c> to <cr>Platformer Layout Admins</c>.",
+          "OK")
+          ->show();
+      break;
+    case 9: // Leaderboard Mods
+      FLAlertLayer::create(
+          "LB Layout Mod",
+          "<cb>Leaderboard Layout Mod</c> is responsible for <co>managing and "
+          "moderating the leaderboard</c> section of <cl>Rated Layouts</c>.",
+          "OK")
+          ->show();
+      break;
+    case 10: // Owner
+      FLAlertLayer::create(
+          "Rated Layouts Owner",
+          "<cf>ArcticWoof</c> is the creator and owner of "
+          "<cl>Rated Layouts</c>. He is the main developer and maintainer of "
+          "this <cp>Geode Mod</c> and has the ability to <cg>promote "
+          "users</c>.",
+          "OK")
+          ->show();
+      break;
+    default:
+      break;
+    }
   }
 
   void onUserManage(CCObject *sender) {

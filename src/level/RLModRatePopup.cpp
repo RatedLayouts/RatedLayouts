@@ -1583,26 +1583,18 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
     }
   }
 
-  // Disable the submit button when legendary is enabled and is admin
   if (m_submitButtonItem) {
-    if (m_isLegendary && m_role == PopupRole::Admin) {
-      auto disabledSpr = ButtonSprite::create(
-          "Submit", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
-      m_submitButtonItem->setNormalImage(disabledSpr);
-      m_submitButtonItem->setEnabled(false);
-    } else {
       if (!m_isRejected) {
-        auto enabledSpr = ButtonSprite::create(
-            "Submit", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
-        m_submitButtonItem->setNormalImage(enabledSpr);
-        m_submitButtonItem->setEnabled(true);
+          auto enabledSpr = ButtonSprite::create(
+              "Submit", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+          m_submitButtonItem->setNormalImage(enabledSpr);
+          m_submitButtonItem->setEnabled(true);
       } else {
-        auto disabledSpr = ButtonSprite::create(
-            "Submit", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
-        m_submitButtonItem->setNormalImage(disabledSpr);
-        m_submitButtonItem->setEnabled(false);
+          auto disabledSpr = ButtonSprite::create(
+              "Submit", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
+          m_submitButtonItem->setNormalImage(disabledSpr);
+          m_submitButtonItem->setEnabled(false);
       }
-    }
   }
 }
 

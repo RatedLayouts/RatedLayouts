@@ -667,7 +667,8 @@ void RLCreatorLayer::onFeaturedLayouts(CCObject *sender) {
 }
 
 void RLCreatorLayer::onSentLayouts(CCObject *sender) {
-  if (Mod::get()->getSavedValue<int>("role") == 2) {
+  if (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+      Mod::get()->getSavedValue<bool>("isPlatAdmin")) {
     auto selectPopup = RLSelectSends::create();
     selectPopup->show();
     return;

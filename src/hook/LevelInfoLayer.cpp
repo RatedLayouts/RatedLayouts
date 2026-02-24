@@ -97,24 +97,26 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
       if (starRatings != 0) {
         if (isClassicMod || isClassicAdmin) {
+          modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
+              "RL_starBig.png"_spr);
+          auto roleButtonSpr = CircleButtonSprite::create(
+              modButtonSprite, CircleBaseColor::Gray, CircleBaseSize::Medium);
+          auto roleButtonItem = CCMenuItemSpriteExtra::create(
+              roleButtonSpr, this,
+              menu_selector(RLLevelInfoLayer::onRoleButton));
+          roleButtonItem->setID("role-button");
+          leftMenu->addChild(roleButtonItem);
+        } else if (isPlatMod || isPlatAdmin) {
+          modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
+              "RL_planetBig.png"_spr);
+          auto roleButtonSpr = CircleButtonSprite::create(
+              modButtonSprite, CircleBaseColor::Gray, CircleBaseSize::Medium);
+          auto roleButtonItem = CCMenuItemSpriteExtra::create(
+              roleButtonSpr, this,
+              menu_selector(RLLevelInfoLayer::onRoleButton));
+          roleButtonItem->setID("role-button");
+          leftMenu->addChild(roleButtonItem);
         }
-        modButtonSprite =
-            CCSpriteGrayscale::createWithSpriteFrameName("RL_starBig.png"_spr);
-        auto roleButtonSpr = CircleButtonSprite::create(
-            modButtonSprite, CircleBaseColor::Gray, CircleBaseSize::Medium);
-        auto roleButtonItem = CCMenuItemSpriteExtra::create(
-            roleButtonSpr, this, menu_selector(RLLevelInfoLayer::onRoleButton));
-        roleButtonItem->setID("role-button");
-        leftMenu->addChild(roleButtonItem);
-      } else if (isPlatMod || isPlatAdmin) {
-        modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
-            "RL_planetBig.png"_spr);
-        auto roleButtonSpr = CircleButtonSprite::create(
-            modButtonSprite, CircleBaseColor::Gray, CircleBaseSize::Medium);
-        auto roleButtonItem = CCMenuItemSpriteExtra::create(
-            roleButtonSpr, this, menu_selector(RLLevelInfoLayer::onRoleButton));
-        roleButtonItem->setID("role-button");
-        leftMenu->addChild(roleButtonItem);
       } else {
         if (isClassicMod || isClassicAdmin) {
           modButtonSprite =
@@ -138,23 +140,22 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
           leftMenu->addChild(roleButtonItem);
         }
       }
-
     }
 
     leftMenu->updateLayout();
 
     if (GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
-        auto devButtonSprite =
-            CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
-        devButtonSprite->setColor({255, 255, 0});
-        auto devButtonSpr = CircleButtonSprite::create(
-            devButtonSprite, CircleBaseColor::Cyan, CircleBaseSize::Medium);
-        devButtonSpr->setColor({0, 255, 255});
-        auto devButtonItem = CCMenuItemSpriteExtra::create(
-            devButtonSpr, this, menu_selector(RLLevelInfoLayer::onDevButton));
-        devButtonItem->setID("dev-button");
-        leftMenu->addChild(devButtonItem);
-        leftMenu->updateLayout();
+      auto devButtonSprite =
+          CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
+      devButtonSprite->setColor({255, 255, 0});
+      auto devButtonSpr = CircleButtonSprite::create(
+          devButtonSprite, CircleBaseColor::Cyan, CircleBaseSize::Medium);
+      devButtonSpr->setColor({0, 255, 255});
+      auto devButtonItem = CCMenuItemSpriteExtra::create(
+          devButtonSpr, this, menu_selector(RLLevelInfoLayer::onDevButton));
+      devButtonItem->setID("dev-button");
+      leftMenu->addChild(devButtonItem);
+      leftMenu->updateLayout();
     }
 
     // If the level is already downloaded
@@ -522,6 +523,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
               }
             } else {
               rewardValue = 0;
+              log::warn("level already completed and rewarded beforehand");
             }
 
             int rubies = Mod::get()->getSavedValue<int>("rubies");
@@ -534,7 +536,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             int remainingRubies = rubyInfo.remaining;
             int calcAtPercent = rubyInfo.calcAtPercent;
 
-            if (!Mod::get()->getSettingValue<bool>("disableRewardAnimation")) {
+            bool animationEnabled = !Mod::get()->getSettingValue<bool>(
+                "disableRewardAnimation");
+
+            if (animationEnabled) {
               log::debug("Ruby info - remaining: {}, calcAtPercent: {} for "
                          "difficulty {}",
                          remainingRubies, calcAtPercent, difficulty);
@@ -681,47 +686,54 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   FMODAudioEngine::sharedEngine()->playEffect("gold02.ogg");
                 }
                 layerRef->addChild(rewardLayer, 100);
-              } else {
-                log::info("Reward animation disabled");
-                Notification::create(
-                    "Received " + numToString(difficulty) + " " + reward + "!",
-                    CCSprite::createWithSpriteFrameName(medSprite.c_str()), 2.f)
-                    ->show();
-                FMODAudioEngine::sharedEngine()->playEffect(
-                    // @geode-ignore(unknown-resource)
-                    "gold02.ogg");
-
-                // apply ruby award even when animation is disabled
-                if (remainingRubies > 0) {
-                  int newTotal = rubies + remainingRubies;
-                  Mod::get()->setSavedValue<int>("rubies", newTotal);
-                  int oldCollected = rubyInfo.collected;
-                  int newCollected = oldCollected + remainingRubies;
-                  if (newCollected > rubyInfo.total)
-                    newCollected = rubyInfo.total;
-                  bool wrote = persistCollectedRubies(levelId, rubyInfo.total,
-                                                      newCollected);
-                  if (!wrote) {
-                    log::warn("Failed to write rubies_collected.json: level {}",
-                              levelId);
-                  } else {
-                    log::debug("Updated Rubies Collection: {} collected: {}",
-                               levelId, newCollected);
-                  }
-                }
-
-                // do the fake reward circle wave effect
-                if (difficultySprite) {
-                  auto fakeCircleWave =
-                      CCCircleWave::create(10.f, 110.f, 0.5f, false);
-                  fakeCircleWave->m_color = ccWHITE;
-                  fakeCircleWave->setPosition(difficultySprite->getPosition());
-                  if (layerRef)
-                    layerRef->addChild(fakeCircleWave, 1);
-                }
               }
-            } else {
-              log::warn("level already completed and rewarded beforehand");
+            }
+
+            if (!animationEnabled) {
+              log::info("Reward animation disabled");
+              Notification::create(
+                  "Received " + numToString(difficulty) + " " + reward + "!",
+                  CCSprite::createWithSpriteFrameName(medSprite.c_str()), 2.f)
+                  ->show();
+              FMODAudioEngine::sharedEngine()->playEffect(
+                  // @geode-ignore(unknown-resource)
+                  "gold02.ogg");
+            }
+
+            if (remainingRubies > 0) {
+              int newTotal = rubies + remainingRubies;
+              Mod::get()->setSavedValue<int>("rubies", newTotal);
+
+              Notification::create(
+                  std::string("Received ") + numToString(remainingRubies) + " rubies!",
+                  CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr))
+                  ->show();
+
+              int oldCollected = rubyInfo.collected;
+              int newCollected = oldCollected + remainingRubies;
+              if (newCollected > rubyInfo.total)
+                newCollected = rubyInfo.total;
+              bool wrote = persistCollectedRubies(levelId, rubyInfo.total,
+                                                  newCollected);
+              if (!wrote) {
+                log::warn("Failed to write rubies_collected.json: level {}",
+                          levelId);
+              } else {
+                log::debug("Updated Rubies Collection: {} collected: {}",
+                           levelId, newCollected);
+              }
+            }
+
+            if (animationEnabled) {
+              // fake wave remains only when animation is enabled (optional)
+              if (difficultySprite) {
+                auto fakeCircleWave =
+                    CCCircleWave::create(10.f, 110.f, 0.5f, false);
+                fakeCircleWave->m_color = ccWHITE;
+                fakeCircleWave->setPosition(difficultySprite->getPosition());
+                if (layerRef)
+                  layerRef->addChild(fakeCircleWave, 1);
+              }
             }
           });
     }
@@ -1766,39 +1778,29 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
     bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
 
-    int userRole = 0;
-    if (isClassicMod) {
-      userRole = 1;
-    } else if (isClassicAdmin) {
-      userRole = 2;
-    } else if (isPlatMod) {
-      userRole = 3;
-    } else if (isPlatAdmin) {
-      userRole = 4;
-    }
 
-    if (userRole == 1 && !isPlatformer) {
+    if (isClassicMod && !isPlatformer) {
       log::info("Role button clicked as Classic Mod");
       auto popup =
           RLModRatePopup::create(RLModRatePopup::PopupRole::Mod,
                                  "Mod: Suggest Classic Layout", this->m_level);
       if (popup)
         popup->show();
-    } else if (userRole == 2 && !isPlatformer) {
+    } else if (isClassicAdmin && !isPlatformer) {
       log::info("Role button clicked as Classic Admin");
       auto popup =
           RLModRatePopup::create(RLModRatePopup::PopupRole::Admin,
                                  "Admin: Rate Classic Layout", this->m_level);
       if (popup)
         popup->show();
-    } else if (userRole == 3 && isPlatformer) {
+    } else if (isPlatMod && isPlatformer) {
       log::info("Role button clicked as Plat Mod");
       auto popup = RLModRatePopup::create(RLModRatePopup::PopupRole::Mod,
                                           "Mod: Suggest Platformer Layout",
                                           this->m_level);
       if (popup)
         popup->show();
-    } else if (userRole == 4 && isPlatformer) {
+    } else if (isPlatAdmin && isPlatformer) {
       log::info("Role button clicked as Plat Admin");
       auto popup = RLModRatePopup::create(RLModRatePopup::PopupRole::Admin,
                                           "Admin: Rate Platformer Layout",

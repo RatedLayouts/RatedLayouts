@@ -63,6 +63,12 @@ protected:
   CCMenuItemSpriteExtra *m_compactToggleBtn = nullptr;
   CCLabelBMFont *m_compactToggleLabel = nullptr;
 
+  bool m_filterClassic = false;
+  bool m_filterPlat = false;
+  CCMenuItemSpriteExtra *m_classicBtn = nullptr;
+  CCMenuItemSpriteExtra *m_planetBtn = nullptr;
+  bool m_filterButtonUpdating = false;
+
   int m_page = 0;
   int m_totalPages = 1;
 
@@ -114,6 +120,11 @@ protected:
   void onPageButton(CCObject *sender);
   void onInfoButton(CCObject *sender);
   void onCompactToggle(CCObject *sender);
+
+  // filter button callbacks
+  void onClassicFilter(CCObject *sender);
+  void onPlanetFilter(CCObject *sender);
+  void updateFilterButtons();
 
   // SetIDPopup delegate
   void setIDPopupClosed(SetIDPopup *popup, int value) override;

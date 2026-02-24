@@ -209,7 +209,7 @@ bool RLShopLayer::init() {
                  {30, 29032, 21389, "Enlightenment"},
                  {31, 10000, 15289357, "Landon72"},
                  {32, 10000, 15289357, "Landon72"},
-                 {33, 30000, 21389, "Enlightenment"},
+                 {33, 29032, 21389, "Enlightenment"},
                  {34, 12500, 14881095, "sebtheboi"},
                  {35, 10000, 21213401, "Flyingfish9"},
                  {36, 11000, 21213401, "Flyingfish9"},

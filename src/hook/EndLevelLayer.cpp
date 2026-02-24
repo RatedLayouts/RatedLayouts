@@ -257,8 +257,8 @@ class $modify(EndLevelLayer) {
 
           m_fields->m_submitTask.spawn(
               submitReq.post("https://gdrate.arcticwoof.xyz/submitComplete"),
-              [endLayerRef, starReward, levelId, isPlat,
-               level](web::WebResponse submitResponse) {
+              [endLayerRef, starReward, levelId, isPlat, level,
+               difficulty](web::WebResponse submitResponse) {
                 log::info("Received submitComplete response for level ID: {}",
                           levelId);
 
@@ -341,7 +341,7 @@ class $modify(EndLevelLayer) {
                     return;
                   }
                   int displayReward = isPlat ? (responsePlanets - starReward)
-                                            : (responseStars - starReward);
+                                             : (responseStars - starReward);
                   if (isPlat) {
                     log::info("Display planets: {} - {} = {}", responsePlanets,
                               starReward, displayReward);
@@ -400,9 +400,7 @@ class $modify(EndLevelLayer) {
                   difficultyLabel->runAction(
                       CCFadeIn::create(fadeAction->getDuration()));
 
-                  int difficultyForRubies = displayReward; // same as difficulty
-                  auto rubyInfo =
-                      computeRubyInfo(level, difficultyForRubies);
+                  auto rubyInfo = computeRubyInfo(level, difficulty);
                   int totalRuby = rubyInfo.total;
                   int collected = rubyInfo.collected;
                   int remainingRubies = rubyInfo.remaining;
@@ -411,12 +409,12 @@ class $modify(EndLevelLayer) {
                       std::max(0, calcAtPercent - collected);
                   int percent = level ? level->m_normalPercent : 0;
 
-                  log::debug(
-                      "Computed rubies for end-level reward: total={}, "
-                      "collected={}, percent={}, calcAtPercent={}, "
-                      "awardableByPercent={}, remainingRubies={}",
-                      totalRuby, collected, percent, calcAtPercent,
-                      awardableByPercent, remainingRubies);
+                  log::debug("Computed rubies for end-level reward: total={}, "
+                             "collected={}, percent={}, calcAtPercent={}, "
+                             "awardableByPercent={}, remainingRubies={} "
+                             "(difficulty={})",
+                             totalRuby, collected, percent, calcAtPercent,
+                             awardableByPercent, remainingRubies, difficulty);
 
                   if (remainingRubies > 0) {
                     auto rubyPop = CCSprite::createWithSpriteFrameName(
@@ -458,8 +456,9 @@ class $modify(EndLevelLayer) {
 
                   // never used this before but its fancy
                   // some devices crashes from this, idk why soggify
-                  if (!Mod::get()->getSettingValue<bool>(
-                          "disableRewardAnimation")) {
+                  bool animationEnabled = !Mod::get()->getSettingValue<bool>(
+                      "disableRewardAnimation");
+                  if (animationEnabled) {
                     if (auto rewardLayer = CurrencyRewardLayer::create(
                             0, isPlat ? starReward : 0, isPlat ? 0 : starReward,
                             remainingRubies, CurrencySpriteType::Star, 0,
@@ -480,30 +479,6 @@ class $modify(EndLevelLayer) {
                           rewardLayer->m_diamonds = 0;
                           rewardLayer->incrementDiamondsCount(oldRubies);
                         }
-
-                        // persist updated collected rubies (clamp to total)
-                        int newCollected = collected + remainingRubies;
-                        if (newCollected > totalRuby)
-                          newCollected = totalRuby;
-                        bool wrote = persistCollectedRubies(
-                            level ? level->m_levelID : 0, totalRuby,
-                            newCollected);
-                        if (!wrote) {
-                          log::warn("Failed to write rubies_collected.json for "
-                                    "level {}",
-                                    level ? level->m_levelID : 0);
-                        } else {
-                          log::debug("Updated rubies_collected.json: level {} "
-                                     "collected -> {}",
-                                     level ? level->m_levelID : 0,
-                                     newCollected);
-                        }
-
-                        // increment global saved rubies
-                        int oldGlobal =
-                            Mod::get()->getSavedValue<int>("rubies", 0);
-                        Mod::get()->setSavedValue<int>(
-                            "rubies", oldGlobal + remainingRubies);
                       }
 
                       std::string frameName = isPlat ? "RL_planetBig.png"_spr
@@ -606,12 +581,42 @@ class $modify(EndLevelLayer) {
                       FMODAudioEngine::sharedEngine()->playEffect(
                           // @geode-ignore(unknown-resource)
                           "gold02.ogg");
-                      // do the fake reward circle wave effect
-                      auto fakeCircleWave =
-                          CCCircleWave::create(10.f, 110.f, 0.5f, false);
-                      fakeCircleWave->m_color = ccWHITE;
-                      fakeCircleWave->setPosition(bigStarSprite->getPosition());
-                      endLayerRef->addChild(fakeCircleWave, 1);
+                    }
+
+                    // always persist and add rubies regardless of animation
+                    // setting
+                    if (remainingRubies > 0) {
+                      int newCollected = collected + remainingRubies;
+                      if (newCollected > totalRuby)
+                        newCollected = totalRuby;
+                      bool wrote =
+                          persistCollectedRubies(level ? level->m_levelID : 0,
+                                                 totalRuby, newCollected);
+                      if (!wrote) {
+                        log::warn("Failed to write rubies_collected.json for "
+                                  "level {}",
+                                  level ? level->m_levelID : 0);
+                      } else {
+                        log::debug("Updated rubies_collected.json: level {} "
+                                   "collected -> {}",
+                                   level ? level->m_levelID : 0, newCollected);
+                      }
+
+                      int oldGlobal =
+                          Mod::get()->getSavedValue<int>("rubies", 0);
+                      Mod::get()->setSavedValue<int>(
+                          "rubies", oldGlobal + remainingRubies);
+
+                      // only show notification when animation disabled
+                      if (Mod::get()->getSettingValue<bool>(
+                              "disableRewardAnimation")) {
+                        Notification::create(
+                            std::string("Received ") +
+                                numToString(remainingRubies) + " rubies!",
+                            CCSprite::createWithSpriteFrameName(
+                                "RL_bigRuby.png"_spr))
+                            ->show();
+                      }
                     }
                   } else if (!success &&
                              (responseStars == 0 || responsePlanets == 0)) {

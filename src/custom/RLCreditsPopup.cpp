@@ -134,7 +134,7 @@ bool RLCreditsPopup::init() {
           else if (text == "Platformer Layout Moderators")
             headerBadge = CCSprite::createWithSpriteFrameName(
                 "RL_badgePlatMod01.png"_spr);
-          else if (text == "Leaderboard Moderators")
+          else if (text == "LB Layout Moderators")
             headerBadge =
                 CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr);
           else if (text.find("Admin") != std::string::npos)
@@ -208,7 +208,7 @@ bool RLCreditsPopup::init() {
             infoTag = 7;
           else if (text == "Platformer Layout Moderators")
             infoTag = 8;
-          else if (text == "Leaderboard Moderators")
+          else if (text == "LB Layout Moderators")
             infoTag = 9;
           infoBtn->setTag(infoTag);
           // place next to label
@@ -299,18 +299,18 @@ bool RLCreditsPopup::init() {
           for (auto &val : arr)
             addPlayer(val, true, false, false, false, false, false);
         }
+        if (json.contains("platAdmins") && json["platAdmins"].isArray()) {
+          addHeader("Platformer Layout Admins");
+          auto arr = json["platAdmins"].asArray().unwrap();
+          for (auto &val : arr)
+            addPlayer(val, true, false, false, false, true, false);
+        }
         if (json.contains("classicModerators") &&
             json["classicModerators"].isArray()) {
           addHeader("Classic Layout Moderators");
           auto arr = json["classicModerators"].asArray().unwrap();
           for (auto &val : arr)
             addPlayer(val, false, true, false, false, false, false);
-        }
-        if (json.contains("platAdmins") && json["platAdmins"].isArray()) {
-          addHeader("Platformer Layout Admins");
-          auto arr = json["platAdmins"].asArray().unwrap();
-          for (auto &val : arr)
-            addPlayer(val, true, false, false, false, true, false);
         }
         if (json.contains("platModerators") &&
             json["platModerators"].isArray()) {
@@ -321,7 +321,7 @@ bool RLCreditsPopup::init() {
         }
         if (json.contains("leaderboardModerators") &&
             json["leaderboardModerators"].isArray()) {
-          addHeader("Leaderboard Moderators");
+          addHeader("Leaderboard Layout Moderators");
           auto arr = json["leaderboardModerators"].asArray().unwrap();
           for (auto &val : arr)
             addPlayer(val, false, true, false, false, false, true);
@@ -408,37 +408,41 @@ void RLCreditsPopup::onHeaderInfo(CCObject *sender) {
   case 5: // Classic Admins
     FLAlertLayer::create(
         "Classic Layout Admin",
-        "<cr>Classic Layout Admin</c> has the same abilities to rate "
-        "<cc>classic levels</c> of <cl>Rated Layouts</c>.",
+        "<cr>Classic Layout Admin</c> has the ability to rate, suggest levels "
+        "and <cg>manage Featured Layouts</c> for "
+        "<cc>classic levels</c> of <cl>Rated Layouts</c>. .",
         "OK")
         ->show();
     break;
   case 6: // Classic Mods
-    FLAlertLayer::create("Classic Layout Mod",
-                         "<cb>Classic Layout Moderator</c> can suggest levels "
-                         "for classic layouts.",
-                         "OK")
+    FLAlertLayer::create(
+        "Classic Layout Mod",
+        "<cb>Classic Layout Moderator</c> can suggest levels "
+        "for classic layouts to <cr>Classic Layout Admins</c>.",
+        "OK")
         ->show();
     break;
   case 7: // Plat Admins
     FLAlertLayer::create(
         "Platformer Layout Admin",
-        "<cr>Platformer Layout Admin</c> has the same abilities to rate "
+        "<cr>Platformer Layout Admin</c> has the abilities to rate, suggest "
+        "levels and <cg>manage Featured Layouts</c> for "
         "<cc>platformer levels</c> of <cl>Rated Layouts</c>.",
         "OK")
         ->show();
     break;
   case 8: // Plat Mods
-    FLAlertLayer::create("Platformer Layout Mod",
-                         "<cb>Platformer Layout Mod</c> can suggest levels for "
-                         "<cc>platformer layouts</c>.",
-                         "OK")
+    FLAlertLayer::create(
+        "Platformer Layout Mod",
+        "<cb>Platformer Layout Mod</c> can suggest levels for "
+        "<cc>platformer layouts</c> to <cr>Platformer Layout Admins</c>.",
+        "OK")
         ->show();
     break;
   case 9: // Leaderboard Mods
     FLAlertLayer::create(
-        "Leaderboard Mod",
-        "<cb>Leaderboard Mod</c> is responsible for <co>managing and "
+        "LB Layout Mod",
+        "<cb>Leaderboard Layout Mod</c> is responsible for <co>managing and "
         "moderating the leaderboard</c> section of <cl>Rated Layouts</c>.",
         "OK")
         ->show();

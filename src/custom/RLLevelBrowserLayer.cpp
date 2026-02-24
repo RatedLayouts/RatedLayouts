@@ -117,14 +117,8 @@ bool RLLevelBrowserLayer::init(GJSearchObject *object) {
   this->addChild(m_listLayer);
   this->addChild(uiMenu, 10);
 
-  m_levelsLabel = CCLabelBMFont::create("", "goldFont.fnt");
-  m_levelsLabel->setPosition({winSize.width - 5, winSize.height - 5});
-  m_levelsLabel->setAnchorPoint({1.f, 1.f});
-  m_levelsLabel->setScale(0.45f);
-  this->addChild(m_levelsLabel, 10);
-
-  auto pageBtnSpr = CCSprite::create("GJ_button_02.png");
-  pageBtnSpr->setScale(0.7f);
+  auto pageBtnSpr = CCSprite::createWithSpriteFrameName(
+      "geode.loader/baseEditor_Normal_Cyan.png");
   if (pageBtnSpr) {
     m_pageButton = CCMenuItemSpriteExtra::create(
         pageBtnSpr, this, menu_selector(RLLevelBrowserLayer::onPageButton));
@@ -152,8 +146,51 @@ bool RLLevelBrowserLayer::init(GJSearchObject *object) {
         m_pageButtonLabel->setPosition({size.width / 2.f, size.height / 2.f});
         m_pageButtonLabel->setAnchorPoint({0.5f, 0.5f});
         m_pageButtonLabel->setID("rl-page-label");
-        m_pageButtonLabel->setScale(0.6f);
+        m_pageButtonLabel->setScale(0.7f);
         m_pageButton->addChild(m_pageButtonLabel, 1);
+      }
+
+      m_levelsLabel = CCLabelBMFont::create("", "goldFont.fnt");
+      m_levelsLabel->setPosition(
+          {pageMenu->getPositionX(), pageMenu->getPositionY() + 75});
+      m_levelsLabel->setAnchorPoint({1.f, 1.f});
+      m_levelsLabel->setScale(0.45f);
+      this->addChild(m_levelsLabel, 10);
+
+      if (m_mode == Mode::Sent || m_mode == Mode::AdminSent ||
+          m_mode == Mode::LegendarySends) {
+
+        auto classicIcon =
+            CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
+        auto classicOffSpr = EditorButtonSprite::create(
+            classicIcon, EditorBaseColor::Gray, EditorBaseSize::Normal);
+        auto classicOnSpr = EditorButtonSprite::create(
+            classicIcon, EditorBaseColor::Cyan, EditorBaseSize::Normal);
+        auto classicBtn = CCMenuItemSpriteExtra::create(
+            classicOffSpr, this,
+            menu_selector(RLLevelBrowserLayer::onClassicFilter));
+        if (classicBtn) {
+          m_classicBtn = classicBtn;
+          pageMenu->addChild(classicBtn);
+          pageMenu->updateLayout();
+        }
+
+        auto platIcon =
+            CCSprite::createWithSpriteFrameName("RL_planetBig.png"_spr);
+        auto platOffSpr = EditorButtonSprite::create(
+            platIcon, EditorBaseColor::Gray, EditorBaseSize::Normal);
+        auto platOnSpr = EditorButtonSprite::create(
+            platIcon, EditorBaseColor::Cyan, EditorBaseSize::Normal);
+        auto platBtn = CCMenuItemSpriteExtra::create(
+            platOffSpr, this,
+            menu_selector(RLLevelBrowserLayer::onPlanetFilter));
+        if (platBtn) {
+          m_planetBtn = platBtn;
+          pageMenu->addChild(platBtn);
+          pageMenu->updateLayout();
+        }
+
+        this->updateFilterButtons();
       }
       this->updatePageButton();
     }
@@ -479,6 +516,12 @@ void RLLevelBrowserLayer::fetchLevelsForType(int type) {
   req.param("type", numToString(type))
       .param("amount", numToString(PER_PAGE))
       .param("page", numToString(self->m_page + 1));
+  if (self->m_filterClassic) {
+    req.param("isClassic", "1");
+  }
+  if (self->m_filterPlat) {
+    req.param("isPlat", "1");
+  }
   self->m_searchTask.spawn(
       req.get("https://gdrate.arcticwoof.xyz/getLevels"),
       [self](web::WebResponse res) {
@@ -571,6 +614,12 @@ void RLLevelBrowserLayer::fetchAccountLevels(int accountId) {
   req.param("accountId", numToString(accountId))
       .param("amount", numToString(PER_PAGE))
       .param("page", numToString(self->m_page + 1));
+  if (self->m_filterClassic) {
+    req.param("isClassic", "1");
+  }
+  if (self->m_filterPlat) {
+    req.param("isPlat", "1");
+  }
   self->m_searchTask.spawn(
       req.get("https://gdrate.arcticwoof.xyz/getAccountLevels"),
       [self](web::WebResponse const &res) {
@@ -997,13 +1046,72 @@ void RLLevelBrowserLayer::onEnter() {
 }
 
 void RLLevelBrowserLayer::onExit() {
-  // clear delegate to avoid dangling callbacks when this layer is removed
   auto glm = GameLevelManager::get();
   if (glm && glm->m_levelManagerDelegate == this) {
     log::debug("clearing GameLevelManager delegate on exit");
     glm->m_levelManagerDelegate = nullptr;
   }
   CCLayer::onExit();
+}
+
+void RLLevelBrowserLayer::updateFilterButtons() {
+  if (m_filterButtonUpdating)
+    return;
+  m_filterButtonUpdating = true;
+  if (m_classicBtn) {
+    log::debug("updateFilterButtons: classic flag={}, setting sprite",
+               m_filterClassic);
+    auto icon = CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
+    auto spr = EditorButtonSprite::create(
+        icon, m_filterClassic ? EditorBaseColor::Cyan : EditorBaseColor::Gray,
+        EditorBaseSize::Normal);
+    m_classicBtn->setNormalImage(spr);
+  }
+  if (m_planetBtn) {
+    log::debug("updateFilterButtons: planet flag={}, setting sprite",
+               m_filterPlat);
+    auto icon = CCSprite::createWithSpriteFrameName("RL_planetBig.png"_spr);
+    auto spr = EditorButtonSprite::create(
+        icon, m_filterPlat ? EditorBaseColor::Cyan : EditorBaseColor::Gray,
+        EditorBaseSize::Normal);
+    m_planetBtn->setNormalImage(spr);
+  }
+  m_filterButtonUpdating = false;
+}
+
+void RLLevelBrowserLayer::onClassicFilter(CCObject *sender) {
+  if (m_filterButtonUpdating)
+    return;
+  bool before = m_filterClassic;
+  log::debug("classic button pressed: before flag={}", before);
+
+  m_filterClassic = !m_filterClassic;
+  if (m_filterClassic && m_filterPlat) {
+    m_filterPlat = false;
+  }
+  log::debug("classic flag flipped to {} (plat now={})", m_filterClassic,
+             m_filterPlat);
+
+  updateFilterButtons();
+  this->refreshLevels(true);
+}
+
+void RLLevelBrowserLayer::onPlanetFilter(CCObject *sender) {
+  if (m_filterButtonUpdating)
+    return;
+
+  bool before = m_filterPlat;
+  log::debug("planet button pressed: before flag={}", before);
+
+  m_filterPlat = !m_filterPlat;
+  if (m_filterPlat && m_filterClassic) {
+    m_filterClassic = false;
+  }
+  log::debug("planet flag flipped to {} (classic now={})", m_filterPlat,
+             m_filterClassic);
+
+  updateFilterButtons();
+  this->refreshLevels(true);
 }
 
 void RLLevelBrowserLayer::onInfoButton(CCObject *sender) {
@@ -1084,7 +1192,6 @@ void RLLevelBrowserLayer::onCompactToggle(CCObject *sender) {
   m_needsLayout = true;
 }
 void RLLevelBrowserLayer::update(float dt) {
-  // Deferred layout if requested
   if (m_needsLayout) {
     if (m_scrollLayer && m_scrollLayer->m_contentLayer) {
       auto contentLayer = m_scrollLayer->m_contentLayer;
@@ -1096,40 +1203,6 @@ void RLLevelBrowserLayer::update(float dt) {
       }
     }
     m_needsLayout = false;
-  }
-
-  // background tiles
-  if (!m_bgTiles.empty()) {
-    float move = m_bgSpeed * dt;
-    int num = static_cast<int>(m_bgTiles.size());
-    for (auto spr : m_bgTiles) {
-      if (!spr)
-        continue;
-      float tileW = spr->getContentSize().width;
-      float x = spr->getPositionX();
-      x -= move;
-      if (x <= -tileW) {
-        x += tileW * num;
-      }
-      spr->setPositionX(x);
-    }
-  }
-
-  // ground tiles
-  if (!m_groundTiles.empty()) {
-    float move = m_groundSpeed * dt;
-    int num = static_cast<int>(m_groundTiles.size());
-    for (auto spr : m_groundTiles) {
-      if (!spr)
-        continue;
-      float tileW = spr->getContentSize().width;
-      float x = spr->getPositionX();
-      x -= move;
-      if (x <= -tileW) {
-        x += tileW * num;
-      }
-      spr->setPositionX(x);
-    }
   }
 
   if (m_pageButtonLabel) {
