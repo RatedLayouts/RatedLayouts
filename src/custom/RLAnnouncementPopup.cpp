@@ -1,4 +1,6 @@
 #include "RLAnnouncementPopup.hpp"
+#include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 using namespace geode::prelude;
 
@@ -22,7 +24,7 @@ bool RLAnnouncementPopup::init() {
                         CCImage::kFmtPng, true);
   imageSpr->setAutoResize(true);
 
-  auto sStencil = CCScale9Sprite::create("GJ_square06.png");
+  auto sStencil = NineSlice::create("GJ_square06.png");
   if (sStencil) {
     sStencil->setAnchorPoint({0.f, 0.f});
     sStencil->setPosition({0.f, 0.f});

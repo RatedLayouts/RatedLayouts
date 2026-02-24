@@ -1,6 +1,7 @@
 #include "RLGauntletSelectLayer.hpp"
 
 #include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 #include "RLAnnouncementPopup.hpp"
 #include "RLGauntletLevelsLayer.hpp"
@@ -151,7 +152,7 @@ void RLGauntletSelectLayer::createGauntletButtons(
     int gauntletId = gauntlet["id"].asInt().unwrapOr(0);
     std::string gauntletName = gauntlet["name"].asString().unwrapOr("Unknown");
 
-    auto gauntletBg = CCScale9Sprite::create("GJ_squareB_01.png");
+    auto gauntletBg = NineSlice::create("GJ_squareB_01.png");
     gauntletBg->setContentSize({110, 240});
 
     // name label with line breaks at spaces

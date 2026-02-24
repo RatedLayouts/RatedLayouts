@@ -1,4 +1,6 @@
 #include "RLDonationPopup.hpp"
+#include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include "RLBadgeRequestPopup.hpp"
 
 #include <cstdlib>
@@ -22,7 +24,7 @@ bool RLDonationPopup::init() {
       if (!Popup::init(460.f, 270.f, "GJ_square07.png"))
             return false;
       // clipping node for rounded corners
-      auto sStencil = CCScale9Sprite::create("GJ_square06.png");
+      auto sStencil = NineSlice::create("GJ_square06.png");
       if (sStencil) {
             sStencil->setAnchorPoint({0.f, 0.f});
             sStencil->setPosition({0.f, 0.f});
@@ -34,7 +36,7 @@ bool RLDonationPopup::init() {
       clip->setAlphaThreshold(0.01f);
       m_mainLayer->addChild(clip, -1);
       // border
-      auto borderSprite = CCScale9Sprite::create("square02b_001.png");
+      auto borderSprite = NineSlice::create("square02b_001.png");
       borderSprite->setContentSize({m_mainLayer->getScaledContentSize()});
       borderSprite->setColor({140, 0, 140});
       borderSprite->setPosition({m_mainLayer->getScaledContentSize().width / 2.f, m_mainLayer->getScaledContentSize().height / 2.f});

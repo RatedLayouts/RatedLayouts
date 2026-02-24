@@ -134,9 +134,12 @@ bool RLCreditsPopup::init() {
           else if (text == "Platformer Layout Moderators")
             headerBadge = CCSprite::createWithSpriteFrameName(
                 "RL_badgePlatMod01.png"_spr);
-          else if (text == "LB Layout Moderators")
+          else if (text == "Leaderboard Layout Moderators")
             headerBadge =
                 CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr);
+          else if (text == "Rated Layouts Owner")
+            headerBadge =
+                CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr);
           else if (text.find("Admin") != std::string::npos)
             headerBadge =
                 CCSprite::createWithSpriteFrameName("RL_badgeAdmin01.png"_spr);
@@ -208,8 +211,10 @@ bool RLCreditsPopup::init() {
             infoTag = 7;
           else if (text == "Platformer Layout Moderators")
             infoTag = 8;
-          else if (text == "LB Layout Moderators")
+          else if (text == "Leaderboard Layout Moderators")
             infoTag = 9;
+          else if (text == "Rated Layouts Owner")
+            infoTag = 10;
           infoBtn->setTag(infoTag);
           // place next to label
           float infoWidth =
@@ -224,7 +229,7 @@ bool RLCreditsPopup::init() {
 
         auto addPlayer = [&](const matjson::Value &userVal, bool isAdmin,
                              bool isMod, bool isBooster, bool isSupporter,
-                             bool isPlat, bool isLeaderboard) {
+                             bool isPlat, bool isLeaderboard, bool isOwner) {
           if (!userVal.isObject())
             return;
 
@@ -244,7 +249,9 @@ bool RLCreditsPopup::init() {
           bgSprite->setTextureRect(CCRectMake(0, 0, 340.f, 50.f));
           bgSprite->setPosition({170.f, 25.f});
           bgSprite->setOpacity(120);
-          if (isAdmin) {
+          if (isOwner) {
+            bgSprite->setColor({150, 255, 255}); // cyan(boi) for owner
+          } else if (isAdmin) {
             if (isPlat) {
               bgSprite->setColor({255, 160, 0}); // orange for plat admin
             } else {
@@ -292,46 +299,52 @@ bool RLCreditsPopup::init() {
 
           content->addChild(cell);
         };
-
+        if (json.contains("owner") && json["owner"].isArray()) {
+          addHeader("Rated Layouts Owner");
+          auto arr = json["owner"].asArray().unwrap();
+          for (auto &val : arr) {
+            addPlayer(val, true, false, false, false, false, false, true);
+          }
+        }
         if (json.contains("classicAdmins") && json["classicAdmins"].isArray()) {
           addHeader("Classic Layout Admins");
           auto arr = json["classicAdmins"].asArray().unwrap();
           for (auto &val : arr)
-            addPlayer(val, true, false, false, false, false, false);
+            addPlayer(val, true, false, false, false, false, false, false);
         }
         if (json.contains("platAdmins") && json["platAdmins"].isArray()) {
           addHeader("Platformer Layout Admins");
           auto arr = json["platAdmins"].asArray().unwrap();
           for (auto &val : arr)
-            addPlayer(val, true, false, false, false, true, false);
+            addPlayer(val, true, false, false, false, true, false, false);
         }
         if (json.contains("classicModerators") &&
             json["classicModerators"].isArray()) {
           addHeader("Classic Layout Moderators");
           auto arr = json["classicModerators"].asArray().unwrap();
           for (auto &val : arr)
-            addPlayer(val, false, true, false, false, false, false);
+            addPlayer(val, false, true, false, false, false, false, false);
         }
         if (json.contains("platModerators") &&
             json["platModerators"].isArray()) {
           addHeader("Platformer Layout Moderators");
           auto arr = json["platModerators"].asArray().unwrap();
           for (auto &val : arr)
-            addPlayer(val, false, true, false, false, true, false);
+            addPlayer(val, false, true, false, false, true, false, false);
         }
         if (json.contains("leaderboardModerators") &&
             json["leaderboardModerators"].isArray()) {
           addHeader("Leaderboard Layout Moderators");
           auto arr = json["leaderboardModerators"].asArray().unwrap();
           for (auto &val : arr)
-            addPlayer(val, false, true, false, false, false, true);
+            addPlayer(val, false, true, false, false, false, true, false);
         }
 
         if (json.contains("supporters") && json["supporters"].isArray()) {
           addHeader("Layout Supporters");
           auto sup = json["supporters"].asArray().unwrap();
           for (auto &val : sup) {
-            addPlayer(val, false, false, false, true, false, false);
+            addPlayer(val, false, false, false, true, false, false, false);
           }
         }
 
@@ -339,7 +352,7 @@ bool RLCreditsPopup::init() {
           addHeader("Layout Boosters");
           auto boosters = json["boosters"].asArray().unwrap();
           for (auto &val : boosters) {
-            addPlayer(val, false, false, true, false, false, false);
+            addPlayer(val, false, false, true, false, false, false, false);
           }
         }
         content->updateLayout();
@@ -444,6 +457,16 @@ void RLCreditsPopup::onHeaderInfo(CCObject *sender) {
         "LB Layout Mod",
         "<cb>Leaderboard Layout Mod</c> is responsible for <co>managing and "
         "moderating the leaderboard</c> section of <cl>Rated Layouts</c>.",
+        "OK")
+        ->show();
+    break;
+  case 10: // Owner
+    FLAlertLayer::create(
+        "Rated Layouts Owner",
+        "<cf>ArcticWoof</c> is the creator and owner of "
+        "<cl>Rated Layouts</c>. He is the main developer and maintainer of "
+        "this <cp>Geode Mod</c> and has the ability to <cg>promote "
+        "users</c>.",
         "OK")
         ->show();
     break;

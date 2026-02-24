@@ -1,4 +1,6 @@
 #include "RLCreatorLayer.hpp"
+#include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/ui/GeodeUI.hpp>
@@ -365,7 +367,7 @@ bool RLCreatorLayer::init() {
 
   if (!Mod::get()->getSettingValue<bool>("disableModInfo")) {
     // mod info stuff
-    auto modInfoBg = CCScale9Sprite::create("square02_small.png");
+    auto modInfoBg = NineSlice::create("square02_small.png");
     modInfoBg->setPosition({winSize.width / 2, 0});
     modInfoBg->setContentSize({160.f, 70.f});
     modInfoBg->setOpacity(100);

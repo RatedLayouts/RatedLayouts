@@ -7,12 +7,12 @@
 #include "../custom/RLLevelBrowserLayer.hpp"
 #include "../player/RLDifficultyTotalPopup.hpp"
 #include "../player/RLUserControl.hpp"
-#include "GUI/CCControlExtension/CCScale9Sprite.h"
 #include "Geode/cocos/label_nodes/CCLabelBMFont.h"
 #include "Geode/loader/Mod.hpp"
 #include "Geode/ui/BasedButtonSprite.hpp"
 
 using namespace geode::prelude;
+const int DEV_ACCOUNTID = 7689052;
 
 class $modify(RLProfilePage, ProfilePage) {
   struct Fields {
@@ -191,7 +191,7 @@ class $modify(RLProfilePage, ProfilePage) {
     m_mainLayer->addChild(rlButtonsMenu, 10);
 
     if (rlButtonsMenu) {
-      auto rlButtonBg = CCScale9Sprite::create("GJ_square02.png");
+      auto rlButtonBg = NineSlice::create("GJ_square02.png");
       rlButtonBg->setContentSize(rlButtonsMenu->getContentSize() +
                                  CCSize(10.f, 10.f));
       rlButtonBg->setPosition(rlButtonsMenu->getPosition());
@@ -218,7 +218,7 @@ class $modify(RLProfilePage, ProfilePage) {
     auto rlButtonsMenu = m_mainLayer->getChildByID("rl-buttons-menu");
     if (!rlButtonsMenu) {
       log::warn("rl-buttons-menu not found — recreating");
-      // Recreate the buttons menu and background so the page shows correctly
+      // Recreate the buttons menu so the page shows correctly
       rlButtonsMenu = CCMenu::create();
       rlButtonsMenu->setID("rl-buttons-menu");
       rlButtonsMenu->setPosition(
@@ -231,12 +231,6 @@ class $modify(RLProfilePage, ProfilePage) {
                                    ->setGrowCrossAxis(false));
       m_mainLayer->addChild(rlButtonsMenu, 10);
 
-      // recreate background
-      auto rlButtonBg = CCScale9Sprite::create("GJ_square02.png");
-      rlButtonBg->setContentSize(rlButtonsMenu->getContentSize() +
-                                 CCSize(10.f, 10.f));
-      rlButtonBg->setPosition(rlButtonsMenu->getPosition());
-      m_mainLayer->addChild(rlButtonBg, -1);
     }
 
     // view stats
@@ -257,7 +251,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
     // if u are leaderboard mod show the manage button to manage your
     // leaderboard entries
-    if (Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
+    if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") || GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
       if (!rlButtonsMenu->getChildByID("rl-manage-btn")) {
         auto modUserSpr =
             CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr);

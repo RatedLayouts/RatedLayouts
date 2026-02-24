@@ -1,4 +1,6 @@
 #include "RLSearchLayer.hpp"
+#include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include "RLLevelBrowserLayer.hpp"
 #include <cue/RepeatingBackground.hpp>
 
@@ -82,7 +84,7 @@ bool RLSearchLayer::init() {
   m_searchInputMenu->setPosition({winSize.width / 2, winSize.height - 30});
   m_searchInputMenu->setContentSize({365.f, 40.f});
 
-  auto searchInputBg = CCScale9Sprite::create("square02_small.png");
+  auto searchInputBg = NineSlice::create("square02_small.png");
   searchInputBg->setContentSize(m_searchInputMenu->getContentSize());
   searchInputBg->setOpacity(100);
   m_searchInputMenu->addChild(searchInputBg, -1);
@@ -193,7 +195,7 @@ bool RLSearchLayer::init() {
     m_difficultyMenuItems.push_back(menuItem);
     m_difficultySprites.push_back(difficultySprite);
   }
-  auto difficultyMenuBg = CCScale9Sprite::create("square02_small.png");
+  auto difficultyMenuBg = NineSlice::create("square02_small.png");
   difficultyMenuBg->setContentSize(m_difficultyFilterMenu->getContentSize());
   difficultyMenuBg->setPosition(m_difficultyFilterMenu->getPosition());
   difficultyMenuBg->setOpacity(100);
@@ -297,7 +299,7 @@ bool RLSearchLayer::init() {
   optionsLabel->setPosition({winSize.width / 2, winSize.height - 160});
   optionsLabel->setScale(0.5f);
   this->addChild(optionsLabel);
-  auto optionsMenuBg = CCScale9Sprite::create("square02_small.png");
+  auto optionsMenuBg = NineSlice::create("square02_small.png");
   optionsMenuBg->setContentSize({optionsMenu->getContentSize().width + 10.f,
                                  optionsMenu->getContentSize().height + 10.f});
   optionsMenuBg->setPosition(optionsMenu->getPosition());

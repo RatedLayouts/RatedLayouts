@@ -1,5 +1,6 @@
 #include "RLModRatePopup.hpp"
 #include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <fmt/format.h>
 #include <string>
 
@@ -423,7 +424,7 @@ bool RLModRatePopup::init() {
   }
 
   // notes textinput bottom of the popupp
-  auto bg2 = CCScale9Sprite::create("GJ_square02.png");
+  auto bg2 = NineSlice::create("GJ_square02.png");
   bg2->setPosition({m_mainLayer->getContentSize().width / 2, -50.f});
   bg2->setContentSize({m_mainLayer->getContentSize().width, 50.f});
   m_mainLayer->addChild(bg2);

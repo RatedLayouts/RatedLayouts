@@ -2,6 +2,7 @@
 #include "Geode/utils/general.hpp"
 #include "RLNotificationOverlay.hpp"
 #include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
 
 using namespace geode::prelude;
@@ -86,7 +87,7 @@ bool RLNotificationAlert::init(std::string const &title,
   this->addChild(alertMenu);
 
   // Background
-  auto bg = CCScale9Sprite::create("GJ_square05.png");
+  auto bg = NineSlice::create("GJ_square05.png");
   bg->setContentSize({250.f, 80.f});
   bg->setID("rl-notification-bg");
   bg->setPosition({5.f, 5.f});

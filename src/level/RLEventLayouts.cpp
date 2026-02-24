@@ -1,4 +1,6 @@
 #include "RLEventLayouts.hpp"
+#include <Geode/Geode.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 #include "../custom/RLAchievements.hpp"
 #include "../custom/RLLevelBrowserLayer.hpp"
@@ -70,7 +72,7 @@ bool RLEventLayouts::init() {
   const char *bgTex = (idx == 0)   ? "GJ_square03.png"
                       : (idx == 1) ? "GJ_square05.png"
                                    : "GJ_square04.png";
-  auto bgSprite = CCScale9Sprite::create(bgTex);
+  auto bgSprite = NineSlice::create(bgTex);
   if (bgSprite) {
     bgSprite->setContentSize({380.f, 84.f});
     bgSprite->setAnchorPoint({0.5f, 0.5f});
@@ -105,7 +107,7 @@ bool RLEventLayouts::init() {
   auto platContainer = CCLayer::create();
   platContainer->setContentSize({380.f, 84.f});
   platContainer->setAnchorPoint({0.5f, 0.5f});
-  auto platBg = CCScale9Sprite::create(bgTex);
+  auto platBg = NineSlice::create(bgTex);
   if (platBg) {
     platBg->setContentSize({380.f, 84.f});
     platBg->setAnchorPoint({0.5f, 0.5f});
