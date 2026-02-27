@@ -1,5 +1,6 @@
 #include "../custom/RLAchievements.hpp"
 #include "../utils/RubyUtils.hpp"
+#include "Geode/cocos/textures/CCTexture2D.h"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/EndLevelLayer.hpp>
 
@@ -501,10 +502,15 @@ class $modify(EndLevelLayer) {
 
                       // Setup ruby sprite frame for diamond repurposing
                       std::string rubyFrameName = "RL_bigRuby.png"_spr;
+                      std::string rubyCurrency = "RL_currencyRuby.png"_spr;
                       auto rubyDisplayFrame =
                           CCSpriteFrameCache::sharedSpriteFrameCache()
                               ->spriteFrameByName((rubyFrameName).c_str());
+                      auto rubyCurrencyFrame =
+                          CCSpriteFrameCache::sharedSpriteFrameCache()
+                              ->spriteFrameByName((rubyCurrency).c_str());
                       CCTexture2D *rubyTexture = nullptr;
+                      CCTexture2D *rubyCurrencyTexture = nullptr;
                       if (!rubyDisplayFrame) {
                         rubyTexture =
                             CCTextureCache::sharedTextureCache()->addImage(
@@ -513,6 +519,18 @@ class $modify(EndLevelLayer) {
                           rubyDisplayFrame = CCSpriteFrame::createWithTexture(
                               rubyTexture,
                               {{0, 0}, rubyTexture->getContentSize()});
+                        }
+                        if (!rubyCurrencyFrame) {
+                          rubyTexture =
+                              CCTextureCache::sharedTextureCache()->addImage(
+                                  (rubyCurrency).c_str(), false);
+                          if (rubyCurrencyTexture) {
+                            rubyCurrencyFrame =
+                                CCSpriteFrame::createWithTexture(
+                                    rubyCurrencyTexture,
+                                    {{0, 0},
+                                     rubyCurrencyTexture->getContentSize()});
+                          }
                         }
                       } else {
                         rubyTexture = rubyDisplayFrame->getTexture();
@@ -531,8 +549,14 @@ class $modify(EndLevelLayer) {
                             rewardLayer->m_moonsSprite->setDisplayFrame(
                                 displayFrame);
                         }
-                        if (rewardLayer->m_currencyBatchNode)
+                        if (rewardLayer->m_currencyBatchNode) {
                           rewardLayer->m_currencyBatchNode->setTexture(texture);
+                          // if (auto blend =
+                          //         typeinfo_cast<CCBlendProtocol*>(
+                          //             rewardLayer->m_currencyBatchNode)) {
+                          //   blend->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+                          // }
+                        }
 
                         // Only set diamond->ruby frame if both exist
                         if (rewardLayer->m_diamondsSprite && rubyDisplayFrame) {
@@ -557,8 +581,18 @@ class $modify(EndLevelLayer) {
                           if (sprite->m_spriteType ==
                               CurrencySpriteType::Diamond) { // repurpose
                                                              // diamond as ruby
-                            if (rubyDisplayFrame) {
-                              sprite->setDisplayFrame(rubyDisplayFrame);
+                            if (rubyCurrencyFrame) {
+                              if (rubyCurrencyTexture &&
+                                  rewardLayer->m_currencyBatchNode) {
+                                rewardLayer->m_currencyBatchNode->setTexture(
+                                    rubyCurrencyTexture);
+                                // if (auto blend =
+                                //         typeinfo_cast<CCBlendProtocol *>(
+                                //             rewardLayer->m_currencyBatchNode)) {
+                                //   blend->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+                                // }
+                              }
+                              sprite->setDisplayFrame(rubyCurrencyFrame);
                             }
                           }
                         }

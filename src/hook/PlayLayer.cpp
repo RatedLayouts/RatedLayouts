@@ -175,6 +175,7 @@ class $modify(RLPlayLayer, PlayLayer) {
 
           // replace displayed sprite with ruby sprite
           std::string frameName = "RL_bigRuby.png"_spr;
+          std::string currencyFrameName = "RL_currencyRuby.png"_spr;
           auto displayFrame =
               CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(
                   frameName.c_str());
@@ -188,6 +189,21 @@ class $modify(RLPlayLayer, PlayLayer) {
             }
           } else {
             texture = displayFrame->getTexture();
+          }
+          // prepare separate cache entry for the diamond (currency) frame
+          auto currencyFrame =
+              CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(
+                  currencyFrameName.c_str());
+          CCTexture2D *currencyTexture = nullptr;
+          if (!currencyFrame) {
+            currencyTexture = CCTextureCache::sharedTextureCache()->addImage(
+                currencyFrameName.c_str(), false);
+            if (currencyTexture) {
+              currencyFrame = CCSpriteFrame::createWithTexture(
+                  currencyTexture, {{0, 0}, currencyTexture->getContentSize()});
+            }
+          } else {
+            currencyTexture = currencyFrame->getTexture();
           }
 
           if (displayFrame && texture) {
@@ -204,28 +220,41 @@ class $modify(RLPlayLayer, PlayLayer) {
                   sprite->m_burstSprite->setVisible(false);
                 if (auto childNode = sprite->getChildByIndex(0))
                   childNode->setVisible(false);
-                sprite->setDisplayFrame(displayFrame);
-              }
-            }
-
-            // does new best seriously doesnt have an id? bruh
-            auto _allChildren = this->getChildren();
-            if (_allChildren) {
-              for (unsigned int j = 0; j < _allChildren->count(); ++j) {
-                auto node =
-                    static_cast<CCNode *>(_allChildren->objectAtIndex(j));
-                if (!node)
-                  continue;
-                auto nodeChildren = node->getChildren();
-                if (!nodeChildren)
-                  continue;
-                if (nodeChildren->count() ==
-                    4) { // its always 4 children on the new best node so ye
-                  auto obj3 = nodeChildren->objectAtIndex(3);
-                  if (!obj3)
-                    continue;
-                  if (auto spr3 = typeinfo_cast<CCSprite *>(obj3)) {
-                    spr3->setDisplayFrame(displayFrame);
+                if (sprite->m_spriteType == CurrencySpriteType::Diamond) {
+                  // use currency-specific frame if available
+                  if (currencyFrame) {
+                    sprite->setDisplayFrame(currencyFrame);
+                  } else {
+                    sprite->setDisplayFrame(displayFrame);
+                  }
+                  if (currencyTexture && rewardLayer->m_currencyBatchNode) {
+                    rewardLayer->m_currencyBatchNode->setTexture(
+                        currencyTexture);
+                    // if (auto blend = typeinfo_cast<CCBlendProtocol *>(
+                    //         rewardLayer->m_currencyBatchNode)) {
+                    //   blend->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+                    // }
+                  }
+                }
+                auto _allChildren = this->getChildren();
+                if (_allChildren) {
+                  for (unsigned int j = 0; j < _allChildren->count(); ++j) {
+                    auto node =
+                        static_cast<CCNode *>(_allChildren->objectAtIndex(j));
+                    if (!node)
+                      continue;
+                    auto nodeChildren = node->getChildren();
+                    if (!nodeChildren)
+                      continue;
+                    if (nodeChildren->count() ==
+                        4) { // its always 4 children on the new best node so ye
+                      auto obj3 = nodeChildren->objectAtIndex(3);
+                      if (!obj3)
+                        continue;
+                      if (auto spr3 = typeinfo_cast<CCSprite *>(obj3)) {
+                        spr3->setDisplayFrame(displayFrame);
+                      }
+                    }
                   }
                 }
               }

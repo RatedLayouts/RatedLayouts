@@ -10,6 +10,7 @@
 #include "../level/RLCommunityVotePopup.hpp"
 #include "../level/RLModRatePopup.hpp"
 #include "../utils/RubyUtils.hpp"
+#include "Geode/cocos/textures/CCTexture2D.h"
 
 using namespace geode::prelude;
 using namespace ratedlayouts;
@@ -609,16 +610,31 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 }
 
                 std::string rubyFrameName = "RL_bigRuby.png"_spr;
+                std::string rubyCurrenyName = "RL_currencyRuby.png"_spr;
                 auto rubyDisplayFrame =
                     CCSpriteFrameCache::sharedSpriteFrameCache()
                         ->spriteFrameByName((rubyFrameName).c_str());
+                auto rubyCurrencyFrame =
+                    CCSpriteFrameCache::sharedSpriteFrameCache()
+                        ->spriteFrameByName((rubyCurrenyName).c_str());
                 CCTexture2D *rubyTexture = nullptr;
+                CCTexture2D *rubyCurrencyTexture = nullptr;
                 if (!rubyDisplayFrame) {
                   rubyTexture = CCTextureCache::sharedTextureCache()->addImage(
                       (rubyFrameName).c_str(), false);
                   if (rubyTexture) {
                     rubyDisplayFrame = CCSpriteFrame::createWithTexture(
                         rubyTexture, {{0, 0}, rubyTexture->getContentSize()});
+                  }
+                  if (!rubyCurrencyFrame) {
+                    rubyCurrencyTexture =
+                        CCTextureCache::sharedTextureCache()->addImage(
+                            (rubyCurrenyName).c_str(), false);
+                    if (rubyCurrencyTexture) {
+                      rubyCurrencyFrame = CCSpriteFrame::createWithTexture(
+                          rubyCurrencyTexture,
+                          {{0, 0}, rubyCurrencyTexture->getContentSize()});
+                    }
                   } else {
                     log::warn("Failed to load ruby texture");
                   }
@@ -634,8 +650,13 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                       rewardLayer->m_moonsSprite->setDisplayFrame(displayFrame);
                   }
                   // set batch-node texture for primary reward (star/planet)
-                  if (rewardLayer->m_currencyBatchNode && texture)
+                  if (rewardLayer->m_currencyBatchNode && texture) {
                     rewardLayer->m_currencyBatchNode->setTexture(texture);
+                    // if (auto blend = typeinfo_cast<CCBlendProtocol*>(
+                    //         rewardLayer->m_currencyBatchNode)) {
+                    //   blend->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+                    // }
+                  }
                 }
 
                 if (rubyDisplayFrame && rubyTexture &&
@@ -664,12 +685,18 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
                   // diamond slot: show ruby frame when available
                   if (sprite->m_spriteType == CurrencySpriteType::Diamond) {
-                    if (rubyDisplayFrame) {
-                      if (rubyTexture && rewardLayer->m_currencyBatchNode) {
+                    if (rubyCurrencyFrame) {
+                      if (rubyCurrencyTexture &&
+                          rewardLayer->m_currencyBatchNode) {
                         rewardLayer->m_currencyBatchNode->setTexture(
-                            rubyTexture);
+                            rubyCurrencyTexture);
+                        // blend for ruby currency
+                        // if (auto blend = typeinfo_cast<CCBlendProtocol*>(
+                        //         rewardLayer->m_currencyBatchNode)) {
+                        //   blend->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+                        // }
                       }
-                      sprite->setDisplayFrame(rubyDisplayFrame);
+                      sprite->setDisplayFrame(rubyCurrencyFrame);
                     }
                   }
                 }
@@ -678,6 +705,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 if (rewardLayer->m_diamondsSprite && rubyDisplayFrame) {
                   if (rubyTexture && rewardLayer->m_currencyBatchNode) {
                     rewardLayer->m_currencyBatchNode->setTexture(rubyTexture);
+                    // if (auto blend = typeinfo_cast<CCBlendProtocol*>(
+                    //         rewardLayer->m_currencyBatchNode)) {
+                    //   blend->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
+                    // }
                   }
                   rewardLayer->m_diamondsSprite->setDisplayFrame(
                       rubyDisplayFrame);
@@ -706,11 +737,11 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
               Mod::get()->setSavedValue<int>("rubies", newTotal);
 
               if (!animationEnabled) {
-              Notification::create(
-                  std::string("Received ") + numToString(remainingRubies) +
-                      " rubies!",
-                  CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr))
-                  ->show();
+                Notification::create(
+                    std::string("Received ") + numToString(remainingRubies) +
+                        " rubies!",
+                    CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr))
+                    ->show();
               }
 
               int oldCollected = rubyInfo.collected;
