@@ -175,6 +175,16 @@ class $modify(RLProfilePage, ProfilePage) {
       statsMenu->updateLayout();
     }
 
+    if (Mod::get()->getSettingValue<bool>("disableRLMenu")) {
+      if (auto rlButtonBG = this->getChildByID("rl-button-bg")) {
+        rlButtonBG->removeFromParent();
+      }
+      if (auto rlButtonsMenu = this->getChildByID("rl-buttons-menu")) {
+        rlButtonsMenu->removeFromParent();
+      }
+      return true;
+    }
+
     // create the rl buttons menu at the side
     auto rlButtonsMenu = CCMenu::create();
     rlButtonsMenu->setID("rl-buttons-menu");
@@ -196,6 +206,7 @@ class $modify(RLProfilePage, ProfilePage) {
       rlButtonBg->setContentSize(rlButtonsMenu->getContentSize() +
                                  CCSize(10.f, 10.f));
       rlButtonBg->setPosition(rlButtonsMenu->getPosition());
+      rlButtonBg->setID("rl-button-bg");
       m_mainLayer->addChild(rlButtonBg, 9);
     }
 
@@ -210,6 +221,9 @@ class $modify(RLProfilePage, ProfilePage) {
       log::warn("stats-menu not found");
       return;
     }
+
+    if (Mod::get()->getSettingValue<bool>("disableRLMenu"))
+      return;
 
     if (auto rlStatsBtnFound = getChildByIDRecursive("rl-stats-btn"))
       rlStatsBtnFound->removeFromParent();
@@ -490,37 +504,39 @@ class $modify(RLProfilePage, ProfilePage) {
           pageRef->m_fields->isPlatMod = isPlatMod;
           pageRef->m_fields->isPlatAdmin = isPlatAdmin;
 
-          // show mod button if leaderboard mod or dev
-          if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
-              GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
-            if (auto rlButtonsMenu =
-                    pageRef->getChildByIDRecursive("rl-buttons-menu")) {
-              // no recreate the manage button if it already exists
-              if (!rlButtonsMenu->getChildByID("rl-manage-btn")) {
-                auto modUserSpr = CCSprite::createWithSpriteFrameName(
-                    "RL_badgelbMod01.png"_spr);
-                auto modUserButton = EditorButtonSprite::create(
-                    modUserSpr, EditorBaseColor::LightBlue,
-                    EditorBaseSize::Normal);
-                auto modUserBtnItem = CCMenuItemSpriteExtra::create(
-                    modUserButton, pageRef,
-                    menu_selector(RLProfilePage::onUserManage));
-                modUserBtnItem->setID("rl-manage-btn");
-                rlButtonsMenu->addChild(modUserBtnItem);
-                rlButtonsMenu->updateLayout();
-              }
-              if (!rlButtonsMenu->getChildByID("rl-manage-level-btn")) {
-                auto manageLevelSpr = CCSprite::createWithSpriteFrameName(
-                    "RL_badgeMod01.png"_spr);
-                auto manageLevelButton = EditorButtonSprite::create(
-                    manageLevelSpr, EditorBaseColor::LightBlue,
-                    EditorBaseSize::Normal);
-                auto manageLevelBtnItem = CCMenuItemSpriteExtra::create(
-                    manageLevelButton, pageRef,
-                    menu_selector(RLProfilePage::onUserManageLevel));
-                manageLevelBtnItem->setID("rl-manage-level-btn");
-                rlButtonsMenu->addChild(manageLevelBtnItem);
-                rlButtonsMenu->updateLayout();
+          if (!Mod::get()->getSettingValue<bool>("disableRLMenu")) {
+            // show mod button if leaderboard mod or dev
+            if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
+                GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
+              if (auto rlButtonsMenu =
+                      pageRef->getChildByIDRecursive("rl-buttons-menu")) {
+                // no recreate the manage button if it already exists
+                if (!rlButtonsMenu->getChildByID("rl-manage-btn")) {
+                  auto modUserSpr = CCSprite::createWithSpriteFrameName(
+                      "RL_badgelbMod01.png"_spr);
+                  auto modUserButton = EditorButtonSprite::create(
+                      modUserSpr, EditorBaseColor::LightBlue,
+                      EditorBaseSize::Normal);
+                  auto modUserBtnItem = CCMenuItemSpriteExtra::create(
+                      modUserButton, pageRef,
+                      menu_selector(RLProfilePage::onUserManage));
+                  modUserBtnItem->setID("rl-manage-btn");
+                  rlButtonsMenu->addChild(modUserBtnItem);
+                  rlButtonsMenu->updateLayout();
+                }
+                if (!rlButtonsMenu->getChildByID("rl-manage-level-btn")) {
+                  auto manageLevelSpr = CCSprite::createWithSpriteFrameName(
+                      "RL_badgeMod01.png"_spr);
+                  auto manageLevelButton = EditorButtonSprite::create(
+                      manageLevelSpr, EditorBaseColor::LightBlue,
+                      EditorBaseSize::Normal);
+                  auto manageLevelBtnItem = CCMenuItemSpriteExtra::create(
+                      manageLevelButton, pageRef,
+                      menu_selector(RLProfilePage::onUserManageLevel));
+                  manageLevelBtnItem->setID("rl-manage-level-btn");
+                  rlButtonsMenu->addChild(manageLevelBtnItem);
+                  rlButtonsMenu->updateLayout();
+                }
               }
             }
           }

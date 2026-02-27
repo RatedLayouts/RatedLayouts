@@ -171,6 +171,12 @@
 			"type": "title",
 			"name": "Miscellaneous Settings"
 		},
+		"disableRLMenu": {
+			"name": "Disable Stats Menu Button",
+			"type": "bool",
+			"default": false,
+			"description": "Disable the Rated Layouts stats menu button in the Profile Page."
+		},
 		"disableRewardAnimation": {
 			"name": "Disable Reward Animation",
 			"type": "bool",
