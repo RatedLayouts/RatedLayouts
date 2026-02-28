@@ -1,5 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/modify/GameLevelManager.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/utils/async.hpp>
@@ -271,13 +272,14 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         if (hasPctFields) {
           shouldDisable = !(normalPct >= 20 || practicePct >= 80);
         }
-
         // Mods/Admins can always vote regardless of percentages
         bool isClassicMod = Mod::get()->getSavedValue<bool>("isClassicMod");
         bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
         bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
         bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-        if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin) {
+        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+        if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin ||
+            isDev) {
           shouldDisable = false;
           log::debug(
               "Community vote enabled due to role override (classic/plat)");
@@ -346,7 +348,9 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
         bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
         bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-        if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin) {
+        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+        if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin ||
+            isDev) {
           shouldDisable = false;
           log::debug(
               "Community vote enabled due to role override (classic/plat)");
@@ -1403,12 +1407,13 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         int isClassicAdmin = Mod::get()->getSavedValue<int>("isClassicAdmin");
         int isPlatMod = Mod::get()->getSavedValue<int>("isPlatMod");
         int isPlatAdmin = Mod::get()->getSavedValue<int>("isPlatAdmin");
-        if (isClassicMod == 1 || isClassicAdmin == 1) {
+        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+        if (isClassicMod == 1 || isClassicAdmin == 1 || isDev) {
           shouldDisable = false;
           log::debug("Community vote enabled due to role override (role={})",
                      isClassicMod == 1 ? "isClassicMod" : "isClassicAdmin");
         }
-        if (isPlatMod == 1 || isPlatAdmin == 1) {
+        if (isPlatMod == 1 || isPlatAdmin == 1 || isDev) {
           shouldDisable = false;
           log::debug("Community vote enabled due to role override (role={})",
                      isPlatMod == 1 ? "isPlatMod" : "isPlatAdmin");
@@ -1424,17 +1429,11 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
               menu_selector(RLLevelInfoLayer::onCommunityVote));
           commBtnItem->setID("rl-community-vote");
 
-          // Initially disabled and visually grayed
-          commBtnItem->setEnabled(false);
-          commBtnItem->setOpacity(100);
-
           auto rightMenuNode = layerRef->getChildByID("right-side-menu");
-          if (rightMenuNode && typeinfo_cast<CCMenu *>(rightMenuNode)) {
-            static_cast<CCMenu *>(rightMenuNode)->addChild(commBtnItem);
-            static_cast<CCMenu *>(rightMenuNode)->updateLayout();
+          if (rightMenuNode && static_cast<CCMenu *>(rightMenuNode)) {
+            rightMenuNode->addChild(commBtnItem);
+            rightMenuNode->updateLayout();
 
-            // Reactivate immediately if it should be enabled according to
-            // data
             if (!shouldDisable) {
               auto commSpriteColor =
                   CCSprite::createWithSpriteFrameName("RL_commVote01.png"_spr);
@@ -1445,7 +1444,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 commBtnItem->setNormalImage(coloredBtnSpr);
               }
               commBtnItem->setEnabled(true);
-              commBtnItem->setOpacity(255);
             }
           } else {
             log::warn(
@@ -1865,7 +1863,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
     bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
     bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-    if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin) {
+    bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+    if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin || isDev) {
       shouldDisable = false;
       log::debug("Community vote enabled due to role override (classic/plat)");
     }
@@ -2142,9 +2141,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                                 isClassicAdmin);
                 Mod::get()->setSavedValue<bool>("isPlatMod", isPlatMod);
                 Mod::get()->setSavedValue<bool>("isPlatAdmin", isPlatAdmin);
-                // legacy value cleared
-                Mod::get()->setSavedValue<int>("role", 0);
-
                 // Refresh the community vote button immediately so role
                 // overrides take effect
               });

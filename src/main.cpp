@@ -1,3 +1,4 @@
+#include "Geode/loader/Log.hpp"
 #include "Geode/loader/Mod.hpp"
 #include "custom/RLAchievements.hpp"
 #include <Geode/DefaultInclude.hpp>
@@ -71,7 +72,7 @@ class $modify(SupportLayer) {
 
           if (res.isOk()) {
             auto token = std::move(res).unwrap();
-            log::debug("token obtained: {}", token);
+            log::info("token obtained: {}", token);
             Mod::get()->setSavedValue("argon_token", token);
 
             // json body

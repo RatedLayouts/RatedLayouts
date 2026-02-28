@@ -61,6 +61,7 @@ bool RLGauntletLevelsLayer::init(matjson::Value const &gauntletData) {
 
   auto menu = CCMenu::create();
   menu->setPosition({0, 0});
+  this->addChild(menu, 10);
 
   addBackButton(this, BackButtonStyle::Green);
 

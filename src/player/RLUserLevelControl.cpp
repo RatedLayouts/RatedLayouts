@@ -48,7 +48,7 @@ bool RLUserLevelControl::init() {
   auto cs = m_mainLayer->getContentSize();
 
   // numeric input for target level id
-  m_levelInput = TextInput::create(200.f, "Level ID");
+  m_levelInput = TextInput::create(220.f, "Level ID to Uncomplete");
   m_levelInput->setCommonFilter(CommonFilter::Int);
   m_levelInput->setPosition({cs.width / 2.f, cs.height / 2.f});
   m_mainLayer->addChild(m_levelInput);

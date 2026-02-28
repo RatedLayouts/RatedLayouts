@@ -453,9 +453,6 @@ void RLCreatorLayer::onSupporterButton(CCObject *sender) {
 }
 
 void RLCreatorLayer::onSecretDialogueButton(CCObject *sender) {
-  if (Mod::get()->getSavedValue<int>("role") < 1) {
-    return;
-  }
   auto dialogue = RLAddDialogue::create();
   dialogue->show();
 }

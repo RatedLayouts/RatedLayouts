@@ -1,10 +1,22 @@
 #include "RLCommunityVotePopup.hpp"
 #include "../custom/RLAchievements.hpp"
 #include "../custom/RLVotesLeaderboardLayer.hpp"
+#include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/binding/UploadActionPopup.hpp>
+#include <algorithm>
 
 using namespace geode::prelude;
-#include <algorithm>
+
+const int DEV_ACCOUNT_ID = 7689052;
+
+// helper to determine whether the current account has moderator permissions
+static bool checkPerms() {
+  return (Mod::get()->getSavedValue<bool>("isClassicMod") ||
+          Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+          Mod::get()->getSavedValue<bool>("isPlatMod") ||
+          Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
+          GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID);
+}
 
 RLCommunityVotePopup *RLCommunityVotePopup::create() {
   return RLCommunityVotePopup::create(0);
@@ -296,7 +308,8 @@ bool RLCommunityVotePopup::init() {
   m_buttonMenu->addChild(infoBtn, 3);
 
   // votes leaderboard
-  auto leaderboardSpr = CCSprite::createWithSpriteFrameName("RL_lbVote01.png"_spr);
+  auto leaderboardSpr =
+      CCSprite::createWithSpriteFrameName("RL_lbVote01.png"_spr);
   leaderboardSpr->setScale(0.7f);
   auto leaderboardBtn = CCMenuItemSpriteExtra::create(
       leaderboardSpr, this, menu_selector(RLCommunityVotePopup::onLeaderboard));
@@ -304,8 +317,8 @@ bool RLCommunityVotePopup::init() {
   m_buttonMenu->addChild(leaderboardBtn, 3);
 
   // single toggle for moderators to show/hide all scores at once
-  int userRole2 = Mod::get()->getSavedValue<int>("role");
-  if (userRole2 == 1 || userRole2 == 2) {
+  bool hasPerms = checkPerms();
+  if (hasPerms) {
     auto allSpr = CCSprite::createWithSpriteFrameName("hideBtn_001.png");
     allSpr->setOpacity(120);
     m_toggleAllBtn = CCMenuItemSpriteExtra::create(
@@ -518,8 +531,8 @@ void RLCommunityVotePopup::refreshFromServer() {
         }
 
         // Ensure toggle buttons reflect current visibility state for moderators
-        int userRole = Mod::get()->getSavedValue<int>("role");
-        if (userRole == 1 || userRole == 2) {
+        bool hasPerms = checkPerms();
+        if (hasPerms) {
           if (self->m_toggleAllBtn)
             self->m_toggleAllBtn->setVisible(true);
         } else {

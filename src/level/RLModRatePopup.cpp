@@ -207,15 +207,6 @@ bool RLModRatePopup::init() {
   unsendButtonItem->setID("unsend-button");
   modActionMenu->addChild(unsendButtonItem);
 
-  // developer reject button
-  if (m_role == PopupRole::Dev) {
-    auto rejectSpr = ButtonSprite::create("Reject", 80, true, "goldFont.fnt",
-                                          "GJ_button_06.png", 30.f, 1.f);
-    auto rejectBtn = CCMenuItemSpriteExtra::create(
-        rejectSpr, this, menu_selector(RLModRatePopup::onDevRejectButton));
-    rejectBtn->setID("dev-reject-button");
-    modActionMenu->addChild(rejectBtn);
-  }
 
   // unrate and suggest buttons (only for admins)
   if (userRole == 2) {
@@ -454,11 +445,6 @@ bool RLModRatePopup::init() {
 
 void RLModRatePopup::onInfoButton(CCObject *sender) {
   // matjson payload
-
-  // disable the button to prevent multiple clicks
-  if (auto buttonItem = typeinfo_cast<CCMenuItemSpriteExtra *>(sender)) {
-    buttonItem->setEnabled(false);
-  }
   matjson::Value jsonBody = matjson::Value::object();
   jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
   jsonBody["argonToken"] =
@@ -624,10 +610,6 @@ void RLModRatePopup::onInfoButton(CCObject *sender) {
             isBannedStr, creatorBannedStr);
 
         MDPopup::create("Mod Level Info", infoText, "OK")->show();
-        // enable the button again
-        if (auto buttonItem = typeinfo_cast<CCMenuItemSpriteExtra *>(sender)) {
-          buttonItem->setEnabled(true);
-        }
       });
 }
 
@@ -704,7 +686,8 @@ void RLModRatePopup::onBanLevelButton(CCObject *sender) {
   std::string title = std::string("Ban Level?");
   geode::createQuickPopup(
       "Ban Level?",
-      "Are you sure you want to <cr>ban</c> this level?\n<cy>This will prevent it "
+      "Are you sure you want to <cr>ban</c> this level?\n<cy>This will prevent "
+      "it "
       "from being rated or featured.</c>",
       "No", "Ban", [this](auto, bool yes) {
         if (!yes)
@@ -954,6 +937,7 @@ void RLModRatePopup::onSubmitButton(CCObject *sender) {
 
   if (m_isRejected) {
     jsonBody["isRejected"] = true;
+
   } else {
     if (m_role == PopupRole::Dev && m_difficultyInput) {
       auto diffStr = m_difficultyInput->getString();
@@ -1229,10 +1213,6 @@ void RLModRatePopup::onRejectButton(CCObject *sender) {
   updateDifficultySprite(0);
 }
 
-void RLModRatePopup::onDevRejectButton(CCObject *sender) {
-  m_isRejected = true;
-  this->onSubmitButton(sender);
-}
 
 void RLModRatePopup::onSuggestButton(CCObject *sender) {
   auto popup = UploadActionPopup::create(nullptr, "Suggesting layout...");

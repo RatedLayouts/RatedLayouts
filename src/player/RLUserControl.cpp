@@ -7,14 +7,16 @@
 using namespace geode::prelude;
 
 // helper to update a promotion-style button background and enabled state
-static void setPromoBtnState(CCMenuItemSpriteExtra* btn, const std::string& text, bool enable) {
-    if (!btn) return;
-    btn->setEnabled(enable);
-    btn->setVisible(true);
-    std::string bg = enable ? "GJ_button_01.png" : "GJ_button_04.png";
-    btn->setNormalImage(ButtonSprite::create(text.c_str(), 200, true, "goldFont.fnt", bg.c_str(), 30.f, 1.f));
+static void setPromoBtnState(CCMenuItemSpriteExtra *btn,
+                             const std::string &text, bool enable) {
+  if (!btn)
+    return;
+  btn->setEnabled(enable);
+  btn->setVisible(true);
+  std::string bg = enable ? "GJ_button_01.png" : "GJ_button_04.png";
+  btn->setNormalImage(ButtonSprite::create(
+      text.c_str(), 200, true, "goldFont.fnt", bg.c_str(), 30.f, 1.f));
 }
-
 
 static std::string getResponseFailMessage(web::WebResponse const &response,
                                           std::string const &fallback) {
@@ -54,8 +56,8 @@ bool RLUserControl::init() {
   auto usernameLabel = CCLabelBMFont::create(
       ("Target: " + username).c_str(), "bigFont.fnt",
       m_mainLayer->getContentSize().width - 40, kCCTextAlignmentCenter);
-  usernameLabel->setPosition({m_title->getPositionX(),
-                             m_title->getPositionY() - 20});
+  usernameLabel->setPosition(
+      {m_title->getPositionX(), m_title->getPositionY() - 20});
   usernameLabel->setScale(m_title->getScale());
   m_mainLayer->addChild(usernameLabel);
 
@@ -140,8 +142,9 @@ bool RLUserControl::init() {
   optionsMenu->addChild(classicModBtn);
   m_promoteClassicModButton = classicModBtn;
 
-  auto [classicAdminSpr, classicAdminBtn] = makeActionButton(
-      "Promote to Classic Admin", menu_selector(RLUserControl::onPromoteAction));
+  auto [classicAdminSpr, classicAdminBtn] =
+      makeActionButton("Promote to Classic Admin",
+                       menu_selector(RLUserControl::onPromoteAction));
   classicAdminBtn->setVisible(false);
   classicAdminBtn->setEnabled(false);
   optionsMenu->addChild(classicAdminBtn);
@@ -161,8 +164,8 @@ bool RLUserControl::init() {
   optionsMenu->addChild(platAdminBtn);
   m_promotePlatAdminButton = platAdminBtn;
 
-  auto [demoteSpr, demoteBtn] =
-      makeActionButton("Demote All", menu_selector(RLUserControl::onPromoteAction));
+  auto [demoteSpr, demoteBtn] = makeActionButton(
+      "Demote All", menu_selector(RLUserControl::onPromoteAction));
   demoteBtn->setVisible(false);
   demoteBtn->setEnabled(false);
   optionsMenu->addChild(demoteBtn);
@@ -228,7 +231,8 @@ bool RLUserControl::init() {
               isBanned = json["banned"].asBool().unwrapOrDefault();
               isLBMod = json["isLeaderboardMod"].asBool().unwrapOrDefault();
               isClassicMod = json["isClassicMod"].asBool().unwrapOrDefault();
-              isClassicAdmin = json["isClassicAdmin"].asBool().unwrapOrDefault();
+              isClassicAdmin =
+                  json["isClassicAdmin"].asBool().unwrapOrDefault();
               isPlatMod = json["isPlatMod"].asBool().unwrapOrDefault();
               isPlatAdmin = json["isPlatAdmin"].asBool().unwrapOrDefault();
             }
@@ -252,8 +256,12 @@ bool RLUserControl::init() {
               // Creator Ban action is restricted to layout admins (role == 2)
               bool showAction = true;
               if (key == "bannedCreator") {
-                int currentRole = Mod::get()->getSavedValue<int>("role");
-                if (currentRole != 2)
+                bool hasPerms =
+                    (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+                     Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
+                     Mod::get()->getSavedValue<bool>("isClassicMod") ||
+                     Mod::get()->getSavedValue<bool>("isPlatMod"));
+                if (!hasPerms)
                   showAction = false;
               }
 
@@ -261,7 +269,6 @@ bool RLUserControl::init() {
               opt.actionButton->setEnabled(showAction);
             }
           }
-
 
           self->m_targetIsLeaderboardMod = isLBMod;
           self->m_targetIsClassicMod = isClassicMod;
@@ -294,7 +301,8 @@ bool RLUserControl::init() {
               self->m_wipeButton = nullptr;
             }
             if (self->m_promoteLeaderboardModButton) {
-              self->m_promoteLeaderboardModButton->removeFromParentAndCleanup(true);
+              self->m_promoteLeaderboardModButton->removeFromParentAndCleanup(
+                  true);
               self->m_promoteLeaderboardModButton = nullptr;
             }
             if (self->m_promoteClassicModButton) {
@@ -302,7 +310,8 @@ bool RLUserControl::init() {
               self->m_promoteClassicModButton = nullptr;
             }
             if (self->m_promoteClassicAdminButton) {
-              self->m_promoteClassicAdminButton->removeFromParentAndCleanup(true);
+              self->m_promoteClassicAdminButton->removeFromParentAndCleanup(
+                  true);
               self->m_promoteClassicAdminButton = nullptr;
             }
             if (self->m_promotePlatModButton) {
@@ -325,21 +334,28 @@ bool RLUserControl::init() {
               self->m_wipeButton->setEnabled(excludeOpt &&
                                              excludeOpt->persisted);
             }
-            auto enableIf = [&](CCMenuItemSpriteExtra* btn, const std::string& text, bool cond) {
+            auto enableIf = [&](CCMenuItemSpriteExtra *btn,
+                                const std::string &text, bool cond) {
               if (btn) {
                 // set background according to enabled state
                 setPromoBtnState(btn, text, cond);
               }
             };
-            enableIf(self->m_promoteLeaderboardModButton, "Promote to LB Mod", !self->m_targetIsLeaderboardMod);
-            enableIf(self->m_promoteClassicModButton, "Promote to Classic Mod", !self->m_targetIsClassicMod);
-            enableIf(self->m_promoteClassicAdminButton, "Promote to Classic Admin", !self->m_targetIsClassicAdmin);
-            enableIf(self->m_promotePlatModButton, "Promote to Plat Mod", !self->m_targetIsPlatMod);
-            enableIf(self->m_promotePlatAdminButton, "Promote to Plat Admin", !self->m_targetIsPlatAdmin);
+            enableIf(self->m_promoteLeaderboardModButton, "Promote to LB Mod",
+                     !self->m_targetIsLeaderboardMod);
+            enableIf(self->m_promoteClassicModButton, "Promote to Classic Mod",
+                     !self->m_targetIsClassicMod);
+            enableIf(self->m_promoteClassicAdminButton,
+                     "Promote to Classic Admin", !self->m_targetIsClassicAdmin);
+            enableIf(self->m_promotePlatModButton, "Promote to Plat Mod",
+                     !self->m_targetIsPlatMod);
+            enableIf(self->m_promotePlatAdminButton, "Promote to Plat Admin",
+                     !self->m_targetIsPlatAdmin);
             // demote is active if any role present
-            bool anyRole = self->m_targetIsLeaderboardMod || self->m_targetIsClassicMod ||
-                           self->m_targetIsClassicAdmin || self->m_targetIsPlatMod ||
-                           self->m_targetIsPlatAdmin;
+            bool anyRole = self->m_targetIsLeaderboardMod ||
+                           self->m_targetIsClassicMod ||
+                           self->m_targetIsClassicAdmin ||
+                           self->m_targetIsPlatMod || self->m_targetIsPlatAdmin;
             enableIf(self->m_demoteButton, "Demote All", anyRole);
           }
 
@@ -509,9 +525,9 @@ void RLUserControl::onPromoteAction(CCObject *sender) {
   createQuickPopup(
       titleText.c_str(),
       ("Are you sure you want to <cg>" + confirmText + "</c>?").c_str(),
-      "Cancel", "Confirm", [this, setLBMod, setClassicMod, setClassicAdmin,
-                               setPlatMod, setPlatAdmin, clearAll,
-                               actionText](auto, bool yes) {
+      "Cancel", "Confirm",
+      [this, setLBMod, setClassicMod, setClassicAdmin, setPlatMod, setPlatAdmin,
+       clearAll, actionText](auto, bool yes) {
         if (!yes)
           return;
 
@@ -528,11 +544,16 @@ void RLUserControl::onPromoteAction(CCObject *sender) {
 
         // disable UI and show spinner
         this->setAllOptionsEnabled(false);
-        setPromoBtnState(this->m_promoteLeaderboardModButton, "Promote to LB Mod", false);
-        setPromoBtnState(this->m_promoteClassicModButton, "Promote to Classic Mod", false);
-        setPromoBtnState(this->m_promoteClassicAdminButton, "Promote to Classic Admin", false);
-        setPromoBtnState(this->m_promotePlatModButton, "Promote to Plat Mod", false);
-        setPromoBtnState(this->m_promotePlatAdminButton, "Promote to Plat Admin", false);
+        setPromoBtnState(this->m_promoteLeaderboardModButton,
+                         "Promote to LB Mod", false);
+        setPromoBtnState(this->m_promoteClassicModButton,
+                         "Promote to Classic Mod", false);
+        setPromoBtnState(this->m_promoteClassicAdminButton,
+                         "Promote to Classic Admin", false);
+        setPromoBtnState(this->m_promotePlatModButton, "Promote to Plat Mod",
+                         false);
+        setPromoBtnState(this->m_promotePlatAdminButton,
+                         "Promote to Plat Admin", false);
         setPromoBtnState(this->m_demoteButton, "Demote All", false);
         if (this->m_wipeButton)
           this->m_wipeButton->setEnabled(false);
@@ -543,11 +564,16 @@ void RLUserControl::onPromoteAction(CCObject *sender) {
         jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
         jsonBody["argonToken"] = token;
         jsonBody["targetAccountId"] = this->m_targetAccountId;
-        if (setLBMod) jsonBody["isLeaderboardMod"] = true;
-        if (setClassicMod) jsonBody["isClassicMod"] = true;
-        if (setClassicAdmin) jsonBody["isClassicAdmin"] = true;
-        if (setPlatMod) jsonBody["isPlatMod"] = true;
-        if (setPlatAdmin) jsonBody["isPlatAdmin"] = true;
+        if (setLBMod)
+          jsonBody["isLeaderboardMod"] = true;
+        if (setClassicMod)
+          jsonBody["isClassicMod"] = true;
+        if (setClassicAdmin)
+          jsonBody["isClassicAdmin"] = true;
+        if (setPlatMod)
+          jsonBody["isPlatMod"] = true;
+        if (setPlatAdmin)
+          jsonBody["isPlatAdmin"] = true;
         if (clearAll) {
           jsonBody["isLeaderboardMod"] = false;
           jsonBody["isClassicMod"] = false;
@@ -563,18 +589,23 @@ void RLUserControl::onPromoteAction(CCObject *sender) {
         Ref<RLUserControl> self = this;
         self->m_promoteUserTask.spawn(
             postReq.post("https://gdrate.arcticwoof.xyz/promoteUser"),
-            [self, upopup, setLBMod, setClassicMod, setClassicAdmin,
-             setPlatMod, setPlatAdmin, clearAll](web::WebResponse response) {
+            [self, upopup, setLBMod, setClassicMod, setClassicAdmin, setPlatMod,
+             setPlatAdmin, clearAll](web::WebResponse response) {
               if (!self || !upopup)
                 return;
 
               // re-enable UI
               self->setAllOptionsEnabled(true);
-              setPromoBtnState(self->m_promoteLeaderboardModButton, "Promote to LB Mod", true);
-              setPromoBtnState(self->m_promoteClassicModButton, "Promote to Classic Mod", true);
-              setPromoBtnState(self->m_promoteClassicAdminButton, "Promote to Classic Admin", true);
-              setPromoBtnState(self->m_promotePlatModButton, "Promote to Plat Mod", true);
-              setPromoBtnState(self->m_promotePlatAdminButton, "Promote to Plat Admin", true);
+              setPromoBtnState(self->m_promoteLeaderboardModButton,
+                               "Promote to LB Mod", true);
+              setPromoBtnState(self->m_promoteClassicModButton,
+                               "Promote to Classic Mod", true);
+              setPromoBtnState(self->m_promoteClassicAdminButton,
+                               "Promote to Classic Admin", true);
+              setPromoBtnState(self->m_promotePlatModButton,
+                               "Promote to Plat Mod", true);
+              setPromoBtnState(self->m_promotePlatAdminButton,
+                               "Promote to Plat Admin", true);
               setPromoBtnState(self->m_demoteButton, "Demote All", true);
               if (self->m_wipeButton)
                 self->m_wipeButton->setEnabled(true);
@@ -623,7 +654,8 @@ void RLUserControl::onPromoteAction(CCObject *sender) {
                   }
                   if (setClassicAdmin) {
                     self->m_targetIsClassicAdmin = true;
-                    upopup->showSuccessMessage("User promoted to Classic Admin!");
+                    upopup->showSuccessMessage(
+                        "User promoted to Classic Admin!");
                   }
                   if (setPlatMod) {
                     self->m_targetIsPlatMod = true;
@@ -641,11 +673,21 @@ void RLUserControl::onPromoteAction(CCObject *sender) {
                                self->m_targetIsClassicAdmin ||
                                self->m_targetIsPlatMod ||
                                self->m_targetIsPlatAdmin;
-                setPromoBtnState(self->m_promoteLeaderboardModButton, "Promote to LB Mod", !self->m_targetIsLeaderboardMod);
-                setPromoBtnState(self->m_promoteClassicModButton, "Promote to Classic Mod", !self->m_targetIsClassicMod);
-                setPromoBtnState(self->m_promoteClassicAdminButton, "Promote to Classic Admin", !self->m_targetIsClassicAdmin);
-                setPromoBtnState(self->m_promotePlatModButton, "Promote to Plat Mod", !self->m_targetIsPlatMod);
-                setPromoBtnState(self->m_promotePlatAdminButton, "Promote to Plat Admin", !self->m_targetIsPlatAdmin);
+                setPromoBtnState(self->m_promoteLeaderboardModButton,
+                                 "Promote to LB Mod",
+                                 !self->m_targetIsLeaderboardMod);
+                setPromoBtnState(self->m_promoteClassicModButton,
+                                 "Promote to Classic Mod",
+                                 !self->m_targetIsClassicMod);
+                setPromoBtnState(self->m_promoteClassicAdminButton,
+                                 "Promote to Classic Admin",
+                                 !self->m_targetIsClassicAdmin);
+                setPromoBtnState(self->m_promotePlatModButton,
+                                 "Promote to Plat Mod",
+                                 !self->m_targetIsPlatMod);
+                setPromoBtnState(self->m_promotePlatAdminButton,
+                                 "Promote to Plat Admin",
+                                 !self->m_targetIsPlatAdmin);
                 setPromoBtnState(self->m_demoteButton, "Demote All", anyRole);
               } else {
                 upopup->showFailMessage("Failed to update user role");
@@ -765,11 +807,16 @@ void RLUserControl::setOptionState(const std::string &key, bool desired,
   }
 
   if (GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID) {
-    setPromoBtnState(m_promoteLeaderboardModButton, "Promote to LB Mod", !m_targetIsLeaderboardMod);
-    setPromoBtnState(m_promoteClassicModButton, "Promote to Classic Mod", !m_targetIsClassicMod);
-    setPromoBtnState(m_promoteClassicAdminButton, "Promote to Classic Admin", !m_targetIsClassicAdmin);
-    setPromoBtnState(m_promotePlatModButton, "Promote to Plat Mod", !m_targetIsPlatMod);
-    setPromoBtnState(m_promotePlatAdminButton, "Promote to Plat Admin", !m_targetIsPlatAdmin);
+    setPromoBtnState(m_promoteLeaderboardModButton, "Promote to LB Mod",
+                     !m_targetIsLeaderboardMod);
+    setPromoBtnState(m_promoteClassicModButton, "Promote to Classic Mod",
+                     !m_targetIsClassicMod);
+    setPromoBtnState(m_promoteClassicAdminButton, "Promote to Classic Admin",
+                     !m_targetIsClassicAdmin);
+    setPromoBtnState(m_promotePlatModButton, "Promote to Plat Mod",
+                     !m_targetIsPlatMod);
+    setPromoBtnState(m_promotePlatAdminButton, "Promote to Plat Admin",
+                     !m_targetIsPlatAdmin);
     bool anyRole = m_targetIsLeaderboardMod || m_targetIsClassicMod ||
                    m_targetIsClassicAdmin || m_targetIsPlatMod ||
                    m_targetIsPlatAdmin;
