@@ -191,11 +191,21 @@ bool RLModRatePopup::init() {
       {m_mainLayer->getContentSize().width - 40.f, 30.f});
   modActionMenu->setLayout(RowLayout::create()->setGap(15.f));
 
-  auto submitButtonSpr = ButtonSprite::create(
-      "Submit", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
-  auto submitButtonItem = CCMenuItemSpriteExtra::create(
-      submitButtonSpr, this, menu_selector(RLModRatePopup::onSubmitButton));
-
+  // admins/devs rate, mods send suggestions
+  CCMenuItemSpriteExtra *submitButtonItem = nullptr;
+  if (m_role == PopupRole::Mod) {
+    auto sendSpr = ButtonSprite::create("Send", 80, true, "goldFont.fnt",
+                                        "GJ_button_01.png", 30.f, 1.f);
+    submitButtonItem = CCMenuItemSpriteExtra::create(
+        sendSpr, this, menu_selector(RLModRatePopup::onSuggestButton));
+    submitButtonItem->setID("send-button");
+  } else {
+    auto rateSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
+                                        "GJ_button_01.png", 30.f, 1.f);
+    submitButtonItem = CCMenuItemSpriteExtra::create(
+        rateSpr, this, menu_selector(RLModRatePopup::onRateButton));
+    submitButtonItem->setID("rate-button");
+  }
   modActionMenu->addChild(submitButtonItem);
   m_submitButtonItem = submitButtonItem;
 
@@ -207,7 +217,6 @@ bool RLModRatePopup::init() {
   unsendButtonItem->setID("unsend-button");
   modActionMenu->addChild(unsendButtonItem);
 
-
   // unrate and suggest buttons (only for admins)
   if (userRole == 2) {
     auto unrateSpr = ButtonSprite::create("Unrate", 80, true, "goldFont.fnt",
@@ -218,11 +227,11 @@ bool RLModRatePopup::init() {
     unrateButtonItem->setPosition({centerX, 0});
     modActionMenu->addChild(unrateButtonItem);
 
-    auto suggestSpr = ButtonSprite::create("Suggest", 80, true, "goldFont.fnt",
+    auto suggestSpr = ButtonSprite::create("Send", 80, true, "goldFont.fnt",
                                            "GJ_button_01.png", 30.f, 1.f);
     auto suggestButtonItem = CCMenuItemSpriteExtra::create(
         suggestSpr, this, menu_selector(RLModRatePopup::onSuggestButton));
-    suggestButtonItem->setID("suggest-button");
+    suggestButtonItem->setID("send-button");
     modActionMenu->addChild(suggestButtonItem);
   }
 
@@ -243,6 +252,7 @@ bool RLModRatePopup::init() {
     toggleFeatured->setPosition({0, -10});
     m_buttonMenu->addChild(toggleFeatured);
 
+    // coin verified toggle (admin only)
     if (m_role == PopupRole::Admin) {
       auto offVerifiedSprite = CCSpriteGrayscale::createWithSpriteFrameName(
           "RL_BlueCoinSmall.png"_spr);
@@ -256,6 +266,16 @@ bool RLModRatePopup::init() {
       toggleVerified->setPosition({m_mainLayer->getContentSize().width,
                                    m_mainLayer->getContentSize().height - 35});
       m_buttonMenu->addChild(toggleVerified);
+      // auto-enable/disable verified based on level coin count
+      if (m_level) {
+        if (m_level->m_coins > 0) {
+          toggleVerified->toggle(true);
+        } else {
+          toggleVerified->setEnabled(false);
+          onVerifiedSprite->setOpacity(100);
+          offVerifiedSprite->setOpacity(100);
+        }
+      }
     }
 
     // legendary toggle
@@ -318,6 +338,10 @@ bool RLModRatePopup::init() {
       verifiedToggle->setID("verified-toggle");
       m_buttonMenu->addChild(verifiedToggle);
       m_verifiedToggleItem = verifiedToggle;
+    }
+
+    if (m_level->m_coins > 0 && m_verifiedToggleItem) {
+      m_verifiedToggleItem->toggle(true);
     }
 
     auto deleteSendSpr =
@@ -465,8 +489,9 @@ void RLModRatePopup::onInfoButton(CCObject *sender) {
 
         if (!response.ok()) {
           log::warn("Server returned non-ok status: {}", response.code());
-          Notification::create("Failed to fetch level info",
-                               NotificationIcon::Error)
+          Notification::create(
+              "No sends found or failed to fetch for this level",
+              NotificationIcon::Error)
               ->show();
           return;
         }
@@ -870,7 +895,7 @@ void RLModRatePopup::onUnsendButton(CCObject *sender) {
       });
 }
 
-void RLModRatePopup::onSubmitButton(CCObject *sender) {
+void RLModRatePopup::onRateButton(CCObject *sender) {
   auto popup = UploadActionPopup::create(nullptr, "Submitting layout...");
   popup->show();
   log::info(
@@ -971,10 +996,6 @@ void RLModRatePopup::onSubmitButton(CCObject *sender) {
     } else {
       jsonBody["verified"] = false;
     }
-
-    if (m_role == PopupRole::Mod) {
-      jsonBody["suggest"] = true;
-    }
   }
 
   log::debug("Sending request: {}", jsonBody.dump());
@@ -1070,10 +1091,10 @@ void RLModRatePopup::onUnrateButton(CCObject *sender) {
             rejectBg->setID("button-bg-reject");
             rejectBtnItem->setNormalImage(rejectBg);
           }
-          // re-enable submit for admin when reject is cleared
+          // re-enable rate for admin when reject is cleared
           if (m_role == PopupRole::Admin && m_submitButtonItem) {
             auto enabledSpr =
-                ButtonSprite::create("Submit", 80, true, "goldFont.fnt",
+                ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
                                      "GJ_button_01.png", 30.f, 1.f);
             m_submitButtonItem->setNormalImage(enabledSpr);
             m_submitButtonItem->setEnabled(true);
@@ -1203,7 +1224,7 @@ void RLModRatePopup::onRejectButton(CCObject *sender) {
 
   // disable submit for admin when rejected
   if (m_role == PopupRole::Admin && m_submitButtonItem) {
-    auto disabledSpr = ButtonSprite::create("Submit", 80, true, "goldFont.fnt",
+    auto disabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
                                             "GJ_button_04.png", 30.f, 1.f);
     m_submitButtonItem->setNormalImage(disabledSpr);
     m_submitButtonItem->setEnabled(false);
@@ -1212,7 +1233,6 @@ void RLModRatePopup::onRejectButton(CCObject *sender) {
   // update difficulty UI to neutral (0 => NA)
   updateDifficultySprite(0);
 }
-
 
 void RLModRatePopup::onSuggestButton(CCObject *sender) {
   auto popup = UploadActionPopup::create(nullptr, "Suggesting layout...");
@@ -1314,7 +1334,7 @@ void RLModRatePopup::onSuggestButton(CCObject *sender) {
   Ref<RLModRatePopup> self = this;
   Ref<UploadActionPopup> upopup = popup;
   m_setRateTask.spawn(
-      postReq.post("https://gdrate.arcticwoof.xyz/setRate"),
+      postReq.post("https://gdrate.arcticwoof.xyz/setSuggest"),
       [self, upopup](web::WebResponse response) {
         if (!self || !upopup)
           return;
@@ -1390,9 +1410,9 @@ void RLModRatePopup::onToggleFeatured(CCObject *sender) {
       rejectBg->setID("button-bg-reject");
       rejectBtnItem->setNormalImage(rejectBg);
     }
-    // re-enable submit for admin when reject is cleared
+    // re-enable rate for admin when reject is cleared
     if (m_role == PopupRole::Admin && m_submitButtonItem) {
-      auto enabledSpr = ButtonSprite::create("Submit", 80, true, "goldFont.fnt",
+      auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
                                              "GJ_button_01.png", 30.f, 1.f);
       m_submitButtonItem->setNormalImage(enabledSpr);
       m_submitButtonItem->setEnabled(true);
@@ -1451,10 +1471,10 @@ void RLModRatePopup::onToggleFeatured(CCObject *sender) {
 
       // If featured was toggled on and there's no legendary active, re-enable
       // submit
-      if (m_submitButtonItem && m_isFeatured && !m_isLegendary &&
-          !m_isRejected) {
-        auto enabledSpr = ButtonSprite::create(
-            "Submit", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+      if (m_submitButtonItem && m_role != PopupRole::Mod &&
+          m_isFeatured && !m_isLegendary && !m_isRejected) {
+        auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
+                                               "GJ_button_01.png", 30.f, 1.f);
         m_submitButtonItem->setNormalImage(enabledSpr);
         m_submitButtonItem->setEnabled(true);
       }
@@ -1589,15 +1609,15 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
     }
   }
 
-  if (m_submitButtonItem) {
+  if (m_submitButtonItem && m_role != PopupRole::Mod) {
     if (!m_isRejected) {
-      auto enabledSpr = ButtonSprite::create("Submit", 80, true, "goldFont.fnt",
+      auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
                                              "GJ_button_01.png", 30.f, 1.f);
       m_submitButtonItem->setNormalImage(enabledSpr);
       m_submitButtonItem->setEnabled(true);
     } else {
-      auto disabledSpr = ButtonSprite::create(
-          "Submit", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
+      auto disabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
+                                              "GJ_button_04.png", 30.f, 1.f);
       m_submitButtonItem->setNormalImage(disabledSpr);
       m_submitButtonItem->setEnabled(false);
     }
@@ -1675,10 +1695,10 @@ void RLModRatePopup::onToggleEpicFeatured(CCObject *sender) {
 
       // If epic was toggled on and there's no legendary active, re-enable
       // submit
-      if (m_submitButtonItem && m_isEpicFeatured && !m_isLegendary &&
+      if (m_submitButtonItem && m_role != PopupRole::Mod && m_isEpicFeatured && !m_isLegendary &&
           !m_isRejected) {
-        auto enabledSpr = ButtonSprite::create(
-            "Submit", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+        auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
+                                               "GJ_button_01.png", 30.f, 1.f);
         m_submitButtonItem->setNormalImage(enabledSpr);
         m_submitButtonItem->setEnabled(true);
       }
@@ -1749,9 +1769,9 @@ void RLModRatePopup::onRatingButton(CCObject *sender) {
       rejectBg->setID("button-bg-reject");
       rejectBtnItem->setNormalImage(rejectBg);
     }
-    // re-enable submit for admin when reject is cleared
+    // re-enable rate for admin when reject is cleared
     if (m_role == PopupRole::Admin && m_submitButtonItem) {
-      auto enabledSpr = ButtonSprite::create("Submit", 80, true, "goldFont.fnt",
+      auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
                                              "GJ_button_01.png", 30.f, 1.f);
       m_submitButtonItem->setNormalImage(enabledSpr);
       m_submitButtonItem->setEnabled(true);

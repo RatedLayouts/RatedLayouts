@@ -260,7 +260,8 @@ bool RLUserControl::init() {
                     (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
                      Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
                      Mod::get()->getSavedValue<bool>("isClassicMod") ||
-                     Mod::get()->getSavedValue<bool>("isPlatMod"));
+                     Mod::get()->getSavedValue<bool>("isPlatMod")) ||
+                    GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID;
                 if (!hasPerms)
                   showAction = false;
               }
