@@ -1,8 +1,14 @@
+#include "Geode/cocos/menu_nodes/CCMenu.h"
 #include "Geode/loader/Log.hpp"
 #include "Geode/loader/Mod.hpp"
+#include "Geode/ui/Popup.hpp"
+#include "Geode/utils/general.hpp"
 #include "custom/RLAchievements.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/Geode.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/GJAccountManager.hpp>
+#include <Geode/binding/UploadActionPopup.hpp>
 #include <Geode/modify/SupportLayer.hpp>
 #include <argon/argon.hpp>
 
@@ -44,30 +50,71 @@ $execute {
   }
 };
 
-class $modify(SupportLayer) {
+class $modify(RLSupportLayer, SupportLayer) {
   struct Fields {
     async::TaskHolder<web::WebResponse> m_getAccessTask;
     async::TaskHolder<Result<std::string>> m_authTask;
+    CCMenu *m_argonMenu = nullptr;
     ~Fields() {
       m_getAccessTask.cancel();
       m_authTask.cancel();
     }
   };
 
+  void customSetup() {
+    if (Mod::get()->getSavedValue<bool>("isClassicMod") ||
+        Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+        Mod::get()->getSavedValue<bool>("isPlatMod") ||
+        Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
+        Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
+      m_fields->m_argonMenu = CCMenu::create();
+      m_fields->m_argonMenu->setPosition({0, 0});
+      m_listLayer->addChild(m_fields->m_argonMenu, 10);
+      auto argonBtnSpr = ButtonSprite::create("Argon", 25, true, "bigFont.fnt",
+                                              "GJ_button_04.png", 25.f, 1.f);
+      auto argonBtn = CCMenuItemSpriteExtra::create(
+          argonBtnSpr, this, menu_selector(RLSupportLayer::onGetArgon));
+      argonBtn->setPosition({328, 55});
+      m_fields->m_argonMenu->addChild(argonBtn);
+    }
+
+    SupportLayer::customSetup();
+  }
+
+  void onGetArgon(CCObject *sender) {
+    m_uploadPopup = UploadActionPopup::create(nullptr, "Obtaining Token...");
+    m_uploadPopup->show();
+    auto accountData = argon::getGameAccountData();
+    m_fields->m_authTask.spawn(
+        argon::startAuth(std::move(accountData)),
+        [this](Result<std::string> res) {
+          if (res.isOk()) {
+            auto token = std::move(res).unwrap();
+            utils::clipboard::write(token);
+            m_uploadPopup->showSuccessMessage(
+                "Token copied to clipboard.");
+          } else {
+            auto err = res.unwrapErr();
+            log::warn("Auth failed: {}", err);
+            m_uploadPopup->showFailMessage(err);
+            argon::clearToken();
+          }
+        });
+  }
+
   void onRequestAccess(
       CCObject *sender) { // i assume that no one will ever get gd mod xddd
-    auto popup = UploadActionPopup::create(nullptr, "Requesting Access...");
-    popup->show();
+    m_uploadPopup = UploadActionPopup::create(nullptr, "Requesting Access...");
+    m_uploadPopup->show();
     // argon my beloved <3
     auto accountData = argon::getGameAccountData();
 
-    Ref<SupportLayer> self = this;
-    Ref<UploadActionPopup> upopup = popup;
+    Ref<RLSupportLayer> self = this;
 
     m_fields->m_authTask.spawn(
         argon::startAuth(std::move(accountData)),
-        [self, upopup, this](Result<std::string> res) {
-          if (!self || !upopup)
+        [self, this](Result<std::string> res) {
+          if (!self)
             return;
 
           if (res.isOk()) {
@@ -86,14 +133,14 @@ class $modify(SupportLayer) {
 
             m_fields->m_getAccessTask.spawn(
                 postReq.post("https://gdrate.arcticwoof.xyz/getAccess"),
-                [self, upopup, this](web::WebResponse response) {
-                  if (!self || !upopup)
+                [self, this](web::WebResponse response) {
+                  if (!self)
                     return;
                   log::info("Received response from server");
                   if (!response.ok()) {
                     log::warn("Server returned non-ok status: {}",
                               response.code());
-                    upopup->showFailMessage(getResponseFailMessage(
+                    m_uploadPopup->showFailMessage(getResponseFailMessage(
                         response, "Failed! Try again later."));
                     return;
                   }
@@ -101,6 +148,8 @@ class $modify(SupportLayer) {
                   auto jsonRes = response.json();
                   if (!jsonRes) {
                     log::warn("Failed to parse JSON response");
+                    m_uploadPopup->showFailMessage(
+                        "Failed to parse JSON response");
                     return;
                   }
 
@@ -125,24 +174,26 @@ class $modify(SupportLayer) {
 
                   if (isClassicMod) {
                     log::info("Granted Layout Mod role");
-                    upopup->showSuccessMessage("Granted Classic Layout Mod.");
+                    m_uploadPopup->showSuccessMessage(
+                        "Granted Classic Layout Mod.");
                   } else if (isClassicAdmin) {
                     log::info("Granted Layout Admin role");
-                    upopup->showSuccessMessage("Granted Classic Layout Admin.");
+                    m_uploadPopup->showSuccessMessage(
+                        "Granted Classic Layout Admin.");
                   } else if (isLeaderboardMod) {
                     log::info("Granted Leaderboard Layout Mod role");
-                    upopup->showSuccessMessage(
+                    m_uploadPopup->showSuccessMessage(
                         "Granted Leaderboard Layout Mod.");
                   } else if (isPlatMod) {
                     log::info("Granted Platformer Layout Mod role");
-                    upopup->showSuccessMessage(
+                    m_uploadPopup->showSuccessMessage(
                         "Granted Platformer Layout Mod.");
                   } else if (isPlatAdmin) {
                     log::info("Granted Platformer Admin role");
-                    upopup->showSuccessMessage(
+                    m_uploadPopup->showSuccessMessage(
                         "Granted Platformer Layout Admin.");
                   } else {
-                    upopup->showFailMessage("Nothing Happened.");
+                    m_uploadPopup->showFailMessage("Nothing Happened.");
                   }
 
                   if (isClassicMod || isPlatMod || isLeaderboardMod) {

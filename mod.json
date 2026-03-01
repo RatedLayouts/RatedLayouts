@@ -189,6 +189,12 @@
 			"default": false,
 			"description": "Disables the blue glow effect on comments made by users using <cl>Rated Layouts mod</cl>"
 		},
+		"disableCommentGlowNameplate": {
+			"name": "Disable Comment Glow on Nameplate",
+			"type": "bool",
+			"default": true,
+			"description": "Disable comment glow effect if the user has a nameplate applied. <cy>Enabled by default</c>"
+		},
 		"disableCreatorPoints": {
 			"name": "Disable Creator Points",
 			"type": "bool",

@@ -301,14 +301,16 @@ class $modify(RLCommentCell, CommentCell) {
       cellRef->m_fields->isLeaderboardMod = isLeaderboardMod;
       cellRef->m_fields->isPlatMod = isPlatMod;
       cellRef->m_fields->isPlatAdmin = isPlatAdmin;
+      cellRef->m_fields->nameplate = nameplate;
 
-      log::debug("User comment supporter={}, booster={}, classicMod={}, "
-                 "classicAdmin={}, leaderboardMod={}, platMod={}, platAdmin={}",
-                 cellRef->m_fields->supporter, cellRef->m_fields->booster,
-                 cellRef->m_fields->isClassicMod,
-                 cellRef->m_fields->isClassicAdmin,
-                 cellRef->m_fields->isLeaderboardMod,
-                 cellRef->m_fields->isPlatMod, cellRef->m_fields->isPlatAdmin);
+      log::debug(
+          "User comment supporter={}, booster={}, classicMod={}, "
+          "classicAdmin={}, leaderboardMod={}, platMod={}, platAdmin={}, "
+          "nameplate={}",
+          cellRef->m_fields->supporter, cellRef->m_fields->booster,
+          cellRef->m_fields->isClassicMod, cellRef->m_fields->isClassicAdmin,
+          cellRef->m_fields->isLeaderboardMod, cellRef->m_fields->isPlatMod,
+          cellRef->m_fields->isPlatAdmin, cellRef->m_fields->nameplate);
 
       cellRef->loadBadgeForComment(accountId);
       cellRef->applyCommentTextColor(accountId);
@@ -334,14 +336,15 @@ class $modify(RLCommentCell, CommentCell) {
       log::warn("username-menu not found in comment cell");
       return;
     }
-    auto addBadgeItem = [&](CCSprite* sprite, int tag, const char* id) {
-      if (!sprite) return;
+    auto addBadgeItem = [&](CCSprite *sprite, int tag, const char *id) {
+      if (!sprite)
+        return;
       if (userNameMenu->getChildByID(id)) {
         return; // already added
       }
       sprite->setScale(0.7f);
-      auto btn = CCMenuItemSpriteExtra::create(sprite, this,
-          menu_selector(RLCommentCell::onBadgeClicked));
+      auto btn = CCMenuItemSpriteExtra::create(
+          sprite, this, menu_selector(RLCommentCell::onBadgeClicked));
       btn->setTag(tag);
       btn->setID(id);
       userNameMenu->addChild(btn);
@@ -349,55 +352,53 @@ class $modify(RLCommentCell, CommentCell) {
 
     if (m_fields->isClassicAdmin) {
       addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgeAdmin01.png"_spr),
-          5, "rl-comment-classic-admin-badge:2");
+          CCSprite::createWithSpriteFrameName("RL_badgeAdmin01.png"_spr), 5,
+          "rl-comment-classic-admin-badge:2");
     }
     if (m_fields->isClassicMod) {
-      addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr),
-          6, "rl-comment-classic-mod-badge:3");
+      addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr),
+                   6, "rl-comment-classic-mod-badge:3");
     }
     if (m_fields->isLeaderboardMod) {
       addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr),
-          9, "rl-comment-lb-mod-badge:3");
+          CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr), 9,
+          "rl-comment-lb-mod-badge:3");
     }
     if (m_fields->isPlatAdmin) {
       addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgePlatAdmin01.png"_spr),
-          7, "rl-comment-plat-admin-badge:2");
+          CCSprite::createWithSpriteFrameName("RL_badgePlatAdmin01.png"_spr), 7,
+          "rl-comment-plat-admin-badge:2");
     }
     if (m_fields->isPlatMod) {
       addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgePlatMod01.png"_spr),
-          8, "rl-comment-plat-mod-badge:3");
+          CCSprite::createWithSpriteFrameName("RL_badgePlatMod01.png"_spr), 8,
+          "rl-comment-plat-mod-badge:3");
     }
 
     // supporter badge
     if (m_fields->supporter) {
       addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgeSupporter.png"_spr),
-          3, "rl-comment-supporter-badge:4");
+          CCSprite::createWithSpriteFrameName("RL_badgeSupporter.png"_spr), 3,
+          "rl-comment-supporter-badge:4");
     }
 
     // booster badge
     if (m_fields->booster) {
       addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgeBooster.png"_spr),
-          4, "rl-comment-booster-badge:4");
+          CCSprite::createWithSpriteFrameName("RL_badgeBooster.png"_spr), 4,
+          "rl-comment-booster-badge:4");
     }
 
     if (accountId == 7689052) { // ArcticWoof
-      addBadgeItem(
-          CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr),
-          10, "rl-comment-owner-badge:1");
+      addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr),
+                   10, "rl-comment-owner-badge:1");
     }
     userNameMenu->updateLayout();
     applyCommentTextColor(accountId);
   }
 
   // show explanatory alert when a badge in a comment is tapped
-  void onBadgeClicked(CCObject* sender) {
+  void onBadgeClicked(CCObject *sender) {
     auto btn = static_cast<CCMenuItemSpriteExtra *>(sender);
     if (!btn)
       return;
@@ -479,21 +480,38 @@ class $modify(RLCommentCell, CommentCell) {
   }
 
   void applyStarGlow(int accountId, int stars, int planets) {
+    // skip if no stars/planets
     if (stars <= 0 && planets <= 0)
       return;
+    // global disable
+    if (Mod::get()->getSettingValue<bool>("disableCommentGlow")) {
+      log::debug("Skipping star glow: global setting disabled");
+      return;
+    }
+    
+    if (m_fields->nameplate != 0 &&
+        Mod::get()->getSettingValue<bool>("disableCommentGlowNameplate")) {
+      log::debug(
+          "Skipping star glow for account {} due to nameplate and setting",
+          accountId);
+      return;
+    }
+    
     if (!m_mainLayer)
       return;
+    
+    if (m_accountComment)
+      return; // no glow for account comments
+    
     auto glowId = fmt::format("rl-comment-glow-{}", accountId);
     // don't create duplicate glow
     if (m_mainLayer->getChildByIDRecursive(glowId))
       return;
+    
     auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
     if (!glow)
       return;
-    if (m_accountComment)
-      return; // no glow for account comments
-    if (Mod::get()->getSettingValue<bool>("disableCommentGlow"))
-      return;
+    
     if (m_compactMode) {
       glow->setID(glowId.c_str());
       glow->setAnchorPoint({0.195f, 0.5f});
