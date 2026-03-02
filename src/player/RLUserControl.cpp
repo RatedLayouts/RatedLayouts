@@ -254,15 +254,20 @@ bool RLUserControl::init() {
               if (self->m_spinner)
                 self->m_spinner->setVisible(false);
 
-              // Creator Ban action is restricted to layout admins (role == 2)
               bool showAction = true;
               if (key == "bannedCreator") {
                 bool hasPerms =
                     (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
-                     Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-                     Mod::get()->getSavedValue<bool>("isClassicMod") ||
-                     Mod::get()->getSavedValue<bool>("isPlatMod")) ||
+                     Mod::get()->getSavedValue<bool>("isPlatAdmin")) ||
                     GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID;
+                if (!hasPerms)
+                  showAction = false;
+              }
+
+              if (key == "blacklisted") {
+                bool hasPerms =
+                    Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+                    Mod::get()->getSavedValue<bool>("isPlatAdmin");
                 if (!hasPerms)
                   showAction = false;
               }

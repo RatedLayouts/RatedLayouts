@@ -313,10 +313,15 @@ class $modify(RLProfilePage, ProfilePage) {
         createStatEntry("rl-coins-entry", "rl-coins-label",
                         GameToolbox::pointsToString(m_fields->m_coins),
                         "RL_BlueCoinSmall.png"_spr, nullptr);
+    auto votesEntry =
+        createStatEntry("rl-votes-entry", "rl-votes-label",
+                        GameToolbox::pointsToString(m_fields->m_votes),
+                        "RL_commVote01.png"_spr, nullptr);
 
     m_fields->m_rlStatsMenu->addChild(starsEntry);
     m_fields->m_rlStatsMenu->addChild(planetsEntry);
     m_fields->m_rlStatsMenu->addChild(coinsEntry);
+    m_fields->m_rlStatsMenu->addChild(votesEntry);
 
     if (m_fields->m_points > 0) {
       auto pointsEntry =
@@ -545,6 +550,8 @@ class $modify(RLProfilePage, ProfilePage) {
           if (!Mod::get()->getSettingValue<bool>("disableRLMenu")) {
             // show mod button if leaderboard mod or dev
             if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
+                Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+                Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
                 GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
               if (auto rlButtonsMenu =
                       pageRef->getChildByIDRecursive("rl-buttons-menu")) {
@@ -562,7 +569,8 @@ class $modify(RLProfilePage, ProfilePage) {
                   rlButtonsMenu->addChild(modUserBtnItem);
                   rlButtonsMenu->updateLayout();
                 }
-                if (!rlButtonsMenu->getChildByID("rl-manage-level-btn")) {
+                if (!rlButtonsMenu->getChildByID("rl-manage-level-btn") &&
+                    Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
                   auto manageLevelSpr = CCSprite::createWithSpriteFrameName(
                       "RL_badgeMod01.png"_spr);
                   auto manageLevelButton = EditorButtonSprite::create(
@@ -663,6 +671,9 @@ class $modify(RLProfilePage, ProfilePage) {
           pageRef->updateStatLabel(
               "rl-coins-label",
               GameToolbox::pointsToString(pageRef->m_fields->m_coins));
+          pageRef->updateStatLabel(
+              "rl-votes-label",
+              GameToolbox::pointsToString(pageRef->m_fields->m_votes));
 
           // If this is the player's own profile, check achievements for Sparks
           // and Planets
