@@ -1,3 +1,4 @@
+#include "Geode/loader/Mod.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CommentCell.hpp>
 
@@ -488,30 +489,32 @@ class $modify(RLCommentCell, CommentCell) {
       log::debug("Skipping star glow: global setting disabled");
       return;
     }
-    
+
     if (m_fields->nameplate != 0 &&
         Mod::get()->getSettingValue<bool>("disableCommentGlowNameplate")) {
-      log::debug(
-          "Skipping star glow for account {} due to nameplate and setting",
-          accountId);
-      return;
+      if (!Mod::get()->getSettingValue<bool>("disableNameplateInComment")) {
+        log::debug(
+            "Skipping star glow for account {} due to nameplate and setting",
+            accountId);
+        return;
+      }
     }
-    
+
     if (!m_mainLayer)
       return;
-    
+
     if (m_accountComment)
       return; // no glow for account comments
-    
+
     auto glowId = fmt::format("rl-comment-glow-{}", accountId);
     // don't create duplicate glow
     if (m_mainLayer->getChildByIDRecursive(glowId))
       return;
-    
+
     auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
     if (!glow)
       return;
-    
+
     if (m_compactMode) {
       glow->setID(glowId.c_str());
       glow->setAnchorPoint({0.195f, 0.5f});

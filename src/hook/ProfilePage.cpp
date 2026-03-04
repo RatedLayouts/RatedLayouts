@@ -90,7 +90,7 @@ class $modify(RLProfilePage, ProfilePage) {
       fallbackSpr->setVisible(false);
       iconBtn = CCMenuItemSpriteExtra::create(fallbackSpr, this, iconCallback);
     }
-  
+
     if (!iconCallback) {
       iconBtn->setEnabled(false);
     }
@@ -398,16 +398,32 @@ class $modify(RLProfilePage, ProfilePage) {
     float targetArrowX = showing ? (winSize.width - arrowW / 2 - 4)
                                  : (winSize.width - bgW - arrowW / 2 - 8);
 
-    auto moveBg = CCEaseBackOut::create(
-        CCMoveTo::create(0.3f, {targetBgX, winSize.height / 2}));
-    m_fields->m_rlButtonBg->runAction(moveBg);
-    if (m_fields->m_rlToggleArrow) {
-      auto moveArrow = CCEaseBackOut::create(
-          CCMoveTo::create(0.3f, {targetArrowX, winSize.height / 2}));
-      m_fields->m_rlToggleArrow->runAction(moveArrow);
-      if (auto sprite = static_cast<CCSprite *>(
-              m_fields->m_rlToggleArrow->getNormalImage())) {
-        sprite->setFlipX(!showing);
+    // exefm wants fast transition ig
+    bool disableAnim =
+        Mod::get()->getSettingValue<bool>("disableMenuAnimation");
+    if (disableAnim) {
+      // move instantly
+      m_fields->m_rlButtonBg->setPosition({targetBgX, winSize.height / 2});
+      if (m_fields->m_rlToggleArrow) {
+        m_fields->m_rlToggleArrow->setPosition(
+            {targetArrowX, winSize.height / 2});
+        if (auto sprite = static_cast<CCSprite *>(
+                m_fields->m_rlToggleArrow->getNormalImage())) {
+          sprite->setFlipX(!showing);
+        }
+      }
+    } else {
+      auto moveBg = CCEaseBackOut::create(
+          CCMoveTo::create(0.3f, {targetBgX, winSize.height / 2}));
+      m_fields->m_rlButtonBg->runAction(moveBg);
+      if (m_fields->m_rlToggleArrow) {
+        auto moveArrow = CCEaseBackOut::create(
+            CCMoveTo::create(0.3f, {targetArrowX, winSize.height / 2}));
+        m_fields->m_rlToggleArrow->runAction(moveArrow);
+        if (auto sprite = static_cast<CCSprite *>(
+                m_fields->m_rlToggleArrow->getNormalImage())) {
+          sprite->setFlipX(!showing);
+        }
       }
     }
     m_fields->m_rlMenuVisible = !showing;

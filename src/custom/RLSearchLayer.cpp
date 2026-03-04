@@ -1,8 +1,9 @@
 #include "RLSearchLayer.hpp"
+#include "RLLevelBrowserLayer.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
-#include "RLLevelBrowserLayer.hpp"
 #include <cue/RepeatingBackground.hpp>
+
 
 using namespace geode::prelude;
 
@@ -418,6 +419,18 @@ bool RLSearchLayer::init() {
   m_coinsVerifiedItem = coinsVerifiedItem;
   optionsMenu->addChild(coinsVerifiedItem);
 
+  // coins unverified toggle
+  auto coinsUnverifiedSpr =
+      ButtonSprite::create("Coins Unverified", 120, true, "goldFont.fnt",
+                           "GJ_button_01.png", 30.f, 1.f);
+  auto coinsUnverifiedItem = CCMenuItemSpriteExtra::create(
+      coinsUnverifiedSpr, this,
+      menu_selector(RLSearchLayer::onCoinsUnverifiedToggle));
+  coinsUnverifiedItem->setScale(1.0f);
+  coinsUnverifiedItem->setID("coins-unverified-toggle");
+  m_coinsUnverifiedItem = coinsUnverifiedItem;
+  optionsMenu->addChild(coinsUnverifiedItem);
+
   optionsMenu->updateLayout();
 
   // info button yay
@@ -526,7 +539,10 @@ void RLSearchLayer::onRandomButton(CCObject *sender) {
     params.emplace_back("oldest", "1");
   if (m_coinsVerifiedActive)
     params.emplace_back("coins", "1");
-  params.emplace_back("accountId", numToString(GJAccountManager::get()->m_accountID));
+  if (m_coinsUnverifiedActive)
+    params.emplace_back("uncoins", "1");
+  params.emplace_back("accountId",
+                      numToString(GJAccountManager::get()->m_accountID));
 
   std::string url = "https://gdrate.arcticwoof.xyz/getRandomLevel";
   if (!params.empty()) {
@@ -538,7 +554,8 @@ void RLSearchLayer::onRandomButton(CCObject *sender) {
     }
   }
 
-  m_searchTask.spawn(web::WebRequest().get(url.c_str()),
+  m_searchTask.spawn(
+      web::WebRequest().get(url.c_str()),
       [self, item](web::WebResponse const &res) {
         if (!self)
           return;
@@ -676,6 +693,8 @@ void RLSearchLayer::onSearchButton(CCObject *sender) {
     params.emplace_back("user", numToString(usernameParam));
   if (m_coinsVerifiedActive)
     params.emplace_back("coins", "1");
+  if (m_coinsUnverifiedActive)
+    params.emplace_back("uncoins", "1");
   params.emplace_back("accountId",
                       numToString(GJAccountManager::get()->m_accountID));
 
@@ -694,11 +713,44 @@ void RLSearchLayer::onCoinsVerifiedToggle(CCObject *sender) {
   if (!item)
     return;
   m_coinsVerifiedActive = !m_coinsVerifiedActive;
+  // if enabling verified, disable unverified
+  if (m_coinsVerifiedActive && m_coinsUnverifiedActive) {
+    m_coinsUnverifiedActive = false;
+    if (m_coinsUnverifiedItem) {
+      auto otherBtn = static_cast<ButtonSprite *>(
+          m_coinsUnverifiedItem->getNormalImage());
+      if (otherBtn)
+        otherBtn->updateBGImage("GJ_button_01.png");
+    }
+  }
   auto normalNode = item->getNormalImage();
   auto btn = static_cast<ButtonSprite *>(normalNode);
   if (btn) {
     btn->updateBGImage(m_coinsVerifiedActive ? "GJ_button_02.png"
                                              : "GJ_button_01.png");
+  }
+}
+
+void RLSearchLayer::onCoinsUnverifiedToggle(CCObject *sender) {
+  auto item = static_cast<CCMenuItemSpriteExtra *>(sender);
+  if (!item)
+    return;
+  m_coinsUnverifiedActive = !m_coinsUnverifiedActive;
+  // if enabling unverified, disable verified
+  if (m_coinsUnverifiedActive && m_coinsVerifiedActive) {
+    m_coinsVerifiedActive = false;
+    if (m_coinsVerifiedItem) {
+      auto otherBtn = static_cast<ButtonSprite *>(
+          m_coinsVerifiedItem->getNormalImage());
+      if (otherBtn)
+        otherBtn->updateBGImage("GJ_button_01.png");
+    }
+  }
+  auto normalNode = item->getNormalImage();
+  auto btn = static_cast<ButtonSprite *>(normalNode);
+  if (btn) {
+    btn->updateBGImage(m_coinsUnverifiedActive ? "GJ_button_02.png"
+                                               : "GJ_button_01.png");
   }
 }
 

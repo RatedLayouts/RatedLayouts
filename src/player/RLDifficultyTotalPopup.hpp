@@ -15,6 +15,7 @@ class RLDifficultyTotalPopup : public geode::Popup {
 
      private:
       bool init() override;
+      void onAppeal(CCObject* sender);
       int m_accountId = 0;
       Mode m_mode = Mode::Stars;
       CCLabelBMFont* m_resultsLabel = nullptr;

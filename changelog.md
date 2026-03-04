@@ -1,3 +1,19 @@
+# v0.4.3-beta.1
+
+- Added **Community Vote Leaderboard** to show the top voters in the community vote. (Found in the Community Vote popup)
+- Added **Disable Stats Menu Animation** option in the mod settings
+- Added **Moderators Notes** section in the level info layer to show any notes from moderators about the level
+- Added **Vote Count** in the Profile Page.
+- Replaced the **Ruby Shopkeeper** with a new character hehehe
+- Added **Coin Unverified** filter in the Custom Search Layer to show levels that has unverified/no coins.
+- Added **Report Level** on sent layouts levels.
+- Added **Disable Comment Glow on Nameplate** option in the mod settings. _(Enabled by Default)_
+- Added **Appeal Button** for users who got leaderboard banned. (Found in the Difficulty Stats popup)
+- Improved the **Credits Popup**
+- Improved **Moderator Panel** with additional tools and information for moderators and admins.
+- Tweaked the **User Moderator Panel** permissions and access.
+- More nameplates!
+
 # v0.4.2-beta.1
 
 - Refactored the Moderation system and introducing **Role Specific Badges**! Moderators and Admins will now have different badges to distinguish them in the comments and the leaderboard.

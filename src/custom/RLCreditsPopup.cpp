@@ -1,5 +1,6 @@
 #include "RLCreditsPopup.hpp"
 #include "../custom/RLAchievements.hpp"
+#include "Geode/ui/General.hpp"
 
 #include <Geode/modify/ProfilePage.hpp>
 
@@ -25,10 +26,11 @@ bool RLCreditsPopup::init() {
   auto scrollLayer = ScrollLayer::create({340.f, 195.f});
   scrollLayer->setPosition({15.f, 23.f});
   m_mainLayer->addChild(scrollLayer);
-  addListBorders(m_mainLayer,
-                 {m_mainLayer->getContentSize().width / 2 - 5.f,
-                  m_mainLayer->getContentSize().height / 2 - 5.f},
-                 {340.f, 195.f});
+  auto listBorder = ListBorders::create();
+  listBorder->setPosition({m_mainLayer->getContentSize().width / 2 - 5.f,
+                           m_mainLayer->getContentSize().height / 2 - 5.f});
+  listBorder->setContentSize({340.f, 195.f});
+  m_mainLayer->addChild(listBorder);
   m_scrollLayer = scrollLayer;
 
   auto scrollbar = Scrollbar::create(m_scrollLayer);

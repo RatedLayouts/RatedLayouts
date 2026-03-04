@@ -29,13 +29,12 @@ private:
   std::string m_title;
   GJGameLevel *m_level;
   GJDifficultySprite *m_difficultySprite;
+  CCMenuItemSpriteExtra *m_difficultyButton;
+  int m_coinCycleState;
   bool m_isDemonMode;
   bool m_isFeatured;
   bool m_isEpicFeatured;
   bool m_isLegendary;
-  CCMenuItemToggler *m_featuredToggleItem;
-  CCMenuItemToggler *m_legendaryToggleItem;
-  CCMenuItemToggler *m_epicFeaturedToggleItem;
   CCMenuItemToggler *m_verifiedToggleItem;
   CCMenuItemToggler *m_silentToggleItem;
   CCMenu *m_normalButtonsContainer;
@@ -77,5 +76,7 @@ private:
   void onSetEventButton(CCObject *sender);
   void onToggleLegendary(CCObject *sender);
   void onToggleEpicFeatured(CCObject *sender);
+  void onDifficultySpriteClicked(CCObject *sender);
   void updateDifficultySprite(int rating);
+  void updateDifficultyCoinPreview();
 };

@@ -40,6 +40,8 @@ bool RLModRatePopup::init() {
     return false;
 
   m_difficultySprite = nullptr;
+  m_difficultyButton = nullptr;
+  m_coinCycleState = 0;
   m_isDemonMode = false;
   m_isFeatured = false;
   m_isEpicFeatured = false;
@@ -52,7 +54,6 @@ bool RLModRatePopup::init() {
   m_difficultyInput = nullptr;
   m_featuredValueInput = nullptr;
   m_verifiedToggleItem = nullptr;
-  m_legendaryToggleItem = nullptr;
 
   // get the level ID ya
   if (m_level) {
@@ -65,6 +66,7 @@ bool RLModRatePopup::init() {
 
   // title
   setTitle(m_title.c_str(), "bigFont.fnt");
+  m_noElasticity = true;
 
   // normal and demon buttons
   m_normalButtonsContainer = CCMenu::create();
@@ -241,17 +243,6 @@ bool RLModRatePopup::init() {
 
   // featured / epic toggles
   if (m_role != PopupRole::Dev) {
-    auto offSprite =
-        CCSpriteGrayscale::createWithSpriteFrameName("RL_featuredCoin.png"_spr);
-    auto onSprite =
-        CCSprite::createWithSpriteFrameName("RL_featuredCoin.png"_spr);
-    auto toggleFeatured = CCMenuItemToggler::create(
-        offSprite, onSprite, this,
-        menu_selector(RLModRatePopup::onToggleFeatured));
-    m_featuredToggleItem = toggleFeatured;
-
-    toggleFeatured->setPosition({0, -10});
-    m_buttonMenu->addChild(toggleFeatured);
 
     // coin verified toggle (admin only)
     if (m_role == PopupRole::Admin) {
@@ -279,31 +270,7 @@ bool RLModRatePopup::init() {
       }
     }
 
-    // legendary toggle
-    auto offLegendarySprite = CCSpriteGrayscale::createWithSpriteFrameName(
-        "RL_legendaryFeaturedCoin.png"_spr);
-    auto onLegendarySprite =
-        CCSprite::createWithSpriteFrameName("RL_legendaryFeaturedCoin.png"_spr);
-    auto toggleLegendary = CCMenuItemToggler::create(
-        offLegendarySprite, onLegendarySprite, this,
-        menu_selector(RLModRatePopup::onToggleLegendary));
-    m_legendaryToggleItem = toggleLegendary;
-    toggleLegendary->setPosition({0, 120});
-    m_buttonMenu->addChild(toggleLegendary);
-
-    auto offEpicSprite = CCSpriteGrayscale::createWithSpriteFrameName(
-        "RL_epicFeaturedCoin.png"_spr);
-    auto onEpicSprite =
-        CCSprite::createWithSpriteFrameName("RL_epicFeaturedCoin.png"_spr);
-    auto toggleEpicFeatured = CCMenuItemToggler::create(
-        offEpicSprite, onEpicSprite, this,
-        menu_selector(RLModRatePopup::onToggleEpicFeatured));
-    m_epicFeaturedToggleItem = toggleEpicFeatured;
-
-    toggleEpicFeatured->setPosition({0, 50});
-    m_buttonMenu->addChild(toggleEpicFeatured);
   } else {
-    // For Dev provide a TextInput to set the featured value directly
     m_featuredValueInput = TextInput::create(100.f, "Featured");
     m_featuredValueInput->setPosition(
         {m_mainLayer->getContentSize().width / 2 + 30.f, 50.f});
@@ -406,12 +373,22 @@ bool RLModRatePopup::init() {
       {m_mainLayer->getContentSize().width - 50.f, 90.f});
   m_mainLayer->addChild(m_difficultyContainer);
 
-  // For non-Dev users, create the default difficulty sprite
+  // initialize coin cycle state
+  m_coinCycleState = 0;
+
   if (m_role != PopupRole::Dev) {
     m_difficultySprite = GJDifficultySprite::create(0, (GJDifficultyName)-1);
     m_difficultySprite->setPosition({0, 0});
     m_difficultySprite->setScale(1.2f);
-    m_difficultyContainer->addChild(m_difficultySprite);
+
+    m_difficultyButton = CCMenuItemSpriteExtra::create(
+        m_difficultySprite, this,
+        menu_selector(RLModRatePopup::onDifficultySpriteClicked));
+    m_difficultyButton->setPosition({0, 0});
+    m_difficultyButton->setContentSize({42.f, 53.75f});
+    auto diffMenu = CCMenu::create(m_difficultyButton, nullptr);
+    diffMenu->setPosition({0, 0});
+    m_difficultyContainer->addChild(diffMenu);
   }
 
   // Admin-only event buttons: daily / weekly / monthly
@@ -1420,6 +1397,12 @@ void RLModRatePopup::onToggleFeatured(CCObject *sender) {
       (m_role == PopupRole::Admin) ? 2 : ((m_role == PopupRole::Mod) ? 1 : 0);
 
   m_isFeatured = !m_isFeatured;
+  // sync cycle state
+  if (m_isFeatured) {
+    m_coinCycleState = 1;
+  } else if (!m_isEpicFeatured && !m_isLegendary) {
+    m_coinCycleState = 0;
+  }
 
   // ensure rejecting state is cleared when toggling features
   if (m_isRejected) {
@@ -1445,8 +1428,6 @@ void RLModRatePopup::onToggleFeatured(CCObject *sender) {
     }
   }
 
-  // Only modify preview coins for non-Dev users. Dev users should not
-  // see/hide preview coins.
   if (m_role != PopupRole::Dev) {
     auto existingCoin = m_difficultyContainer->getChildByID("featured-coin");
     auto existingEpicCoin =
@@ -1469,21 +1450,10 @@ void RLModRatePopup::onToggleFeatured(CCObject *sender) {
       if (existingEpicCoin)
         existingEpicCoin->removeFromParent();
       m_isEpicFeatured = false;
-      if (m_epicFeaturedToggleItem) {
-        m_epicFeaturedToggleItem->toggle(false);
-        setTogglerGrayscale(m_epicFeaturedToggleItem,
-                            "RL_epicFeaturedCoin.png"_spr, false);
-      }
       // if legendary previously set, clear it
       if (existingLegendaryCoin)
         existingLegendaryCoin->removeFromParent();
       m_isLegendary = false;
-      if (m_legendaryToggleItem) {
-        m_legendaryToggleItem->toggle(false);
-        setTogglerGrayscale(m_legendaryToggleItem,
-                            "RL_legendaryFeaturedCoin.png"_spr, false);
-      }
-      // score only for admin
       if (userRole == 2) {
         m_featuredScoreInput->setVisible(true);
         // hide reject button while featured score input is shown
@@ -1513,16 +1483,11 @@ void RLModRatePopup::onToggleFeatured(CCObject *sender) {
           rejectBtn->setVisible(true);
         }
       }
-      if (m_epicFeaturedToggleItem) {
-        setTogglerGrayscale(m_epicFeaturedToggleItem,
-                            "RL_epicFeaturedCoin.png"_spr, false);
-      }
-      if (m_legendaryToggleItem) {
-        setTogglerGrayscale(m_legendaryToggleItem,
-                            "RL_legendaryFeaturedCoin.png"_spr, false);
-      }
     }
   }
+  // make sure preview state matches
+  updateDifficultyCoinPreview();
+
   if (m_role == PopupRole::Dev) {
     if (m_isFeatured) {
       m_isEpicFeatured = false;
@@ -1541,6 +1506,11 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
   int userRole =
       (m_role == PopupRole::Admin) ? 2 : ((m_role == PopupRole::Mod) ? 1 : 0);
   m_isLegendary = !m_isLegendary;
+  if (m_isLegendary) {
+    m_coinCycleState = 3;
+  } else if (!m_isFeatured && !m_isEpicFeatured) {
+    m_coinCycleState = 0;
+  }
 
   // clear reject if set
   if (m_isRejected) {
@@ -1581,17 +1551,6 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
       m_isFeatured = false;
       m_isEpicFeatured = false;
 
-      if (m_featuredToggleItem) {
-        m_featuredToggleItem->toggle(false);
-        setTogglerGrayscale(m_featuredToggleItem, "RL_featuredCoin.png"_spr,
-                            false);
-      }
-      if (m_epicFeaturedToggleItem) {
-        m_epicFeaturedToggleItem->toggle(false);
-        setTogglerGrayscale(m_epicFeaturedToggleItem,
-                            "RL_epicFeaturedCoin.png"_spr, false);
-      }
-
       auto newLegendary = CCSprite::createWithSpriteFrameName(
           "RL_legendaryFeaturedCoin.png"_spr);
       newLegendary->setPosition({0, 0});
@@ -1618,14 +1577,6 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
           rejectBtn->setVisible(true);
         }
       }
-      if (m_featuredToggleItem) {
-        setTogglerGrayscale(m_featuredToggleItem, "RL_featuredCoin.png"_spr,
-                            false);
-      }
-      if (m_epicFeaturedToggleItem) {
-        setTogglerGrayscale(m_epicFeaturedToggleItem,
-                            "RL_epicFeaturedCoin.png"_spr, false);
-      }
     }
   } else {
     // Dev users: keep internal state but do not change preview/score UI
@@ -1648,12 +1599,18 @@ void RLModRatePopup::onToggleLegendary(CCObject *sender) {
       m_submitButtonItem->setEnabled(false);
     }
   }
+  updateDifficultyCoinPreview();
 }
 
 void RLModRatePopup::onToggleEpicFeatured(CCObject *sender) {
   int userRole =
       (m_role == PopupRole::Admin) ? 2 : ((m_role == PopupRole::Mod) ? 1 : 0);
   m_isEpicFeatured = !m_isEpicFeatured;
+  if (m_isEpicFeatured) {
+    m_coinCycleState = 2;
+  } else if (!m_isFeatured && !m_isLegendary) {
+    m_coinCycleState = 0;
+  }
 
   // clear reject if set
   if (m_isRejected) {
@@ -1692,16 +1649,6 @@ void RLModRatePopup::onToggleEpicFeatured(CCObject *sender) {
         existingLegendaryCoin->removeFromParent();
       m_isFeatured = false;
       m_isLegendary = false;
-      if (m_featuredToggleItem) {
-        m_featuredToggleItem->toggle(false);
-        setTogglerGrayscale(m_featuredToggleItem, "RL_featuredCoin.png"_spr,
-                            false);
-      }
-      if (m_legendaryToggleItem) {
-        m_legendaryToggleItem->toggle(false);
-        setTogglerGrayscale(m_legendaryToggleItem,
-                            "RL_legendaryFeaturedCoin.png"_spr, false);
-      }
       auto newEpicCoin =
           CCSprite::createWithSpriteFrameName("RL_epicFeaturedCoin.png"_spr);
       newEpicCoin->setPosition({0, 0});
@@ -1737,14 +1684,6 @@ void RLModRatePopup::onToggleEpicFeatured(CCObject *sender) {
           rejectBtn->setVisible(true);
         }
       }
-      if (m_featuredToggleItem) {
-        setTogglerGrayscale(m_featuredToggleItem, "RL_featuredCoin.png"_spr,
-                            false);
-      }
-      if (m_legendaryToggleItem) {
-        setTogglerGrayscale(m_legendaryToggleItem,
-                            "RL_legendaryFeaturedCoin.png"_spr, false);
-      }
     }
   } else {
     // Dev users: keep internal state but do not change preview/score UI
@@ -1753,6 +1692,7 @@ void RLModRatePopup::onToggleEpicFeatured(CCObject *sender) {
       m_isLegendary = false;
     }
   }
+  updateDifficultyCoinPreview();
 }
 
 void RLModRatePopup::onRatingButton(CCObject *sender) {
@@ -1834,10 +1774,6 @@ void RLModRatePopup::updateDifficultySprite(int rating) {
     m_mainLayer->addChild(m_difficultyContainer);
   }
 
-  if (m_difficultySprite) {
-    m_difficultySprite->removeFromParent();
-  }
-
   int difficultyLevel;
 
   switch (rating) {
@@ -1882,11 +1818,123 @@ void RLModRatePopup::updateDifficultySprite(int rating) {
     break;
   }
 
-  m_difficultySprite =
-      GJDifficultySprite::create(difficultyLevel, GJDifficultyName::Short);
-  m_difficultySprite->setPosition({0, 0});
-  m_difficultySprite->setScale(1.2f);
-  m_difficultyContainer->addChild(m_difficultySprite);
+  if (!m_difficultySprite) {
+    m_difficultySprite =
+        GJDifficultySprite::create(difficultyLevel, GJDifficultyName::Short);
+    m_difficultySprite->setPosition(
+        {m_difficultyButton->getContentSize().width / 2,
+         m_difficultyButton->getContentSize().height / 2});
+    m_difficultySprite->setScale(1.2f);
+  } else {
+    m_difficultySprite->updateDifficultyFrame(difficultyLevel,
+                                              GJDifficultyName::Short);
+  }
+
+  // keep preview state coin up to date
+  updateDifficultyCoinPreview();
+}
+
+void RLModRatePopup::updateDifficultyCoinPreview() {
+  if (m_role == PopupRole::Dev)
+    return;
+  if (!m_difficultyContainer)
+    return;
+
+  // hide reject button and show score input for cycle state >0 (admin only)
+  auto rejectBtn = m_normalButtonsContainer
+                       ? m_normalButtonsContainer->getChildByID(
+                             "rating-button-reject")
+                       : nullptr;
+  int userRole = (m_role == PopupRole::Admin) ? 2
+                                               : ((m_role == PopupRole::Mod) ? 1 : 0);
+  if (m_coinCycleState > 0) {
+    if (rejectBtn)
+      rejectBtn->setVisible(false);
+    if (userRole == 2 && m_featuredScoreInput)
+      m_featuredScoreInput->setVisible(true);
+  } else {
+    if (rejectBtn)
+      rejectBtn->setVisible(true);
+    if (userRole == 2 && m_featuredScoreInput)
+      m_featuredScoreInput->setVisible(false);
+  }
+
+  auto existingCoin = m_difficultyContainer->getChildByID("featured-coin");
+  if (existingCoin)
+    existingCoin->removeFromParent();
+  auto existingEpicCoin =
+      m_difficultyContainer->getChildByID("epic-featured-coin");
+  if (existingEpicCoin)
+    existingEpicCoin->removeFromParent();
+  auto existingLegendaryCoin =
+      m_difficultyContainer->getChildByID("legendary-featured-coin");
+  if (existingLegendaryCoin)
+    existingLegendaryCoin->removeFromParent();
+
+  switch (m_coinCycleState) {
+  case 1: {
+    auto coin = CCSprite::createWithSpriteFrameName("RL_featuredCoin.png"_spr);
+    coin->setPosition({-3, -1});
+    coin->setScale(1.2f);
+    coin->setID("featured-coin");
+    m_difficultyContainer->addChild(coin, -1);
+    break;
+  }
+  case 2: {
+    auto coin =
+        CCSprite::createWithSpriteFrameName("RL_epicFeaturedCoin.png"_spr);
+    coin->setPosition({-3, -1});
+    coin->setScale(1.2f);
+    coin->setID("epic-featured-coin");
+    m_difficultyContainer->addChild(coin, -1);
+    break;
+  }
+  case 3: {
+    auto coin =
+        CCSprite::createWithSpriteFrameName("RL_legendaryFeaturedCoin.png"_spr);
+    coin->setPosition({-3, -1});
+    coin->setScale(1.2f);
+    coin->setID("legendary-featured-coin");
+    m_difficultyContainer->addChild(coin, -1);
+    break;
+  }
+  default:
+    break;
+  }
+}
+
+void RLModRatePopup::onDifficultySpriteClicked(CCObject *sender) {
+  // cycle through states
+  m_coinCycleState = (m_coinCycleState + 1) % 4;
+  m_isFeatured = (m_coinCycleState == 1);
+  m_isEpicFeatured = (m_coinCycleState == 2);
+  m_isLegendary = (m_coinCycleState == 3);
+
+  // if rejecting previously, clear it
+  if (m_isRejected && m_coinCycleState > 0) {
+    m_isRejected = false;
+    if (m_normalButtonsContainer) {
+      if (auto rejectBtn =
+              m_normalButtonsContainer->getChildByID("rating-button-reject")) {
+        auto rejectBtnItem = static_cast<CCMenuItemSpriteExtra *>(rejectBtn);
+        auto rejectBg = CCSprite::create("GJ_button_04.png");
+        auto rejectLabel = CCLabelBMFont::create("-", "bigFont.fnt");
+        rejectLabel->setScale(0.75f);
+        rejectLabel->setPosition(rejectBg->getContentSize() / 2);
+        rejectBg->addChild(rejectLabel);
+        rejectBg->setID("button-bg-reject");
+        rejectBtnItem->setNormalImage(rejectBg);
+      }
+    }
+    if (m_role == PopupRole::Admin && m_submitButtonItem) {
+      auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt",
+                                             "GJ_button_01.png", 30.f, 1.f);
+      m_submitButtonItem->setNormalImage(enabledSpr);
+      m_submitButtonItem->setEnabled(true);
+    }
+  }
+
+  updateDifficultyCoinPreview();
 }
 
 void RLModRatePopup::onSetEventButton(CCObject *sender) {

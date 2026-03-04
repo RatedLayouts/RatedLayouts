@@ -40,12 +40,14 @@ public:
   CCMenuItemSpriteExtra *m_completedItem = nullptr;
   CCMenuItemSpriteExtra *m_uncompletedItem = nullptr;
   CCMenuItemSpriteExtra *m_coinsVerifiedItem = nullptr;
+  CCMenuItemSpriteExtra *m_coinsUnverifiedItem = nullptr;
   bool m_platformerActive = false;
   bool m_classicActive = false;
   bool m_usernameActive = false;
   bool m_completedActive = false;
   bool m_uncompletedActive = false;
   bool m_coinsVerifiedActive = false;
+  bool m_coinsUnverifiedActive = false;
 
   // difficulty filter buttons
   CCMenu *m_difficultyFilterMenu = nullptr;
@@ -82,6 +84,7 @@ public:
   void onDemonDifficultyButton(CCObject *sender);
   void onDifficultyButton(CCObject *sender);
   void onCoinsVerifiedToggle(CCObject *sender);
+  void onCoinsUnverifiedToggle(CCObject *sender);
   void onRandomButton(CCObject *sender);
 
   // pending random fetch state

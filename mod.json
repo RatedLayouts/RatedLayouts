@@ -8,7 +8,7 @@
 	},
 	"id": "arcticwoof.rated_layouts",
 	"name": "Rated Layouts",
-	"version": "v0.4.2-beta.4",
+	"version": "v0.4.3-beta.1",
 	"developer": "ArcticWoof",
 	"description": "Play layout rated levels",
 	"resources": {
@@ -171,9 +171,9 @@
 			"default": false,
 			"description": "Disable nameplate in comments only."
 		},
-		"titleMisc": {
+		"titleAccess": {
 			"type": "title",
-			"name": "Miscellaneous Settings"
+			"name": "Accessibility Settings"
 		},
 		"disableRLMenu": {
 			"name": "Disable Stats Menu Button",
@@ -181,17 +181,28 @@
 			"default": false,
 			"description": "Disable the Rated Layouts stats menu button in the Profile Page."
 		},
-		"disableScrollbar": {
-			"name": "Disable Scrollbar",
+		"disableMenuAnimation": {
+			"name": "Disable Stats Menu Animation",
 			"type": "bool",
 			"default": false,
-			"description": "Disable the scrollbar in Rated Layouts leaderboards and level browser."
+			"description": "Disable the animation when you open the Rated Layouts Stats Menu.",
+			"enable-if": "!disableRLMenu"
 		},
 		"disableRewardAnimation": {
 			"name": "Disable Reward Animation",
 			"type": "bool",
 			"default": false,
 			"description": "Disable the reward animation when you complete a rated layout level <cy>Enable this if you kept crashing from the reward animation</cy>"
+		},
+		"disableParticles": {
+			"name": "Disable Title Particles",
+			"type": "bool",
+			"default": false,
+			"description": "Disables particle effects in Legendary+ Rated Layouts Level Name Title. <cy>Enable this setting if you experience performance issues.</cy>"
+		},
+		"titleComment": {
+			"type": "title",
+			"name": "Comment-Specific Settings"
 		},
 		"disableCommentGlow": {
 			"name": "Disable Comment Glow",
@@ -203,7 +214,19 @@
 			"name": "Disable Comment Glow on Nameplate",
 			"type": "bool",
 			"default": true,
-			"description": "Disable comment glow effect if the user has a nameplate applied. <cy>Enabled by default</c>"
+			"description": "Disable comment glow effect if the user has a nameplate applied. <cy>Enabled by default</c>",
+			"enable-if": "!disableNameplateInComment"
+		},
+		"titleMisc": {
+			"type": "title",
+			"name": "Miscellaneous Settings"
+		},
+
+		"disableScrollbar": {
+			"name": "Disable Scrollbar",
+			"type": "bool",
+			"default": false,
+			"description": "Disable the scrollbar in Rated Layouts leaderboards and level browser."
 		},
 		"disableCreatorPoints": {
 			"name": "Disable Creator Points",
@@ -216,12 +239,6 @@
 			"type": "bool",
 			"default": false,
 			"description": "Disables the mod info shown in the Rated Layouts Creator Layer."
-		},
-		"disableParticles": {
-			"name": "Disable Title Particles",
-			"type": "bool",
-			"default": false,
-			"description": "Disables particle effects in Legendary+ Rated Layouts Level Name Title. <cy>Enable this setting if you experience performance issues.</cy>"
 		}
 	}
 }

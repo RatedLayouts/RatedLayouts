@@ -370,6 +370,21 @@ bool RLDifficultyTotalPopup::init() {
           }
         }
 
+        // if all rank is zero, show an appeal button if the accountid matches
+        // the logged in user
+        if (position == 0 && coinRank == 0 && voteRank == 0 &&
+            self->m_accountId == GJAccountManager::get()->m_accountID) {
+          auto appealBtnSpr =
+              ButtonSprite::create("Appeal", 60, true, "goldFont.fnt",
+                                   "GJ_button_06.png", 20.f, 1.f);
+          auto appealBtn = CCMenuItemSpriteExtra::create(
+              appealBtnSpr, self,
+              menu_selector(RLDifficultyTotalPopup::onAppeal));
+          appealBtn->setPosition(
+              {self->m_mainLayer->getContentSize().width - 60.f, 25.f});
+          self->m_buttonMenu->addChild(appealBtn);
+        }
+
         // icheck for extreme demon achievement
         if (self->m_accountId == GJAccountManager::get()->m_accountID) {
           if (counts.find(30) != counts.end() && counts[30] > 0) {
@@ -380,4 +395,19 @@ bool RLDifficultyTotalPopup::init() {
         self->buildDifficultyUI(self->m_counts);
       });
   return true;
+}
+
+void RLDifficultyTotalPopup::onAppeal(CCObject *sender) {
+  createQuickPopup(
+      "Appeal Leaderboard Ban",
+      "You will redirect to <cl>Rated Layouts Discord Server</c> and make an "
+      "appeal of your <cr>leaderboard ban</c>.\n<cy>Continue?</c>",
+      "No", "Yes", [](auto, bool yes) {
+        if (!yes)
+          return;
+        Notification::create("Opening a new link to the browser",
+                             NotificationIcon::Info)
+            ->show();
+        utils::web::openLinkInBrowser("https://discord.gg/jBf2wfBgVT");
+      });
 }

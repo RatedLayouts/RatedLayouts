@@ -230,7 +230,14 @@ bool RLShopLayer::init() {
                  {54, 10000, 35607668, "bocaj583"},
                  {55, 20000, 5354634, "stkyc"},
                  {56, 15000, 16200929, "GMDJoshie"},
-                 {57, 10000, 23697591, "CroumbLaGouche"}};
+                 {57, 10000, 23697591, "CroumbLaGouche"},
+                 {58, 12250, 20554174, "mihmihmihmihmih"},
+                 {59, 10807, 13457772, "Darkore"},
+                 {60, 737000, 7824770, "Chaken"},
+                 {61, 12500, 37794277, "YoussefCreator"},
+                 {62, 12026, 29512374, "ScottFLikes699"},
+                 {63, 10000, 27206145, "MegaGDashYT"},
+                 {64, 12500, 37794277, "YoussefCreator"}};
   m_shopRow1->setAnchorPoint({0.5f, 0.5f});
   m_shopRow2->setAnchorPoint({0.5f, 0.5f});
 
@@ -336,7 +343,7 @@ void RLShopLayer::onLayoutCreator(CCObject *sender) {
     return g;
   }();
 
-  int v = gen.generate<int>(0, 9);
+  int v = gen.generate<int>(0, 15);
   uint64_t raw = gen.next();
   DialogObject *dialogObj = nullptr;
   std::string response = "Can I help you?";
@@ -372,9 +379,35 @@ void RLShopLayer::onLayoutCreator(CCObject *sender) {
     response = "Still making more <cg>nameplates</c> coming. My <cl>delivery "
                "got delayed</c>...";
     break;
-  default:
+  case 9:
     response = "Sorry <cy>I can't talk right now</c>, I'm busy counting my "
                "<cr>rubies</c> :3";
+    break;
+  case 10:
+    response = "I'm <cr>lurking</c> on <cl>every move</c> you do...";
+    break;
+  case 11:
+    response = "<cg>Fun fact about me!</c> I actually <co>suck at making "
+               "gameplay</c>.";
+    break;
+  case 12:
+    response = "If you giving me a <cr>nameplate</c>, at least put an "
+               "<cg>effort on it</c>...";
+    break;
+  case 13:
+    response =
+        "I heard <cl>someone</c> is trying to <cg>break into the shop</cg> "
+        "to steal my <cr>precious nameplates</c>, but I don't know who...";
+    break;
+  case 14:
+    response = "Would you want to buy my entire shop for <cg>$100k?</c> I know "
+               "someone is <cy>interested</c> :P";
+    break;
+  case 15:
+    response = "Give me <cr>10k rubies</c> and a <cl>high-end car</c>!";
+    break;
+  default:
+    response = "Weh!";
     break;
   }
   dialogObj = DialogObject::create("ArcticWoof", response.c_str(), 1, 1.f,

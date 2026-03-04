@@ -97,7 +97,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
       CCSprite *modButtonSprite = nullptr;
       CCSprite *devButtonSprite = nullptr;
 
-      if (starRatings != 0) {
+      if (starRatings != 0 || m_level->m_accountID == GJAccountManager::sharedState()->m_accountID) {
         if (isClassicMod || isClassicAdmin) {
           modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
               "RL_starBig.png"_spr);
@@ -206,7 +206,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
       // Process the response immediately
       if (layerRef) {
-        layerRef->processLevelRating(json, layerRef, true);
+        layerRef->processLevelRating(json, layerRef);
         if (!isSuggested) {
           layerRef->repositionRubyUI();
           layerRef->addOrUpdateRubyUI(
@@ -221,13 +221,11 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     });
   }
   void processLevelRating(const matjson::Value &json,
-                          Ref<RLLevelInfoLayer> layerRef,
-                          bool forceShow = false) {
+                          Ref<RLLevelInfoLayer> layerRef) {
     if (!layerRef)
       return;
     int difficulty = json["difficulty"].asInt().unwrapOrDefault();
     int featured = json["featured"].asInt().unwrapOrDefault();
-    bool showCommunity = forceShow;
     CCNode *difficultySprite = nullptr;
     if (layerRef) {
       difficultySprite = layerRef->getChildByID("difficulty-sprite");
@@ -246,15 +244,13 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
       }
     };
 
-    if (showCommunity) {
-      // create button if not already present
-      bool exists = false;
-      auto rightMenuNode = layerRef->getChildByID("right-side-menu");
-      if (rightMenuNode && typeinfo_cast<CCMenu *>(rightMenuNode)) {
-        if (static_cast<CCMenu *>(rightMenuNode)
-                ->getChildByID("rl-community-vote"))
-          exists = true;
-      }
+    // create button if not already present
+    bool exists = false;
+    auto rightMenuNode = layerRef->getChildByID("right-side-menu");
+    if (rightMenuNode && typeinfo_cast<CCMenu *>(rightMenuNode)) {
+      if (static_cast<CCMenu *>(rightMenuNode)
+              ->getChildByID("rl-community-vote"))
+        exists = true;
 
       if (!exists) {
         // determine whether we can use the level's percentage fields
@@ -1796,6 +1792,15 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     int starRatings = this->m_level->m_stars;
     bool isPlatformer = this->m_level->isPlatformer();
 
+    if (this->m_level->m_accountID ==
+        GJAccountManager::sharedState()->m_accountID) {
+      FLAlertLayer::create(
+          "Action Unavailable",
+          "You cannot perform this action on <cy>your own levels</c>.", "OK")
+          ->show();
+      return;
+    }
+
     if (starRatings != 0) {
       FLAlertLayer::create("Action Unavailable",
                            "You cannot perform this action on "
@@ -2358,7 +2363,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             }
 
             // Update the display with latest data
-            layerRef->processLevelRating(json, layerRef, true);
+            layerRef->processLevelRating(json, layerRef);
           });
     }
   }
