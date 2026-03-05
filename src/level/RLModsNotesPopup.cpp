@@ -75,12 +75,17 @@ bool RLModsNotesPopup::init() {
 
   auto scrollLayer = ScrollLayer::create(listSize);
   scrollLayer->setPosition({20.f, 30.f});
-  m_mainLayer->addChild(scrollLayer);
+  m_mainLayer->addChild(scrollLayer, 1);
+
+  // bg
+  auto bg = CCLayerColor::create({20, 25, 55, 255}, listWidth, listHeight);
+  bg->setPosition(scrollLayer->getPosition());
+  m_mainLayer->addChild(bg);
 
   auto listBorders = ListBorders::create();
   listBorders->setPosition(m_mainLayer->getContentSize() / 2.f);
   listBorders->setContentSize(listSize);
-  m_mainLayer->addChild(listBorders);
+  m_mainLayer->addChild(listBorders, 2);
 
   auto loadingSpinner = LoadingSpinner::create(50.f);
   loadingSpinner->setPosition(m_mainLayer->getContentSize() / 2.f);
@@ -91,7 +96,7 @@ bool RLModsNotesPopup::init() {
     scrollBar->setPosition({m_mainLayer->getContentSize().width - 14.f,
                             m_mainLayer->getContentSize().height / 2.f - 5.f});
     scrollBar->setScale(0.9f);
-    m_mainLayer->addChild(scrollBar);
+    m_mainLayer->addChild(scrollBar, 3);
   }
 
   auto contentLayer = scrollLayer->m_contentLayer;
@@ -110,12 +115,23 @@ bool RLModsNotesPopup::init() {
   auto req = web::WebRequest();
   req.param("levelId", numToString(static_cast<int>(m_level->m_levelID)));
   Ref<RLModsNotesPopup> self = this;
+  Ref<ScrollLayer> scrollRef = scrollLayer;
+  Ref<CCNode> contentRef = scrollLayer->m_contentLayer;
+  Ref<LoadingSpinner> spinnerRef = loadingSpinner;
+  // im googing with ref<> rn
+
   m_getNotesTask.spawn(
       req.get("https://gdrate.arcticwoof.xyz/getNotes"),
-      [self, scrollLayer, loadingSpinner](web::WebResponse response) {
+      [self, scrollRef, contentRef, spinnerRef](web::WebResponse response) {
         if (!self)
           return;
         log::info("received notes response");
+
+        if (!scrollRef || !spinnerRef) {
+          log::warn("ui elements vanished before response");
+          return;
+        }
+
         if (!response.ok()) {
           Notification::create("Failed to fetch mod notes",
                                NotificationIcon::Error)
@@ -160,7 +176,7 @@ bool RLModsNotesPopup::init() {
           ccColor4B bgColor = (idx % 2 == 0) ? ccColor4B{0x33, 0x44, 0x99, 255}
                                              : ccColor4B{0x24, 0x30, 0x6c, 255};
           auto layer = CCLayerColor::create(
-              bgColor, self->m_scrollLayer->getContentSize().width, totalH);
+              bgColor, scrollRef->getContentSize().width, totalH);
 
           usernameLabel->setAnchorPoint({0.f, .5f});
           usernameLabel->setScale(.6f);
@@ -218,8 +234,12 @@ bool RLModsNotesPopup::init() {
           }
           layer->addChild(difficultyLabel);
 
-          scrollLayer->m_contentLayer->addChild(layer);
-          loadingSpinner->removeFromParent();
+          if (contentRef) {
+            contentRef->addChild(layer);
+          }
+          if (spinnerRef) {
+            spinnerRef->removeFromParent();
+          }
           idx++;
         }
         if (idx == 0) {
@@ -228,11 +248,13 @@ bool RLModsNotesPopup::init() {
           noNotesLabel->setPosition(self->m_mainLayer->getContentSize() / 2.f);
           noNotesLabel->setScale(0.6f);
           self->m_mainLayer->addChild(noNotesLabel);
-          loadingSpinner->removeFromParent();
+          if (spinnerRef) {
+            spinnerRef->removeFromParent();
+          }
         }
-        if (scrollLayer->m_contentLayer) {
-          scrollLayer->m_contentLayer->updateLayout();
-          scrollLayer->scrollToTop();
+        if (contentRef) {
+          contentRef->updateLayout();
+          scrollRef->scrollToTop();
         }
       });
 

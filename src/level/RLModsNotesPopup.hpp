@@ -16,5 +16,6 @@ private:
 
     ~RLModsNotesPopup() {
         m_getNotesTask.cancel();
+        m_scrollLayer = nullptr;
     }
 };

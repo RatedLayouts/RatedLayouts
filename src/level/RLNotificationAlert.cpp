@@ -2,8 +2,9 @@
 #include "Geode/utils/general.hpp"
 #include "RLNotificationOverlay.hpp"
 #include <Geode/Geode.hpp>
-#include <Geode/ui/NineSlice.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
+#include <Geode/ui/NineSlice.hpp>
 
 using namespace geode::prelude;
 
@@ -263,6 +264,18 @@ void RLNotificationAlert::setOnCloseCallback(std::function<void()> callback) {
 void RLNotificationAlert::onNotificationClicked(CCObject *sender) {
   if (m_levelId <= 0) {
     this->closeAlert();
+    return;
+  }
+
+  if (PlayLayer::get()) {
+    FLAlertLayer::create(
+        "Warning",
+        "You are already inside of a level, attempt to play another level "
+        "before closing the current level may <cr>crash your "
+        "game</c>\n<cy>Please exit the current level before trying to view "
+        "this level</c>",
+        "OK")
+        ->show();
     return;
   }
 

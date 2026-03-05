@@ -150,10 +150,12 @@ bool RLLevelBrowserLayer::init(GJSearchObject *object) {
           CCLabelBMFont::create(numToString(m_page + 1).c_str(), "bigFont.fnt");
       if (m_pageButtonLabel) {
         auto size = m_pageButton->getContentSize();
-        m_pageButtonLabel->setPosition({size.width / 2.f, size.height / 2.f});
+        m_pageButtonLabel->setPosition({size.width / 2.f, size.height / 2.f + 1.f});
         m_pageButtonLabel->setAnchorPoint({0.5f, 0.5f});
         m_pageButtonLabel->setID("rl-page-label");
         m_pageButtonLabel->setScale(0.7f);
+        m_pageButtonLabel->limitLabelWidth(m_pageButton->getContentSize().width - 10.f,
+                                           .7f, .1f);
         m_pageButton->addChild(m_pageButtonLabel, 1);
       }
 
@@ -432,6 +434,8 @@ void RLLevelBrowserLayer::setIDPopupClosed(SetIDPopup *popup, int value) {
 void RLLevelBrowserLayer::updatePageButton() {
   if (m_pageButtonLabel) {
     m_pageButtonLabel->setString(numToString(m_page + 1).c_str());
+    m_pageButtonLabel->limitLabelWidth(m_pageButton->getContentSize().width - 10.f, .7f,
+                                       .1f);
   }
   // only show the page picker when we have more than one page and the levels
   // label has been populated
@@ -1214,6 +1218,8 @@ void RLLevelBrowserLayer::update(float dt) {
 
   if (m_pageButtonLabel) {
     m_pageButtonLabel->setString(numToString(m_page + 1).c_str());
+    m_pageButtonLabel->limitLabelWidth(m_pageButton->getContentSize().width - 10.f, .7f,
+                                       .1f);
   }
   if (m_pageButton) {
     m_pageButton->setVisible(m_totalPages > 1);
