@@ -353,7 +353,7 @@ void RLShopLayer::onLayoutCreator(CCObject *sender) {
     response = "I got all of the <cg>nameplates</c> in stock!";
     break;
   case 2:
-    response = "What about that guy? <cl>Well he kinda run away when I "
+    response = "<cg>Layout Creator</c>? <cl>Well he kinda run away when I "
                "arrived</c>, odd fella but oh well...";
     break;
   case 3:
@@ -361,7 +361,7 @@ void RLShopLayer::onLayoutCreator(CCObject *sender) {
                "because they are cute.";
     break;
   case 4:
-    response = "<cl>Darkore</c>, that werid kid that put this <cg>awesome "
+    response = "<cl>Darkore</c>, that weird kid that put this <cg>awesome "
                "music</c> in the shop? Truely peak bud :)";
     break;
   case 5:

@@ -3,6 +3,7 @@
 #include "RLAchievements.hpp"
 #include "RLShopLayer.hpp"
 #include "ccTypes.h"
+#include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/binding/UploadActionPopup.hpp>
 #include <Geode/modify/ProfilePage.hpp>
 #include <fmt/format.h>
@@ -183,28 +184,45 @@ void RLBuyItemPopup::onBuy(CCObject *sender) {
       response = "You need more <cr>rubies</c> to get this!";
       break;
     case 3:
-      response = "Collect those yummy <cr>rubies</c> please.";
+      response = fmt::format(
+          "<cg>{}</c>, you need more <cr>rubies</c> to buy this item!",
+          GJAccountManager::get()->m_username);
       break;
     case 4:
-      response = "You don't have enough <cr>rubies</c>! <d150><co>hah you broke bud.</c>";
+      response = "You don't have enough <cr>rubies</c>! <d150><co>hah you "
+                 "broke bud.</c>";
       break;
     case 5:
-      response = "This item costs <cr>rubies</c>, and you don't have enough!";
+      response = fmt::format(
+          "Yikes! You just <cr>{} rubies short</c>, can't let you have this.",
+          m_value - current);
       break;
     case 6:
       response = "Go play some <cl>layouts</c> to earn more <cr>rubies</c>!";
       break;
     case 7:
-      response = "I ain't the <cg>bank</c>, go get your own <cr>rubies</c>!";
+      response =
+          "Oh you short on <cr>rubies</c>? That's unfortunate. womp womp";
       break;
     case 8:
-      response = "You have successfully brought the item of being <cr>poor</c>!<d050> <cg>Congrats you get NOTHING!</c>";
+      response =
+          fmt::format("<cr>ERROR! INSUFFICIENT RUBIES! GO HOME</c> <cg>{}</c>!",
+                      GJAccountManager::get()->m_username);
     }
-    DialogObject *obj = DialogObject::create("Layout Creator", response.c_str(),
-                                             28, 1.f, false, ccWHITE);
+    DialogObject *obj = DialogObject::create("ArcticWoof", response.c_str(), 28,
+                                             1.f, false, ccWHITE);
     auto dialog = DialogLayer::createDialogLayer(obj, nullptr, 2);
     dialog->addToMainScene();
     dialog->animateInRandomSide();
+
+    dialog->m_characterSprite->setVisible(
+        false); // i was gonna be fancy and use cctexturecache thingy but didnt
+                // work so just did hacky way
+    auto awSprite =
+        CCSprite::createWithSpriteFrameName("RL_dialogIconAW.png"_spr);
+    awSprite->setPosition(dialog->m_characterSprite->getPosition());
+    dialog->m_mainLayer->addChild(awSprite, 1);
+    dialog->m_characterSprite->removeFromParent();
     return;
   }
 
