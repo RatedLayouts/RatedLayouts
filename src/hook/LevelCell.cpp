@@ -839,8 +839,8 @@ class $modify(RLLevelCell, LevelCell) {
                   infoSpr, this, menu_selector(RLLevelCell::onLegacyInfo));
               infoBtn->setID("rl-legacy-info-btn");
               infoBtn->setPosition(
-                  {difficultySprite->getContentSize().width - 10,
-                   difficultySprite->getContentSize().height - 10});
+                  {difficultySprite->getContentSize().width - 20,
+                   difficultySprite->getContentSize().height - 20});
 
               auto infoMenu = CCMenu::createWithItem(infoBtn);
               infoMenu->setID("rl-legacy-info-menu");

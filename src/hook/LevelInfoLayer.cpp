@@ -211,7 +211,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
       // Process the response immediately
       if (layerRef) {
         layerRef->processLevelRating(json, layerRef);
-        if (!isSuggested && !isLegacy) {
+        if (!isSuggested) {
           layerRef->repositionRubyUI();
           layerRef->addOrUpdateRubyUI(
               layerRef, json["difficulty"].asInt().unwrapOrDefault());
@@ -393,12 +393,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             infoSpr, layerRef, menu_selector(RLLevelInfoLayer::onLegacyInfo));
         infoBtn->setID("rl-legacy-info-btn");
         // shift button further down for non-demon difficulties (1–9)
-        float yPos = difficultySprite->getContentSize().height - 10;
+        float yPos = difficultySprite->getContentSize().height - 20;
         if (difficulty > 0 && difficulty < 10) {
           yPos -= 10.f;
         }
         infoBtn->setPosition(
-            {difficultySprite->getContentSize().width - 10, yPos});
+            {difficultySprite->getContentSize().width - 20, yPos});
 
         auto infoMenu = CCMenu::createWithItem(infoBtn);
         infoMenu->setID("rl-legacy-info-menu");
@@ -2348,7 +2348,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             bool isLegacy = json["legacy"].asBool().unwrapOrDefault();
             int difficulty = json["difficulty"].asInt().unwrapOrDefault();
 
-            if (!isSuggested && !isLegacy && difficulty > 0) {
+            if (!isSuggested && difficulty > 0) {
               layerRef->addOrUpdateRubyUI(layerRef, difficulty);
             }
 

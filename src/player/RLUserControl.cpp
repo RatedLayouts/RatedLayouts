@@ -267,7 +267,8 @@ bool RLUserControl::init() {
               if (key == "blacklisted") {
                 bool hasPerms =
                     Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
-                    Mod::get()->getSavedValue<bool>("isPlatAdmin");
+                    Mod::get()->getSavedValue<bool>("isPlatAdmin") || 
+                    GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID;
                 if (!hasPerms)
                   showAction = false;
               }
