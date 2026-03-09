@@ -247,6 +247,13 @@ bool RLDifficultyTotalPopup::init() {
   m_voteRankLabel->setVisible(false);
   m_mainLayer->addChild(m_voteRankLabel);
 
+  m_legacyPointsLabel = CCLabelBMFont::create("-", "goldFont.fnt");
+  m_legacyPointsLabel->setScale(0.4f);
+  m_legacyPointsLabel->setAnchorPoint({0.f, .5f});
+  m_legacyPointsLabel->setPosition({10.f, 15.f});
+  m_legacyPointsLabel->setVisible(false);
+  m_mainLayer->addChild(m_legacyPointsLabel);
+
   if (m_mode == Mode::Planets) {
     setTitle("Rated Layouts Platformer: -");
   } else {
@@ -328,6 +335,8 @@ bool RLDifficultyTotalPopup::init() {
         int position = json["position"].asInt().unwrapOrDefault();
         int coinRank = json["coinRank"].asInt().unwrapOrDefault();
         int voteRank = json["voteRank"].asInt().unwrapOrDefault();
+        int legacyPoints = json["legacyPoints"].asInt().unwrapOrDefault();
+
         std::string titlePrefix =
             self->m_mode == RLDifficultyTotalPopup::Mode::Planets
                 ? "Rated Layouts Platformer: "
@@ -367,6 +376,18 @@ bool RLDifficultyTotalPopup::init() {
             self->m_voteRankLabel->setVisible(true);
           } else {
             self->m_voteRankLabel->setVisible(false);
+          }
+        }
+
+        // legacy points
+        if (self->m_legacyPointsLabel) {
+          if (legacyPoints > 0) {
+            self->m_legacyPointsLabel->setString(
+                (std::string("Legacy Points: ") + numToString(legacyPoints))
+                    .c_str());
+            self->m_legacyPointsLabel->setVisible(true);
+          } else {
+            self->m_legacyPointsLabel->setVisible(false);
           }
         }
 

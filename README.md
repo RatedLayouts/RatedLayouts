@@ -19,13 +19,13 @@ This gives the <cy>Layout/Gameplay creators</c> a platform to get their levels r
 ### Features
 
 - **<cg>NEW</c> <cf>Layout Rating System</c>**: Rates layout levels based on layout design, and fun gameplay, rather than decoration and effects. This brings more creators who doesn't have the skill on decorated levels.
-- **<cg>NEW</c> <cj>Blueprint Sparks</c>**: Earn Blueprint Sparks by completing classic rated layout levels!
+- **<cg>NEW</c> <cj>Sparks Collectables</c>**: Earn Sparks Collectables by completing classic rated layout levels!
 - **<cg>NEW</c> <co>Planets Collectables</c>**: Earn Planets Collectables by completing platformer rated layout levels!
-- **<cg>NEW</c> <cj>Layout Creator Points</c>**: Earn Layout Creator Points whenever you get a rated layout level!
-- **<cg>NEW</c> <cl>Blue Layout Coins</c>**: Collect Blue Layout Coins hidden in rated layout levels.
+- **<cg>NEW</c> <cj>Blueprint Points</c>**: Earn Blueprint Points whenever you get a rated layout level!
+- **<cg>NEW</c> <cl>Blue Coins</c>**: Collect Blue Coins hidden in rated layout levels.
 - **<cg>NEW</c> <cr>Rubies</c>**: Earn Rubies and use it to unlock special cosmetics in the Ruby Shop!
 - **<cg>Seamless Integration</c>**: Works alongside the existing rating system, this won't replace the current rating system but rather provide an alternative.
-- **<cr>Improved Demon Ratings</c>**: More accurate demon ratings by introducing new difficulty value, making demons has more value depending on their actual difficulty.
+- **<cr>Improved Demon Ratings</c>**: More accurate demon ratings by introducing new difficulty value, making demons has more value depending on their actual difficuly.
 - **<cg>Faster Rating Process</c>**: Community-focus rating system which makes it easier to get levels rated quickly.
 - **<co>Layout Moderator/Admin Badges</c>**: Special badges for moderators to identify the layout moderators and admins!
 - **<cy>Leaderboard Integration</c>**: Compete with other players on leaderboards for the most Sparks, Planets and Creator Points!

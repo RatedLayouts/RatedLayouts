@@ -160,8 +160,7 @@ bool RLLegacyPopup::init() {
   bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
   bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
   bool isPlat = m_level ? m_level->isPlatformer() : false;
-  if ((isClassicAdmin && !isPlat) ||
-      (isPlatAdmin && isPlat)) {
+  if ((isClassicAdmin && !isPlat) || (isPlatAdmin && isPlat)) {
     auto deleteSpr = ButtonSprite::create("Delete", 50, true, "goldFont.fnt",
                                           "GJ_button_06.png", 20.f, 1.f);
     auto deleteBtn = CCMenuItemSpriteExtra::create(
@@ -257,7 +256,9 @@ void RLLegacyPopup::onInfoButton(CCObject *sender) {
       "given the <cl>legacy rated</c> in the "
       "respect of the players who <cl>beaten these layouts</c> before the "
       "change of "
-      "the <cc>rating system</c>.\n\n",
+      "the <cc>rating system</c>.\n\n"
+      "<co>Sparks/Planets</c> that are <cc>grayscaled</c> are layouts that is "
+      "<cr>not rated</c> but is a <cl>legacy rate</c>.",
       "OK")
       ->show();
 }

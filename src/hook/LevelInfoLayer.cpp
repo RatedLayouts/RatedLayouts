@@ -872,16 +872,30 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
       }
 
       CCSprite *starIcon = nullptr;
-      // Choose icon based on platformer flag: planets for platformer levels
+      // Choose icon based on platformer flag: planets for platformer levels;
+      // grayscale if the rating is legacy but unrated (grayRing)
       if (layerRef && layerRef->m_level && layerRef->m_level->isPlatformer()) {
-        starIcon =
-            CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
-        if (!starIcon)
+        if (grayRing) {
           starIcon =
-              CCSprite::createWithSpriteFrameName("RL_planetMed.png"_spr);
+              CCSpriteGrayscale::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+          if (!starIcon)
+            starIcon =
+                CCSpriteGrayscale::create("RL_planetMed.png"_spr);
+        } else {
+          starIcon =
+              CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+          if (!starIcon)
+            starIcon =
+                CCSprite::createWithSpriteFrameName("RL_planetMed.png"_spr);
+        }
       }
-      if (!starIcon)
-        starIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+      if (!starIcon) {
+        if (grayRing) {
+          starIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_starSmall.png"_spr);
+        } else {
+          starIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+        }
+      }
       if (starIcon) {
         starIcon->setPosition(
             {difficultySprite2->getContentSize().width / 2 + 7, -7});
@@ -1011,7 +1025,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
           legendaryFeaturedCoin->removeFromParent();
         if (!featuredCoin) {
           auto newFeaturedCoin =
-              CCSprite::createWithSpriteFrameName("RL_featuredCoin.png"_spr);
+              grayRing ? CCSpriteGrayscale::createWithSpriteFrameName("RL_featuredCoin.png"_spr)
+                       : CCSprite::createWithSpriteFrameName("RL_featuredCoin.png"_spr);
           newFeaturedCoin->setPosition(
               {difficultySprite2->getContentSize().width / 2,
                difficultySprite2->getContentSize().height / 2});
@@ -1025,8 +1040,9 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         if (legendaryFeaturedCoin)
           legendaryFeaturedCoin->removeFromParent();
         if (!epicFeaturedCoin) {
-          auto newEpicCoin = CCSprite::createWithSpriteFrameName(
-              "RL_epicFeaturedCoin.png"_spr);
+          auto newEpicCoin =
+              grayRing ? CCSpriteGrayscale::createWithSpriteFrameName("RL_epicFeaturedCoin.png"_spr)
+                       : CCSprite::createWithSpriteFrameName("RL_epicFeaturedCoin.png"_spr);
           newEpicCoin->setPosition(
               {difficultySprite2->getContentSize().width / 2,
                difficultySprite2->getContentSize().height / 2});
@@ -1281,6 +1297,9 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                         bool forceShow = false) {
     int difficulty = json["difficulty"].asInt().unwrapOrDefault();
     int featured = json["featured"].asInt().unwrapOrDefault();
+    bool isLegacy = json["legacy"].asBool().unwrapOrDefault();
+    bool isRated = json["rated"].asBool().unwrapOrDefault();
+    bool grayRing = (isLegacy && !isRated);
 
     // handle community vote button visibility when level updates are fetched
     bool showCommunity = forceShow;
@@ -1545,14 +1564,27 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
       // Choose icon based on platformer flag: planets for platformer levels
       CCSprite *starIcon = nullptr;
       if (layerRef && layerRef->m_level && layerRef->m_level->isPlatformer()) {
-        starIcon =
-            CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
-        if (!starIcon)
+        if (grayRing) {
           starIcon =
-              CCSprite::createWithSpriteFrameName("RL_planetMed.png"_spr);
+              CCSpriteGrayscale::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+          if (!starIcon)
+            starIcon =
+                CCSpriteGrayscale::create("RL_planetMed.png"_spr);
+        } else {
+          starIcon =
+              CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+          if (!starIcon)
+            starIcon =
+                CCSprite::createWithSpriteFrameName("RL_planetMed.png"_spr);
+        }
       }
-      if (!starIcon)
-        starIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+      if (!starIcon) {
+        if (grayRing) {
+          starIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_starSmall.png"_spr);
+        } else {
+          starIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+        }
+      }
       if (starIcon) {
         starIcon->setScale(0.75f);
         starIcon->setID("rl-star-icon");

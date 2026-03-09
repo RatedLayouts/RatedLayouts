@@ -315,14 +315,27 @@ class $modify(RLLevelCell, LevelCell) {
       existingRewardLabel->removeFromParent();
     }
     CCSprite *newStarIcon = nullptr;
+    // choose appropriate icon and grayscale if legacy but unrated
     if (this->m_level && this->m_level->isPlatformer()) {
-      newStarIcon =
-          CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
-      if (!newStarIcon)
-        newStarIcon = CCSprite::create("RL_planetMed.png"_spr);
+      if (grayRing) {
+        newStarIcon =
+            CCSpriteGrayscale::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+        if (!newStarIcon)
+          newStarIcon = CCSpriteGrayscale::create("RL_planetMed.png"_spr);
+      } else {
+        newStarIcon =
+            CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+        if (!newStarIcon)
+          newStarIcon = CCSprite::create("RL_planetMed.png"_spr);
+      }
     }
-    if (!newStarIcon)
-      newStarIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+    if (!newStarIcon) {
+      if (grayRing) {
+        newStarIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_starSmall.png"_spr);
+      } else {
+        newStarIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+      }
+    }
     if (newStarIcon) {
       newStarIcon->setPosition(
           {difficultySprite->getContentSize().width / 2 + 8, -8});
