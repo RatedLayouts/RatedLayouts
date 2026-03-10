@@ -50,7 +50,7 @@ RLNameplateItem::create(
   priceLabel->setPosition({width / 2.f - 6.f, -5.f});
   if (owned) {
     priceLabel->setColor({120, 255, 140});
-    priceLabel->setPosition({width / 2.f, 13.f});
+    priceLabel->setPosition({width / 2.f, -5.f});
   }
   container->addChild(priceLabel);
 

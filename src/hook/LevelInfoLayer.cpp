@@ -44,6 +44,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     bool m_difficultyOffsetApplied = false; // this is ass. very trash, hacky
                                             // way to fix this refresh bug
     bool m_originalYSaved = false;
+    bool m_hasAppliedRubiesOffset = false;
     float m_originalDifficultySpriteY = 0.0f;
     bool m_lastAppliedIsDemon = false;
     // coins original positions
@@ -205,6 +206,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
           layerRef->repositionRubyUI();
           layerRef->addOrUpdateRubyUI(
               layerRef, json["difficulty"].asInt().unwrapOrDefault());
+          layerRef->m_fields->m_orbsShiftApplied = true;
+          layerRef->m_fields->m_hasAppliedRubiesOffset = true;
         }
       }
 
@@ -2085,6 +2088,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
   void likedItem(LikeItemType type, int id, bool liked) override {
     LevelInfoLayer::likedItem(type, id, liked);
+    m_fields->m_hasAppliedRubiesOffset = false;
     this->updateRLLevelInfo();
   }
 
@@ -2092,6 +2096,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
   void levelUpdateFinished(GJGameLevel *level,
                            UpdateResponse response) override {
     LevelInfoLayer::levelUpdateFinished(level, response);
+    m_fields->m_hasAppliedRubiesOffset = false;
     this->updateRLLevelInfo();
   }
 
@@ -2302,20 +2307,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     }
   }
 
-  // delete cache and refresh when level is updated
-  void onUpdate(CCObject *sender) {
-    if (this->m_level && this->m_level->m_levelID != 0 &&
-        shouldDownloadLevel()) {
-      log::debug("Level updated for level ID: {}", this->m_level->m_levelID);
-
-      this->repositionRLStars();
-    }
-
-    LevelInfoLayer::onUpdate(sender);
-  }
-
   void repositionRubyUI() {
-    if (m_fields->m_orbsShiftApplied) {
+    if (m_fields->m_orbsShiftApplied && !m_fields->m_hasAppliedRubiesOffset) {
       log::debug("Repositioning Ruby UI and related elements");
       auto downloadsIcon = this->getChildByID("downloads-icon");
       auto lengthIcon = this->getChildByID("length-icon");
@@ -2348,6 +2341,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         m_orbsIcon->setPositionY(m_orbsIcon->getPositionY() + 10);
         m_orbsLabel->setPositionY(m_orbsIcon->getPositionY());
       }
+      m_fields->m_hasAppliedRubiesOffset = true;
     }
   }
 
