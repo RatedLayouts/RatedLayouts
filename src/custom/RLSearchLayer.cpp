@@ -291,7 +291,7 @@ bool RLSearchLayer::init() {
   optionsMenu->setPosition({winSize.width / 2, 80});
   optionsMenu->setContentSize({390.f, 130.f});
   optionsMenu->setLayout(RowLayout::create()
-                             ->setGap(3.f)
+                             ->setGap(10.f)
                              ->setGrowCrossAxis(true)
                              ->setCrossAxisOverflow(false));
   m_optionsLayout = static_cast<RowLayout *>(optionsMenu->getLayout());

@@ -771,7 +771,7 @@ class $modify(RLLevelCell, LevelCell) {
           }
 
           // if this rating came from the legacy system, add a small info button
-          if (isLegacy) {
+          if (isLegacy && !Mod::get()->getSettingValue<bool>("disableLegacyInfo")) {
             auto difficultyContainer =
                 this->m_mainLayer->getChildByID("difficulty-container");
             auto difficultySprite =

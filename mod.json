@@ -218,7 +218,12 @@
 			"type": "title",
 			"name": "Miscellaneous Settings"
 		},
-
+		"disableLegacyInfo":{
+			"name": "Disable Legacy Rate Info",
+			"type": "bool",
+			"default": false,
+			"description": "Disable the info button for Legacy Rate"
+		},
 		"disableScrollbar": {
 			"name": "Disable Scrollbar",
 			"type": "bool",

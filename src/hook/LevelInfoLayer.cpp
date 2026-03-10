@@ -380,7 +380,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     }
 
     // if this rating came from the legacy system, add a small info button
-    if (isLegacy) {
+    if (isLegacy && !Mod::get()->getSettingValue<bool>("disableLegacyInfo")) {
       // don't recreate if already present
       if (difficultySprite &&
           !difficultySprite->getChildByID("rl-legacy-info-menu")) {
