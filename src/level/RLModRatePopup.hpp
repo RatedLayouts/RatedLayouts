@@ -62,6 +62,17 @@ private:
   async::TaskHolder<web::WebResponse> m_unbanLevelTask;
   async::TaskHolder<web::WebResponse> m_setLegacyTask;
   bool init() override;
+  void setupBackground();
+  void setupRatingButtons();
+  void setupRoleToggleAndInfo();
+  void setupModActionMenu();
+  void setupDevControls();
+  void setupDifficultyContainer();
+  void setupNotesInput();
+
+  bool prepareRatePayload(matjson::Value &outBody, UploadActionPopup *popup);
+  bool prepareSuggestPayload(matjson::Value &outBody, UploadActionPopup *popup);
+
   void onRateButton(CCObject *sender);
   void onUnrateButton(CCObject *sender);
   void onSuggestButton(CCObject *sender);

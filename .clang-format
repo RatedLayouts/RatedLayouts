@@ -1,0 +1,101 @@
+# for our beloved clangd users
+
+
+
+BasedOnStyle: Google
+
+
+
+
+
+NamespaceIndentation: All
+
+
+CommentPragmas: "^"
+
+
+FixNamespaceComments: false
+
+
+
+
+
+SortIncludes: false
+
+
+IncludeBlocks: Preserve
+
+
+
+
+
+IndentAccessModifiers: false
+
+
+
+
+
+BinPackArguments: false
+
+
+BinPackParameters: false
+
+
+
+
+
+BreakConstructorInitializers: AfterColon
+
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+
+ConstructorInitializerIndentWidth: 4
+
+
+
+
+
+AllowShortIfStatementsOnASingleLine: true
+
+
+AllowShortCaseLabelsOnASingleLine: true
+
+
+
+
+
+IndentWidth: 4
+
+
+ColumnLimit: 0
+
+
+AccessModifierOffset: -4
+
+
+
+
+
+BreakBeforeBraces: Attach
+
+
+PointerAlignment: Left
+
+
+
+
+
+AlignAfterOpenBracket: DontAlign
+
+
+
+
+
+AlwaysBreakAfterReturnType: None
+
+
+AlwaysBreakAfterDefinitionReturnType: None
+
+
+AlwaysBreakBeforeMultilineStrings: true
