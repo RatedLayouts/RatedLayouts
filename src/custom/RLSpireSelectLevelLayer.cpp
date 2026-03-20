@@ -224,6 +224,26 @@ void RLSpireSelectLevelLayer::onRoomTransitionComplete() {
         m_loadingSpinner->removeFromParent();
         m_loadingSpinner = nullptr;
     }
+
+    if (!Mod::get()->getSavedValue<bool>("hasEnteredSpire")) {
+        Mod::get()->setSavedValue("hasEnteredSpire", true);
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "This <cl>place</c>... I believe <cr><s100>it</s></c> is <cy>waiting for you here</c>.", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog2 = DialogObject::create("The Oracle", "<cg>Good luck</c>.", 0, 1.f, false, ccWHITE);
+
+        auto dialogArray = CCArray::create();
+        dialogArray->addObject(dialog1);
+        dialogArray->addObject(dialog2);
+
+        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
+        dialog->addToMainScene();
+        dialog->animateInRandomSide();
+
+        auto orSprite = CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
+        orSprite->setPosition(dialog->m_characterSprite->getPosition());
+        dialog->m_characterSprite->setVisible(false);
+        dialog->m_mainLayer->addChild(orSprite, 1);
+    }
+
     m_isRoomTransitionActive = false;
 }
 

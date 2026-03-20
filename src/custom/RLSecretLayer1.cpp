@@ -65,7 +65,6 @@ bool RLSecretLayer1::init() {
         m_oracleParticle->setScale(1.2f);
         m_oracleParticle->setID("floating-particles"_spr);
         m_oracleParticle->update(0.15f);
-
     }
 
     // crystal ball particle
@@ -83,7 +82,7 @@ bool RLSecretLayer1::init() {
         m_crystalParticle->update(0.15f);
         m_crystalParticle->setVisible(false);
     }
-    
+
     this->setKeypadEnabled(true);
     return true;
 }
@@ -130,6 +129,8 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
     }
 
     std::string code = m_rewardInput->getString();
+    std::transform(code.begin(), code.end(), code.begin(), ::tolower);
+
     if (code.empty()) {
         DialogObject* dialogObj = nullptr;
         dialogObj = DialogObject::create("The Oracle", "<cr>Mimicking</c> the void of the <cp>Cosmos</c>, <cg>are we</c>?", 1, 1.f, false, ccWHITE);
@@ -224,6 +225,9 @@ void RLSecretLayer1::startRedeemRequest() {
         return;
     }
 
+    std::string code = m_rewardInput->getString();
+    std::transform(code.begin(), code.end(), code.begin(), ::tolower);
+
     Ref<RLSecretLayer1> self = this;
 
     std::string argonToken = Mod::get()->getSavedValue<std::string>("argon_token");
@@ -253,7 +257,7 @@ void RLSecretLayer1::startRedeemRequest() {
     auto req = web::WebRequest();
     req.bodyJSON(body);
 
-    if (m_rewardInput->getString() == "spire" && !Mod::get()->getSavedValue<bool>("hasCode")) {
+    if (code == "spire" && !Mod::get()->getSavedValue<bool>("hasCode")) { // if u reading this, bruh
         Mod::get()->setSavedValue("hasCode", true);
         if (self->m_textLabel) {
             self->m_textLabel->setString("Something has aligned...");
@@ -439,6 +443,7 @@ void RLSecretLayer1::finishRedeem() {
     m_redeemCode.clear();
     m_oracleBtn->setEnabled(true);
     m_crystalParticle->setVisible(false);
+    m_rewardInput->setString("");
 
     if (m_rewardInput) {
         // Ensure the input itself is visible again
