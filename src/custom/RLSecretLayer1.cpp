@@ -291,18 +291,6 @@ void RLSecretLayer1::startRedeemRequest() {
                     self->m_textLabel->setString("The Cosmos rejects your request");
                     self->m_textLabel->setColor({150, 0, 0});
                 }
-                DialogObject* dialogObj = nullptr;
-                dialogObj = DialogObject::create("The Oracle", "The <cp>Cosmos</c> <cr>rejects</c> your request", 1, 1.f, false, ccWHITE);
-
-                auto dialog = DialogLayer::createDialogLayer(dialogObj, nullptr, 4);
-                dialog->addToMainScene();
-                dialog->animateInRandomSide();
-
-                auto orSprite =
-                    CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-                orSprite->setPosition(dialog->m_characterSprite->getPosition());
-                dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->setVisible(false);
                 self->finishRedeem();
                 return;
             }
@@ -334,20 +322,6 @@ void RLSecretLayer1::startRedeemRequest() {
                     self->m_textLabel->setString("The Cosmos rejects your request");
                     self->m_textLabel->setColor({150, 0, 0});
                 }
-                std::string message =
-                    json["message"].asString().unwrapOr("The <cp>Cosmos</c> <cr>rejects</c> your request");
-                DialogObject* dialogObj = nullptr;
-                dialogObj = DialogObject::create("The Oracle", message.c_str(), 1, 1.f, false, ccWHITE);
-
-                auto dialog = DialogLayer::createDialogLayer(dialogObj, nullptr, 4);
-                dialog->addToMainScene();
-                dialog->animateInRandomSide();
-
-                auto orSprite =
-                    CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-                orSprite->setPosition(dialog->m_characterSprite->getPosition());
-                dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->setVisible(false);
                 self->finishRedeem();
                 return;
             }
@@ -358,18 +332,6 @@ void RLSecretLayer1::startRedeemRequest() {
                     self->m_textLabel->setString("The Cosmos rejects your request");
                     self->m_textLabel->setColor({150, 0, 0});
                 }
-                DialogObject* dialogObj = nullptr;
-                dialogObj = DialogObject::create("The Oracle", "The <cp>Cosmos</c> <cr>rejects</c> your request", 1, 1.f, false, ccWHITE);
-
-                auto dialog = DialogLayer::createDialogLayer(dialogObj, nullptr, 4);
-                dialog->addToMainScene();
-                dialog->animateInRandomSide();
-
-                auto orSprite =
-                    CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-                orSprite->setPosition(dialog->m_characterSprite->getPosition());
-                dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->setVisible(false);
                 self->finishRedeem();
                 return;
             }
