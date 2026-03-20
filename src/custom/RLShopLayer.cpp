@@ -6,7 +6,7 @@
 #include "Geode/utils/async.hpp"
 #include "Geode/utils/random.hpp"
 #include "RLBuyItemPopup.hpp"
-#include "RLRedeemLayer.hpp"
+#include "RLSecretLayer1.hpp"
 #include <Geode/Enums.hpp>
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
@@ -144,10 +144,11 @@ bool RLShopLayer::init() {
     auto redeemSpr = CCSprite::createWithSpriteFrameName("RL_oracle.png"_spr);
     redeemSpr->setColor({50, 50, 50});
     redeemSpr->setOpacity(150);
-    redeemSpr->setScale(0.3f);
+    redeemSpr->setRotation(30);
+    redeemSpr->setScale(0.5f);
     auto redeemBtn = CCMenuItemSpriteExtra::create(
         redeemSpr, this, menu_selector(RLShopLayer::onRedeemLayer));
-        redeemBtn->setPosition({20, 20});
+        redeemBtn->setPosition({5, 5});
     menu->addChild(redeemBtn);
 
     // shop item menu
@@ -261,16 +262,15 @@ void RLShopLayer::onForm(CCObject* sender) {
 }
 
 // play the dum audio lol
-void RLShopLayer::onEnter() {
-    CCLayer::onEnter();
+void RLShopLayer::onEnterTransitionDidFinish() {
+    CCLayer::onEnterTransitionDidFinish();
     FMODAudioEngine::sharedEngine()->playMusic("rubyShop.mp3"_spr, true, 0.f, 0);
     refreshRubyLabel();
 }
 
-void RLShopLayer::onExit() {
-    CCLayer::onExit();
+void RLShopLayer::onExitTransitionDidStart() {
+    CCLayer::onExitTransitionDidStart();
     GameManager::sharedState()->playMenuMusic();
-    GameManager::sharedState()->fadeInMenuMusic();
 }
 
 void RLShopLayer::onLayoutCreator(CCObject* sender) {
@@ -637,7 +637,7 @@ void RLShopLayer::onResetRubies(CCObject* sender) {
 }
 
 void RLShopLayer::onRedeemLayer(CCObject* sender) {
-    auto searchLayer = RLRedeemLayer::create();
+    auto searchLayer = RLSecretLayer1::create();
     auto scene = CCScene::create();
     scene->addChild(searchLayer);
     auto transitionFade = CCTransitionFade::create(0.5f, scene);

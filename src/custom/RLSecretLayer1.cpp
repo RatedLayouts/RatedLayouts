@@ -1,16 +1,14 @@
 #include <Geode/Geode.hpp>
 #include <Geode/binding/GJAccountManager.hpp>
-#include "Geode/cocos/label_nodes/CCLabelBMFont.h"
-#include "Geode/cocos/layers_scenes_transitions_nodes/CCLayer.h"
-#include "RLRedeemLayer.hpp"
+#include "RLSecretLayer1.hpp"
 
 using namespace geode::prelude;
 
 const std::string oracleFloatingStr = "25,2065,2,2715,3,2265,155,2,156,8,145,25a-1a1a0.3a19a90a0a35a0a30a20a0a0a0a0a0a0a30a1a0a0a0.392157a0a0.0392157a0a0.74902a0a1a0a5a1a0a0a1a0a0.4a0a0.45098a0a1a0a0.11a0a1a0a0a0a0a0a0a0a0a2a1a0a0a1a26a0a0a0a0a0a0a0a0a0a0a0a0a0a0;";
 const std::string crystalBallStr = "25,2065,2,2865,3,2265,155,2,156,8,145,25a-1a1a0.3a-1a90a0a0a0a0a0a0a0a0a0a0a0a100a1a0a0a0.0392157a0a0.564706a0a0.74902a0a1a0a0a1a0a0a0.4a0a0.976471a0a1a0a1a0a1a0a1a0a1a0a0a0a-360a0a1a2a1a0a0a1a185a0a0a0a0a0a0a0a0a0a0a0a0a0a0;";
 
-RLRedeemLayer* RLRedeemLayer::create() {
-    auto layer = new RLRedeemLayer();
+RLSecretLayer1* RLSecretLayer1::create() {
+    auto layer = new RLSecretLayer1();
     if (layer && layer->init()) {
         layer->autorelease();
         return layer;
@@ -19,7 +17,7 @@ RLRedeemLayer* RLRedeemLayer::create() {
     return nullptr;
 }
 
-bool RLRedeemLayer::init() {
+bool RLSecretLayer1::init() {
     if (!CCLayer::init())
         return false;
 
@@ -50,7 +48,7 @@ bool RLRedeemLayer::init() {
     m_oracleSpr = CCSprite::createWithSpriteFrameName("RL_oracle.png"_spr);
     m_oracleSpr->setScale(1.2f);
     m_oracleBtn = CCMenuItemSpriteExtra::create(
-        m_oracleSpr, this, menu_selector(RLRedeemLayer::onRedeem));
+        m_oracleSpr, this, menu_selector(RLSecretLayer1::onRedeem));
     m_oracleBtn->setPosition({winSize.width / 2, winSize.height / 2 - 35});
     menu->addChild(m_oracleBtn);
 
@@ -90,8 +88,14 @@ bool RLRedeemLayer::init() {
     return true;
 }
 
-void RLRedeemLayer::onEnter() {
-    CCLayer::onEnter();
+void RLSecretLayer1::onExitTransitionDidStart() {
+    CCLayer::onExitTransitionDidStart();
+    GameManager::sharedState()->playMenuMusic();
+}
+
+void RLSecretLayer1::onEnterTransitionDidFinish() {
+    CCLayer::onEnterTransitionDidFinish();
+    FMODAudioEngine::sharedEngine()->playMusic("secretLoopRL.mp3"_spr, true, 0.f, 0);
     // first time?
     if (!Mod::get()->getSavedValue<bool>("oracleFirstTime")) {
         Mod::get()->setSavedValue("oracleFirstTime", true);
@@ -120,7 +124,7 @@ void RLRedeemLayer::onEnter() {
     }
 }
 
-void RLRedeemLayer::onRedeem(CCObject* sender) {
+void RLSecretLayer1::onRedeem(CCObject* sender) {
     if (m_isRedeeming || !m_rewardInput) {
         return;
     }
@@ -137,8 +141,8 @@ void RLRedeemLayer::onRedeem(CCObject* sender) {
         auto orSprite =
             CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
         orSprite->setPosition(dialog->m_characterSprite->getPosition());
+        dialog->m_characterSprite->setVisible(false);
         dialog->m_mainLayer->addChild(orSprite, 1);
-        dialog->m_characterSprite->removeFromParent();
         return;
     }
 
@@ -154,8 +158,8 @@ void RLRedeemLayer::onRedeem(CCObject* sender) {
         auto orSprite =
             CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
         orSprite->setPosition(dialog->m_characterSprite->getPosition());
+        dialog->m_characterSprite->setVisible(false);
         dialog->m_mainLayer->addChild(orSprite, 1);
-        dialog->m_characterSprite->removeFromParent();
         Notification::create("Argon authentication missing")->show();
         return;
     }
@@ -164,6 +168,20 @@ void RLRedeemLayer::onRedeem(CCObject* sender) {
     m_redeemCode = code;
     m_oracleBtn->setEnabled(false);
     m_crystalParticle->setVisible(true);
+
+    // fade in the text label while redeeming
+    if (m_textLabel) {
+        m_textLabel->removeFromParent();
+        m_textLabel = nullptr;
+    }
+    m_textLabel = CCLabelBMFont::create("Let's consult the Cosmos", "gjFont15.fnt");
+    m_textLabel->setOpacity(0);
+    m_textLabel->setScale(0.5f);
+    m_textLabel->setColor({150, 0, 150});
+    m_textLabel->setPosition({CCDirector::sharedDirector()->getWinSize().width / 2,
+        CCDirector::sharedDirector()->getWinSize().height - 60});
+    this->addChild(m_textLabel, 1);
+    m_textLabel->runAction(CCFadeIn::create(0.5f));
 
     // Fade out the input and fade in the spinner while waiting
     if (m_rewardInput) {
@@ -177,7 +195,7 @@ void RLRedeemLayer::onRedeem(CCObject* sender) {
         }
         m_rewardInput->runAction(CCSequence::create(
             CCDelayTime::create(1.0f),
-            CCCallFunc::create(this, callfunc_selector(RLRedeemLayer::hideRewardInput)),
+            CCCallFunc::create(this, callfunc_selector(RLSecretLayer1::hideRewardInput)),
             nullptr));
     }
 
@@ -196,15 +214,17 @@ void RLRedeemLayer::onRedeem(CCObject* sender) {
         nullptr));
 
     auto delay = CCDelayTime::create(5.0f);
-    auto call = CCCallFunc::create(this, callfunc_selector(RLRedeemLayer::startRedeemRequest));
+    auto call = CCCallFunc::create(this, callfunc_selector(RLSecretLayer1::startRedeemRequest));
     this->runAction(CCSequence::create(delay, call, nullptr));
 }
 
-void RLRedeemLayer::startRedeemRequest() {
+void RLSecretLayer1::startRedeemRequest() {
     if (!m_isRedeeming || m_redeemCode.empty()) {
         finishRedeem();
         return;
     }
+
+    Ref<RLSecretLayer1> self = this;
 
     std::string argonToken = Mod::get()->getSavedValue<std::string>("argon_token");
     if (argonToken.empty()) {
@@ -218,8 +238,8 @@ void RLRedeemLayer::startRedeemRequest() {
         auto orSprite =
             CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
         orSprite->setPosition(dialog->m_characterSprite->getPosition());
+        dialog->m_characterSprite->setVisible(false);
         dialog->m_mainLayer->addChild(orSprite, 1);
-        dialog->m_characterSprite->removeFromParent();
         Notification::create("Argon authentication missing")->show();
         finishRedeem();
         return;
@@ -233,7 +253,32 @@ void RLRedeemLayer::startRedeemRequest() {
     auto req = web::WebRequest();
     req.bodyJSON(body);
 
-    Ref<RLRedeemLayer> self = this;
+    if (m_rewardInput->getString() == "spire" && !Mod::get()->getSavedValue<bool>("hasCode")) {
+        Mod::get()->setSavedValue("hasCode", true);
+        if (self->m_textLabel) {
+            self->m_textLabel->setString("Something has aligned...");
+            self->m_textLabel->setColor({150, 100, 0});
+        }
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "The <co>Planets align</c>. You read the <cp>Cosmos</c> and <cg>found the way to what you spoke.</c>", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog2 = DialogObject::create("The Oracle", "Now seek your <cg>words</c> outside of this place, <s100><cr>it</c></s> is <cy>waiting.</c>", 0, 1.f, false, ccWHITE);
+
+        auto dialogArray = CCArray::create();
+        dialogArray->addObject(dialog1);
+        dialogArray->addObject(dialog2);
+
+        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
+        dialog->addToMainScene();
+        dialog->animateInRandomSide();
+
+        auto orSprite =
+            CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
+        orSprite->setPosition(dialog->m_characterSprite->getPosition());
+        dialog->m_mainLayer->addChild(orSprite, 1);
+        dialog->m_characterSprite->setVisible(false);
+        self->finishRedeem();
+        return;
+    }
+
     async::spawn(req.post("https://gdrate.arcticwoof.xyz/getRubiesReward"),
         [self](web::WebResponse res) {
             if (!self) {
@@ -241,6 +286,10 @@ void RLRedeemLayer::startRedeemRequest() {
             }
 
             if (!res.ok()) {
+                if (self->m_textLabel) {
+                    self->m_textLabel->setString("The Cosmos rejects your request");
+                    self->m_textLabel->setColor({150, 0, 0});
+                }
                 DialogObject* dialogObj = nullptr;
                 dialogObj = DialogObject::create("The Oracle", "The <cp>Cosmos</c> <cr>rejects</c> your request", 1, 1.f, false, ccWHITE);
 
@@ -252,7 +301,7 @@ void RLRedeemLayer::startRedeemRequest() {
                     CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
                 orSprite->setPosition(dialog->m_characterSprite->getPosition());
                 dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->removeFromParent();
+                dialog->m_characterSprite->setVisible(false);
                 self->finishRedeem();
                 return;
             }
@@ -269,8 +318,8 @@ void RLRedeemLayer::startRedeemRequest() {
                 auto orSprite =
                     CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
                 orSprite->setPosition(dialog->m_characterSprite->getPosition());
+                dialog->m_characterSprite->setVisible(false);
                 dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->removeFromParent();
                 Notification::create("Redeem request failed with invalid response.")->show();
                 log::warn("Redeem request failed with invalid JSON response.");
                 self->finishRedeem();
@@ -280,6 +329,10 @@ void RLRedeemLayer::startRedeemRequest() {
             auto json = jsonRes.unwrap();
             bool success = json["success"].asBool().unwrapOr(false);
             if (!success) {
+                if (self->m_textLabel) {
+                    self->m_textLabel->setString("The Cosmos rejects your request");
+                    self->m_textLabel->setColor({150, 0, 0});
+                }
                 std::string message =
                     json["message"].asString().unwrapOr("The <cp>Cosmos</c> <cr>rejects</c> your request");
                 DialogObject* dialogObj = nullptr;
@@ -293,13 +346,17 @@ void RLRedeemLayer::startRedeemRequest() {
                     CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
                 orSprite->setPosition(dialog->m_characterSprite->getPosition());
                 dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->removeFromParent();
+                dialog->m_characterSprite->setVisible(false);
                 self->finishRedeem();
                 return;
             }
 
             int reward = json["reward"].asInt().unwrapOr(0);
             if (reward <= 0) {
+                if (self->m_textLabel) {
+                    self->m_textLabel->setString("The Cosmos rejects your request");
+                    self->m_textLabel->setColor({150, 0, 0});
+                }
                 DialogObject* dialogObj = nullptr;
                 dialogObj = DialogObject::create("The Oracle", "The <cp>Cosmos</c> <cr>rejects</c> your request", 1, 1.f, false, ccWHITE);
 
@@ -311,9 +368,14 @@ void RLRedeemLayer::startRedeemRequest() {
                     CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
                 orSprite->setPosition(dialog->m_characterSprite->getPosition());
                 dialog->m_mainLayer->addChild(orSprite, 1);
-                dialog->m_characterSprite->removeFromParent();
+                dialog->m_characterSprite->setVisible(false);
                 self->finishRedeem();
                 return;
+            }
+
+            if (self->m_textLabel) {
+                self->m_textLabel->setString("The Cosmos approves of your wisdom");
+                self->m_textLabel->setColor({0, 150, 0});
             }
 
             // Reward the player with rubies and show currency animation
@@ -408,7 +470,7 @@ void RLRedeemLayer::startRedeemRequest() {
         });
 }
 
-void RLRedeemLayer::finishRedeem() {
+void RLSecretLayer1::finishRedeem() {
     m_isRedeeming = false;
     m_redeemCode.clear();
     m_oracleBtn->setEnabled(true);
@@ -435,25 +497,32 @@ void RLRedeemLayer::finishRedeem() {
     if (m_spinner) {
         m_spinner->runAction(CCSequence::create(
             CCFadeOut::create(1.0f),
-            CCCallFunc::create(this, callfunc_selector(RLRedeemLayer::cleanupSpinner)),
+            CCCallFunc::create(this, callfunc_selector(RLSecretLayer1::cleanupSpinner)),
+            nullptr));
+    }
+
+    if (m_textLabel) {
+        m_textLabel->runAction(CCSequence::create(
+            CCDelayTime::create(3.0f),
+            CCFadeOut::create(1.0f),
             nullptr));
     }
 }
 
-void RLRedeemLayer::hideRewardInput() {
+void RLSecretLayer1::hideRewardInput() {
     if (m_rewardInput) {
         m_rewardInput->setVisible(false);
     }
 }
 
-void RLRedeemLayer::cleanupSpinner() {
+void RLSecretLayer1::cleanupSpinner() {
     if (m_spinner) {
         m_spinner->removeFromParent();
         m_spinner = nullptr;
     }
 }
 
-void RLRedeemLayer::keyBackClicked() {
+void RLSecretLayer1::keyBackClicked() {
     CCDirector::sharedDirector()->popSceneWithTransition(
         0.5f, PopTransition::kPopTransitionFade);
 }

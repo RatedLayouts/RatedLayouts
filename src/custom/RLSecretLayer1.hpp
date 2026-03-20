@@ -1,12 +1,14 @@
 #include <Geode/Geode.hpp>
+#include "Geode/cocos/label_nodes/CCLabelBMFont.h"
 
 using namespace geode::prelude;
 
-class RLRedeemLayer : public cocos2d::CCLayer {
+class RLSecretLayer1 : public cocos2d::CCLayer {
 private:
     bool init() override;
     void keyBackClicked() override;
-    void onEnter() override;
+    void onEnterTransitionDidFinish() override;
+    void onExitTransitionDidStart() override;
 
     TextInput* m_rewardInput = nullptr;
     LoadingSpinner* m_spinner = nullptr;
@@ -25,7 +27,8 @@ private:
 
     CCSprite* m_oracleSpr = nullptr;
     CCMenuItemSpriteExtra* m_oracleBtn = nullptr;
+    CCLabelBMFont* m_textLabel = nullptr;
 
 public:
-    static RLRedeemLayer* create();
+    static RLSecretLayer1* create();
 };

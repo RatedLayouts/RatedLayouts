@@ -13,6 +13,7 @@
 #include "../level/RLEventLayouts.hpp"
 #include "../level/RLNotificationOverlay.hpp"
 #include "../level/RLSelectSends.hpp"
+#include "Geode/cocos/sprite_nodes/CCSprite.h"
 #include "RLAchievements.hpp"
 #include "RLAchievementsPopup.hpp"
 #include "RLAddDialogue.hpp"
@@ -24,6 +25,7 @@
 #include "RLLevelBrowserLayer.hpp"
 #include "RLSearchLayer.hpp"
 #include "RLShopLayer.hpp"
+#include "RLSpireLayer.hpp"
 #include "ccTypes.h"
 
 const int DEV_ACCOUNTID = 7689052;
@@ -181,7 +183,7 @@ bool RLCreatorLayer::init() {
 
     // spire coming soon
     auto spireSpr =
-        CCSpriteGrayscale::createWithSpriteFrameName("RL_spire01.png"_spr);
+        CCSprite::createWithSpriteFrameName("RL_spire01.png"_spr);
     auto spireItem = CCMenuItemSpriteExtra::create(
         spireSpr, this, menu_selector(RLCreatorLayer::onLayoutSpire));
     spireItem->setID("spire-button");
@@ -645,39 +647,11 @@ void RLCreatorLayer::onInfoButton(CCObject* sender) {
 }
 
 void RLCreatorLayer::onLayoutSpire(CCObject* sender) {
-    DialogObject* dialogObj = nullptr;
-    std::string response = "";
-    switch (m_indexDia) {
-        case 0:
-            response = "<cf>The Spire</c>...<d050> is still <co>closed</c>.";
-            m_indexDia++;
-            break;
-        case 1:
-            response = "Yep... still <co>closed</c>.";
-            m_indexDia++;
-            break;
-        case 2:
-            response = "Do you think that speaking to me will open it <cg>magically</c>?";
-            m_indexDia++;
-            break;
-        case 3:
-            response = "Those <co>platformer needlers</c> will <cg>enjoy</c> this spire when its <cl>open</c>,<d050> but for now, it's not.";
-        default:
-            m_indexDia = 0;
-            break;
-    }
-
-    dialogObj = DialogObject::create("ArcticWoof", response.c_str(), 1, 1.f, false, ccWHITE);
-
-    auto dialog = DialogLayer::createDialogLayer(dialogObj, nullptr, 2);
-    dialog->addToMainScene();
-    dialog->animateInRandomSide();
-
-    auto awSprite =
-        CCSprite::createWithSpriteFrameName("RL_dialogIconAW.png"_spr);
-    awSprite->setPosition(dialog->m_characterSprite->getPosition());
-    dialog->m_mainLayer->addChild(awSprite, 1);
-    dialog->m_characterSprite->removeFromParent();
+    auto spireLayer = RLSpireLayer::create();
+    auto scene = CCScene::create();
+    scene->addChild(spireLayer);
+    auto transitionFade = CCTransitionFade::create(0.5f, scene);
+    CCDirector::sharedDirector()->pushScene(transitionFade);
 }
 
 void RLCreatorLayer::onAchievementsButton(CCObject* sender) {
