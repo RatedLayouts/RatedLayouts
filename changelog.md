@@ -2,8 +2,11 @@
 ### The Spire Update!
 
 - Added **The Spire**. Platformer-focus user created Rated Layouts levels. Explore the Spire and find forsaken lore beyond the <cp>Cosmos</c>
-- Added New Secret Character. *Discover this character and your access to the Spire will be granted.*
-- Fixed the issue where Difficulty Score voted 10 or higher doesn't apply correctly when voted.
+- Added New Secret Character. *Discover this character and your access to the Spire will be granted*
+- Fixed the issue where Difficulty Score voted 10 or higher doesn't apply correctly when voted
+- Added **Disable Notification in Level** in the mod settings
+- Tweaked the Comment Cell Colors for users with a bright nameplate
+- Fixed issue where the text label in the Achievements overflows
 
 # v0.4.3-beta.1
 

@@ -110,6 +110,13 @@
 			"default": false,
 			"description": "Disables notification that appears when a new rated/event layout occured."
 		},
+		"disableNewRateInLevel": {
+			"name": "Disable Notification in Level",
+			"type": "bool",
+			"default": false,
+			"description": "Disables the notification that appears when a new rated/event layout occurred while you are in a level. <cy>Enable this if you find the notification distracting while playing.</cy>",
+			"enable-if": "!disableNewRate"
+		},
 		"notiScale": {
 			"type": "float",
 			"name": "Notification Scale",

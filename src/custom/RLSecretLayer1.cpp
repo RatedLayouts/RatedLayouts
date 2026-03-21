@@ -189,15 +189,16 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
     // Fade out the input and fade in the spinner while waiting
     if (m_rewardInput) {
         if (auto bg = m_rewardInput->getBGSprite()) {
-            bg->runAction(CCFadeOut::create(1.0f));
+            bg->setOpacity(90);
+            bg->runAction(CCFadeTo::create(.5f, 0));
         }
         if (auto inputNode = m_rewardInput->getInputNode()) {
             if (auto label = inputNode->getTextLabel()) {
-                label->runAction(CCFadeOut::create(1.0f));
+                label->runAction(CCFadeOut::create(.5f));
             }
         }
         m_rewardInput->runAction(CCSequence::create(
-            CCDelayTime::create(1.0f),
+            CCDelayTime::create(.45f),
             CCCallFunc::create(this, callfunc_selector(RLSecretLayer1::hideRewardInput)),
             nullptr));
     }
@@ -208,12 +209,13 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
         m_spinner = nullptr;
     }
     m_spinner = LoadingSpinner::create(40.f);
+    m_spinner->getSpinner()->setBlendFunc({GL_SRC_ALPHA, GL_ONE});
     m_spinner->setPosition(m_rewardInput->getPosition());
     m_spinner->setOpacity(0);
     this->addChild(m_spinner, 100);
     m_spinner->runAction(CCSequence::create(
-        CCDelayTime::create(1.0f),
-        CCFadeIn::create(1.0f),
+        CCDelayTime::create(.25f),
+        CCFadeIn::create(.5f),
         nullptr));
 
     auto delay = CCDelayTime::create(1.5f);
@@ -450,24 +452,25 @@ void RLSecretLayer1::finishRedeem() {
     if (m_rewardInput) {
         // Ensure the input itself is visible again
         m_rewardInput->setVisible(true);
+        m_rewardInput->setEnabled(true);
 
         // Fade the background sprite (the main visible portion of the input)
         if (auto bg = m_rewardInput->getBGSprite()) {
             bg->setVisible(true);
             bg->setOpacity(0);
-            bg->runAction(CCFadeTo::create(1.0f, 90));
+            bg->runAction(CCFadeTo::create(.5f, 90));
         }
         if (auto inputNode = m_rewardInput->getInputNode()) {
             if (auto label = inputNode->getTextLabel()) {
                 label->setOpacity(0);
-                label->runAction(CCFadeIn::create(1.0f));
+                label->runAction(CCFadeIn::create(.5f));
             }
         }
     }
 
     if (m_spinner) {
         m_spinner->runAction(CCSequence::create(
-            CCFadeOut::create(1.0f),
+            CCFadeOut::create(.5f),
             CCCallFunc::create(this, callfunc_selector(RLSecretLayer1::cleanupSpinner)),
             nullptr));
     }
@@ -475,7 +478,7 @@ void RLSecretLayer1::finishRedeem() {
     if (m_textLabel) {
         m_textLabel->runAction(CCSequence::create(
             CCDelayTime::create(3.0f),
-            CCFadeOut::create(1.0f),
+            CCFadeOut::create(.5f),
             nullptr));
     }
 }
@@ -483,6 +486,7 @@ void RLSecretLayer1::finishRedeem() {
 void RLSecretLayer1::hideRewardInput() {
     if (m_rewardInput) {
         m_rewardInput->setVisible(false);
+        m_rewardInput->setEnabled(false);
     }
 }
 

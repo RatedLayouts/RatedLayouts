@@ -94,6 +94,11 @@ void RLNotificationOverlay::callRateNotification(float dt) {
     return;
   }
 
+  if (PlayLayer::get() && Mod::get()->getSettingValue<bool>("disableNewRateInLevel")) {
+    log::info("notifications are disabled in level");
+    return;
+  }
+
   auto req = web::WebRequest();
 
   log::debug("Polling for new rate notifications...");
