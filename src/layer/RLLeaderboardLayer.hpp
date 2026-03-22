@@ -2,12 +2,14 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/utils/async.hpp>
+#include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
 
 class RLLeaderboardLayer : public CCLayer {
 protected:
     GJListLayer* m_listLayer;
+    cue::ListNode* m_userListNode = nullptr;
     ScrollLayer* m_scrollLayer;
     LoadingSpinner* m_spinner;
     TabButton* m_starsTab;

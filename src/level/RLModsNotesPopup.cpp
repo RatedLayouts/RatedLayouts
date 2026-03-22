@@ -73,33 +73,25 @@ bool RLModsNotesPopup::init() {
     auto listHeight = m_mainLayer->getScaledContentSize().height - 60.f;
     CCSize listSize = {listWidth, listHeight};
 
-    auto scrollLayer = ScrollLayer::create(listSize);
-    scrollLayer->setPosition({20.f, 30.f});
-    m_mainLayer->addChild(scrollLayer, 1);
-
-    // bg
-    auto bg = CCLayerColor::create({20, 25, 55, 255}, listWidth, listHeight);
-    bg->setPosition(scrollLayer->getPosition());
-    m_mainLayer->addChild(bg);
-
-    auto listBorders = ListBorders::create();
-    listBorders->setPosition(m_mainLayer->getContentSize() / 2.f);
-    listBorders->setContentSize(listSize);
-    m_mainLayer->addChild(listBorders, 2);
+    m_listNode = cue::ListNode::create(listSize, {20, 25, 55, 255}, cue::ListBorderStyle::Comments);
+    m_listNode->setPosition({m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height / 2.f});
+    m_mainLayer->addChild(m_listNode, 1);
 
     auto loadingSpinner = LoadingSpinner::create(50.f);
-    loadingSpinner->setPosition(m_mainLayer->getContentSize() / 2.f);
-    m_mainLayer->addChild(loadingSpinner);
+    loadingSpinner->setPosition(m_listNode->getContentSize() / 2.f);
+    m_listNode->addChild(loadingSpinner);
+
+    m_scrollLayer = m_listNode->getScrollLayer();
 
     if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
-        auto scrollBar = Scrollbar::create(scrollLayer);
+        auto scrollBar = Scrollbar::create(m_scrollLayer);
         scrollBar->setPosition({m_mainLayer->getContentSize().width - 14.f,
             m_mainLayer->getContentSize().height / 2.f - 5.f});
         scrollBar->setScale(0.9f);
         m_mainLayer->addChild(scrollBar, 3);
     }
 
-    auto contentLayer = scrollLayer->m_contentLayer;
+    auto contentLayer = m_scrollLayer->m_contentLayer;
     if (contentLayer) {
         auto layout = ColumnLayout::create();
         contentLayer->setLayout(layout);
@@ -109,14 +101,12 @@ bool RLModsNotesPopup::init() {
         layout->setAxisReverse(true);
     }
 
-    m_scrollLayer = scrollLayer;
-
     // fetch notes from server
     auto req = web::WebRequest();
     req.param("levelId", numToString(static_cast<int>(m_level->m_levelID)));
     Ref<RLModsNotesPopup> self = this;
-    Ref<ScrollLayer> scrollRef = scrollLayer;
-    Ref<CCNode> contentRef = scrollLayer->m_contentLayer;
+    Ref<ScrollLayer> scrollRef = m_scrollLayer;
+    Ref<CCNode> contentRef = m_scrollLayer->m_contentLayer;
     Ref<LoadingSpinner> spinnerRef = loadingSpinner;
     // im googing with ref<> rn
 
@@ -232,8 +222,8 @@ bool RLModsNotesPopup::init() {
                 }
                 layer->addChild(difficultyLabel);
 
-                if (contentRef) {
-                    contentRef->addChild(layer);
+                if (self->m_listNode) {
+                    self->m_listNode->addCell(layer);
                 }
                 if (spinnerRef) {
                     spinnerRef->removeFromParent();
@@ -243,9 +233,9 @@ bool RLModsNotesPopup::init() {
             if (idx == 0) {
                 auto noNotesLabel =
                     CCLabelBMFont::create("No notes from moderators", "goldFont.fnt");
-                noNotesLabel->setPosition(self->m_mainLayer->getContentSize() / 2.f);
+                noNotesLabel->setPosition(self->m_listNode->getContentSize() / 2.f);
                 noNotesLabel->setScale(0.6f);
-                self->m_mainLayer->addChild(noNotesLabel);
+                self->m_listNode->addChild(noNotesLabel);
                 if (spinnerRef) {
                     spinnerRef->removeFromParent();
                 }

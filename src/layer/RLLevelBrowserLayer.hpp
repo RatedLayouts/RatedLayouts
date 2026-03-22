@@ -2,6 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/GameLevelManager.hpp>
+#include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
 
@@ -45,6 +46,7 @@ protected:
     int m_totalLevels{0};
 
     GJListLayer* m_listLayer;
+    cue::ListNode* m_listNode;
     ScrollLayer* m_scrollLayer;
     bool m_loading = false;
     bool m_needsLayout = false;

@@ -1,8 +1,7 @@
 #include "RLCreditsPopup.hpp"
 #include "../include/RLAchievements.hpp"
-#include "Geode/ui/General.hpp"
-
-#include <Geode/modify/ProfilePage.hpp>
+#include <Geode/Geode.hpp>
+#include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
 
@@ -19,25 +18,25 @@ RLCreditsPopup* RLCreditsPopup::create() {
 };
 
 bool RLCreditsPopup::init() {
-    if (!Popup::init(380.f, 250.f))
+    if (!Popup::init(440.f, 280.f))
         return false;
     setTitle("Rated Layouts Credits");
 
-    auto scrollLayer = ScrollLayer::create({340.f, 195.f});
-    scrollLayer->setPosition({15.f, 23.f});
-    m_mainLayer->addChild(scrollLayer);
-    auto listBorder = ListBorders::create();
-    listBorder->setPosition({m_mainLayer->getContentSize().width / 2 - 5.f,
-        m_mainLayer->getContentSize().height / 2 - 5.f});
-    listBorder->setContentSize({340.f, 195.f});
-    m_mainLayer->addChild(listBorder);
-    m_scrollLayer = scrollLayer;
+    m_listNode = cue::ListNode::create({350.f, 205.f});
+    m_listNode->setPosition({m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height / 2.f - 10.f});
+    m_mainLayer->addChild(m_listNode);
 
-    auto scrollbar = Scrollbar::create(m_scrollLayer);
-    scrollbar->setPosition({m_mainLayer->getContentSize().width - 14.f,
-        (m_mainLayer->getContentSize().height / 2.f) - 5.f});
-    scrollbar->setScale(0.9f);
-    m_mainLayer->addChild(scrollbar);
+    auto scrollLayer = m_listNode->getScrollLayer();
+    if (!scrollLayer)
+        return false;
+
+    if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
+        auto scrollbar = Scrollbar::create(scrollLayer);
+        scrollbar->setPosition({m_mainLayer->getContentSize().width - 35.f,
+            (m_mainLayer->getContentSize().height / 2.f) - 5.f});
+        scrollbar->setScale(0.9f);
+        m_mainLayer->addChild(scrollbar);
+    }
 
     // info button
     auto infoSpr = CCSprite::createWithSpriteFrameName("RL_info01.png"_spr);
@@ -49,7 +48,7 @@ bool RLCreditsPopup::init() {
     m_buttonMenu->addChild(infoBtn);
 
     // create spinner
-    auto contentLayer = m_scrollLayer->m_contentLayer;
+    auto contentLayer = scrollLayer->m_contentLayer;
     if (contentLayer) {
         auto layout = ColumnLayout::create();
         contentLayer->setLayout(layout);
@@ -111,16 +110,19 @@ bool RLCreditsPopup::init() {
             RLAchievements::onReward("misc_credits");
 
             // populate players
-            auto content = self->m_scrollLayer->m_contentLayer;
-            if (!content)
+            if (!self->m_listNode)
+                return;
+            auto scrollLayer = self->m_listNode->getScrollLayer();
+            if (!scrollLayer || !scrollLayer->m_contentLayer)
                 return;
             if (self->m_spinner) {
                 self->m_spinner->removeFromParent();
                 self->m_spinner = nullptr;
             }
-            content->removeAllChildrenWithCleanup(true);
+            self->m_listNode->clear();
 
             auto addHeader = [&](std::string_view text) {  // header yesz
+                auto content = self->m_listNode->getScrollLayer()->m_contentLayer;
                 auto tableCell = TableViewCell::create();
                 tableCell->setContentSize({340.f, 30.f});
                 auto label =
@@ -172,33 +174,6 @@ bool RLCreditsPopup::init() {
                     tableCell->addChild(headerBadge);
                 }
 
-                // divider lines for header
-                const float contentH = tableCell->getContentSize().height;
-                const float dividerH = 1.f;  // thin line
-                const float halfDivider = dividerH / 2.f;
-                const float topY = contentH - halfDivider;
-                const float bottomY = halfDivider;
-
-                if (content->getChildren()->count() > 0) {
-                    auto headerTopDivider = CCSprite::create();
-                    headerTopDivider->setTextureRect(
-                        CCRectMake(0, 0, tableCell->getContentSize().width, dividerH));
-                    headerTopDivider->setPosition(
-                        {tableCell->getContentSize().width / 2.f, topY});
-                    headerTopDivider->setColor({0, 0, 0});
-                    headerTopDivider->setOpacity(80);
-                    tableCell->addChild(headerTopDivider, 2);
-                }
-
-                auto headerDivider = CCSprite::create();
-                headerDivider->setTextureRect(
-                    CCRectMake(0, 0, tableCell->getContentSize().width, dividerH));
-                headerDivider->setPosition(
-                    {tableCell->getContentSize().width / 2.f, bottomY});
-                headerDivider->setColor({0, 0, 0});
-                headerDivider->setOpacity(80);
-                tableCell->addChild(headerDivider, 2);
-
                 auto headerMenu = CCMenu::create();
                 headerMenu->setPosition({0, 0});
                 auto infoSpr =
@@ -232,7 +207,9 @@ bool RLCreditsPopup::init() {
                 headerMenu->addChild(infoBtn);
                 tableCell->addChild(headerMenu);
 
-                content->addChild(tableCell);
+                if (self->m_listNode) {
+                    self->m_listNode->addCell(tableCell);
+                }
             };
 
             auto addPlayer = [&](const matjson::Value& userVal, bool isAdmin, bool isMod, bool isBooster, bool isSupporter, bool isPlat, bool isLeaderboard, bool isOwner) {
@@ -252,7 +229,7 @@ bool RLCreditsPopup::init() {
 
                 // color background according to role subtype
                 auto bgSprite = CCSprite::create();
-                bgSprite->setTextureRect(CCRectMake(0, 0, 340.f, 50.f));
+                bgSprite->setTextureRect(CCRectMake(0, 0, 360.f, 50.f));
                 bgSprite->setPosition({170.f, 25.f});
                 bgSprite->setOpacity(120);
                 if (isOwner) {
@@ -303,7 +280,9 @@ bool RLCreditsPopup::init() {
                 menu->addChild(accountButton);
                 cell->addChild(menu);
 
-                content->addChild(cell);
+                if (self->m_listNode) {
+                    self->m_listNode->addCell(cell);
+                }
             };
             if (json.contains("owner") && json["owner"].isArray()) {
                 addHeader("Rated Layouts Owner");
@@ -361,9 +340,12 @@ bool RLCreditsPopup::init() {
                     addPlayer(val, false, false, true, false, false, false, false);
                 }
             }
-            content->updateLayout();
-            if (self->m_scrollLayer)
-                self->m_scrollLayer->scrollToTop();
+            if (self->m_listNode) {
+                self->m_listNode->updateLayout();
+                if (auto listScroll = self->m_listNode->getScrollLayer()) {
+                    listScroll->scrollToTop();
+                }
+            }
         });
 
     return true;

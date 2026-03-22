@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
-#include "RLAchievementCell.hpp"
-#include "../include/RLAchievements.hpp"
+#include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
 
@@ -18,6 +17,7 @@ private:
     void onInfo(CCObject* sender);
 
     GJCommentListLayer* m_commentList = nullptr;
+    cue::ListNode* m_listNode = nullptr;
     ScrollLayer* m_scrollLayer = nullptr;
     CCMenu* m_tabMenu = nullptr;
     CCLabelBMFont* m_statusLabel = nullptr;

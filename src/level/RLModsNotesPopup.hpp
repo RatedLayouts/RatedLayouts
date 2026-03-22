@@ -1,5 +1,6 @@
 #pragma once
 #include <Geode/Geode.hpp>
+#include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
 
@@ -11,6 +12,7 @@ private:
     bool init() override;
 
     GJGameLevel* m_level = nullptr;
+    cue::ListNode* m_listNode = nullptr;
     ScrollLayer* m_scrollLayer = nullptr;
     async::TaskHolder<web::WebResponse> m_getNotesTask;
 

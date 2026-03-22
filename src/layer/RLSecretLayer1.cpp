@@ -136,7 +136,7 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
 
     if (code.empty()) {
         DialogObject* dialogObj = nullptr;
-        dialogObj = DialogObject::create("The Oracle", "<cr>Mimicking</c> the void of the <cp>Cosmos</c>, <cg>are we</c>?", 2, 1.f, false, ccWHITE);
+        dialogObj = DialogObject::create("The Oracle", "<cr>Mimicking</c> the void of the <cp>Cosmos</c>, <cg>are we</c>?", 1, 1.f, false, ccWHITE);
 
         auto dialog = DialogLayer::createDialogLayer(dialogObj, nullptr, 4);
         dialog->addToMainScene();

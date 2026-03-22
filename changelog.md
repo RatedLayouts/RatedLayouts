@@ -7,6 +7,9 @@
 - Added **Disable Notification in Level** in the mod settings
 - Tweaked the Comment Cell Colors for users with a bright nameplate
 - Fixed issue where the text label in the Achievements overflows
+- Replace the use of the old scrolling system to use Cue's list node.
+- Tweaked the Rubies Labels on the Level Info Layer and the End Level Layer.
+- Internal Code Refactor and optimizations
 
 # v0.4.3-beta.1
 

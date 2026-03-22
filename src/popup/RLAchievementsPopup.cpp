@@ -1,6 +1,9 @@
 #include "RLAchievementsPopup.hpp"
 
 #include <Geode/binding/GJCommentListLayer.hpp>
+#include <cue/ListNode.hpp>
+#include "RLAchievementCell.hpp"
+#include "../include/RLAchievements.hpp"
 
 using namespace geode::prelude;
 
@@ -55,11 +58,11 @@ void RLAchievementsPopup::onTab(CCObject* sender) {
 }
 
 void RLAchievementsPopup::populate(int tabIndex) {
-    if (!m_scrollLayer) return;
-    auto content = m_scrollLayer->m_contentLayer;
-    if (!content) return;
+    if (!m_listNode) return;
+    auto scrollLayer = m_listNode->getScrollLayer();
+    if (!scrollLayer || !scrollLayer->m_contentLayer) return;
 
-    content->removeAllChildrenWithCleanup(true);
+    m_listNode->clear();
 
     auto all = RLAchievements::getAll();
     int displayIndex = 0;
@@ -94,11 +97,15 @@ void RLAchievementsPopup::populate(int tabIndex) {
             }
         }
 
-        content->addChild(cell);
+        if (m_listNode) {
+            m_listNode->addCell(cell);
+        }
         displayIndex++;
     }
 
-    content->updateLayout();
+    if (m_listNode) {
+        m_listNode->updateLayout();
+    }
 
     // update status label
     if (m_statusLabel) {
@@ -150,14 +157,10 @@ bool RLAchievementsPopup::init() {
         if (initial) onTab(initial);
     }
 
-    auto commentLayer = GJCommentListLayer::create(nullptr, "Rated Layouts Achievements", {191, 114, 62, 255}, 340.f, 235.f, true);
-    commentLayer->setPosition({15.f, 15.f});
-    m_mainLayer->addChild(commentLayer);
-    m_commentList = commentLayer;
-
-    m_scrollLayer = ScrollLayer::create({340.f, 235.f});
-    m_scrollLayer->setPosition({0, 0});
-    commentLayer->addChild(m_scrollLayer);
+    m_listNode = cue::ListNode::create({340.f, 235.f}, {191, 114, 62, 255}, cue::ListBorderStyle::CommentsBlue);
+    m_listNode->setPosition({m_mainLayer->getContentSize().width / 2.f - 50.f, m_mainLayer->getContentSize().height / 2.f - 10.f});
+    m_mainLayer->addChild(m_listNode);
+    m_scrollLayer = m_listNode->getScrollLayer();
     if (m_scrollLayer && m_scrollLayer->m_contentLayer) {
         auto contentLayer = m_scrollLayer->m_contentLayer;
         auto layout = ColumnLayout::create();

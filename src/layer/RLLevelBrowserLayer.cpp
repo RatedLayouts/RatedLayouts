@@ -210,21 +210,23 @@ void RLLevelBrowserLayer::setupControls() {
     m_listLayer->setPosition(
         {winSize / 2 - m_listLayer->getScaledContentSize() / 2 - 5});
 
-    auto scrollLayer =
-        ScrollLayer::create({m_listLayer->getContentSize().width,
-            m_listLayer->getContentSize().height});
-    scrollLayer->setPosition({0, 0});
-    m_listLayer->addChild(scrollLayer);
-    m_scrollLayer = scrollLayer;
+    m_listNode = cue::ListNode::create({m_listLayer->getContentSize().width,
+                                           m_listLayer->getContentSize().height},
+        {191, 114, 62, 255},
+        cue::ListBorderStyle::None);
+    m_listNode->setPosition({m_listLayer->getContentSize().width / 2,
+        m_listLayer->getContentSize().height / 2});
+    m_listLayer->addChild(m_listNode, 5);
+    m_scrollLayer = m_listNode->getScrollLayer();
 
     if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
-        auto scrollBar = Scrollbar::create(scrollLayer);
+        auto scrollBar = Scrollbar::create(m_scrollLayer);
         scrollBar->setPosition({LIST_SIZE.width + 24.f, LIST_SIZE.height / 2});
         scrollBar->setContentHeight(LIST_SIZE.height - 20);
         m_listLayer->addChild(scrollBar, 10);
     }
 
-    auto contentLayer = scrollLayer->m_contentLayer;
+    auto contentLayer = m_scrollLayer->m_contentLayer;
     if (contentLayer) {
         auto layout = ColumnLayout::create();
         contentLayer->setLayout(layout);
@@ -304,21 +306,21 @@ bool RLLevelBrowserLayer::init(GJSearchObject* object) {
     m_listLayer->setPosition(
         {winSize / 2 - m_listLayer->getScaledContentSize() / 2 - 5});
 
-    auto scrollLayer =
-        ScrollLayer::create({m_listLayer->getContentSize().width,
-            m_listLayer->getContentSize().height});
-    scrollLayer->setPosition({0, 0});
-    m_listLayer->addChild(scrollLayer);
-    m_scrollLayer = scrollLayer;
+    m_listNode = cue::ListNode::create({m_listLayer->getContentSize().width,
+        m_listLayer->getContentSize().height});
+    m_listNode->setPosition({m_listLayer->getContentSize().width / 2,
+        m_listLayer->getContentSize().height / 2});
+    m_listLayer->addChild(m_listNode, 5);
+    m_scrollLayer = m_listNode->getScrollLayer();
 
     if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
-        auto scrollBar = Scrollbar::create(scrollLayer);
+        auto scrollBar = Scrollbar::create(m_scrollLayer);
         scrollBar->setPosition({LIST_SIZE.width + 24.f, LIST_SIZE.height / 2});
         scrollBar->setContentHeight(LIST_SIZE.height - 20);
         m_listLayer->addChild(scrollBar, 10);
     }
 
-    auto contentLayer = scrollLayer->m_contentLayer;
+    auto contentLayer = m_scrollLayer ? m_scrollLayer->m_contentLayer : nullptr;
     if (contentLayer) {
         auto layout = ColumnLayout::create();
         contentLayer->setLayout(layout);
@@ -792,30 +794,23 @@ void RLLevelBrowserLayer::startLoading() {
     if (auto spinner = this->getChildByID("rl-spinner")) {
         spinner->removeFromParent();
     }
-    if (m_scrollLayer && m_scrollLayer->m_contentLayer) {
+    if (m_listNode) {
+        m_listNode->clear();
+    } else if (m_scrollLayer && m_scrollLayer->m_contentLayer) {
         if (auto childSpinner =
                 m_scrollLayer->m_contentLayer->getChildByID("rl-spinner")) {
             childSpinner->removeFromParent();
         }
         m_scrollLayer->m_contentLayer->removeAllChildrenWithCleanup(true);
-        auto spinner = LoadingSpinner::create(64.f);
-        if (spinner) {
-            spinner->setID("rl-spinner");
-            auto win = CCDirector::sharedDirector()->getWinSize();
-            spinner->setPosition(win / 2);
-            this->addChild(spinner, 1000);
-            m_circle = spinner;
-        }
-    } else {
-        // fallback: show spinner on the layer
-        auto spinner = LoadingSpinner::create(64.f);
-        if (spinner) {
-            spinner->setID("rl-spinner");
-            auto win = CCDirector::sharedDirector()->getWinSize();
-            spinner->setPosition(win / 2);
-            this->addChild(spinner, 100);
-            m_circle = spinner;
-        }
+    }
+
+    auto spinner = LoadingSpinner::create(64.f);
+    if (spinner) {
+        spinner->setID("rl-spinner");
+        auto win = CCDirector::sharedDirector()->getWinSize();
+        spinner->setPosition(win / 2);
+        this->addChild(spinner, 1000);
+        m_circle = spinner;
     }
 }
 
@@ -862,10 +857,10 @@ void RLLevelBrowserLayer::loadLevelsFailed(char const* key, int p1) {
 }
 
 void RLLevelBrowserLayer::populateFromArray(CCArray* levels) {
-    if (!m_scrollLayer || !m_scrollLayer->m_contentLayer || !levels)
+    if (!m_listNode || !levels)
         return;
-    auto contentLayer = m_scrollLayer->m_contentLayer;
-    contentLayer->removeAllChildrenWithCleanup(true);
+
+    m_listNode->clear();
 
     const float defaultCellH = 90.f;
     const float compactCellH = 50.f;
@@ -881,7 +876,7 @@ void RLLevelBrowserLayer::populateFromArray(CCArray* levels) {
         cell->setContentSize({356.f, cellH});
         cell->setAnchorPoint({0.0f, 1.0f});
         cell->updateBGColor(index);
-        contentLayer->addChild(cell);
+        m_listNode->addCell(cell);
         index++;
 
         // adjust position for compact mode to align with non-compact cells
@@ -901,6 +896,11 @@ void RLLevelBrowserLayer::populateFromArray(CCArray* levels) {
                 percentageLabel->setPosition(295.f, compactCellH / 2);
             }
         }
+    }
+
+    if (m_listNode) {
+        m_listNode->updateLayout(true);
+        m_listNode->scrollToTop();
     }
 
     int returned = static_cast<int>(levels->count());
@@ -1007,24 +1007,18 @@ void RLLevelBrowserLayer::onCompactToggle(CCObject* sender) {
         m_compactToggleBtn->setOpacity(m_compactMode ? 255 : 180);
     }
 
-    if (!m_scrollLayer || !m_scrollLayer->m_contentLayer)
-        return;
-
-    auto contentLayer = m_scrollLayer->m_contentLayer;
-    auto children = contentLayer->getChildren();
-    if (!children)
+    if (!m_listNode)
         return;
 
     std::vector<GJGameLevel*> levels;
-    for (auto node : CCArrayExt<CCNode*>(children)) {
-        auto cell = typeinfo_cast<LevelCell*>(node);
+    for (auto* cell : m_listNode->iter<LevelCell>()) {
         if (!cell)
             continue;
         if (cell->m_level)
             levels.push_back(cell->m_level);
     }
 
-    contentLayer->removeAllChildrenWithCleanup(true);
+    m_listNode->clear();
 
     const float defaultCellH = 90.f;
     const float compactCellH = 50.f;
@@ -1041,7 +1035,9 @@ void RLLevelBrowserLayer::onCompactToggle(CCObject* sender) {
         cell->setContentSize({356.f, cellH});
         cell->setAnchorPoint({0.0f, 1.0f});
         cell->updateBGColor(index);
-        contentLayer->addChild(cell);
+        if (m_listNode) {
+            m_listNode->addCell(cell);
+        }
         index++;
 
         // adjust position for compact mode to align with non-compact cells
@@ -1063,19 +1059,19 @@ void RLLevelBrowserLayer::onCompactToggle(CCObject* sender) {
         }
     }
 
-    contentLayer->updateLayout();
-    m_needsLayout = true;
+    if (m_listNode) {
+        m_listNode->updateLayout(true);
+        m_listNode->scrollToTop();
+    }
+    m_needsLayout = false;
 }
 void RLLevelBrowserLayer::update(float dt) {
     if (m_needsLayout) {
-        if (m_scrollLayer && m_scrollLayer->m_contentLayer) {
-            auto contentLayer = m_scrollLayer->m_contentLayer;
-            if (contentLayer->getChildren() &&
-                contentLayer->getChildren()->count() > 0) {
-                contentLayer->updateLayout();
-                if (m_scrollLayer)
-                    m_scrollLayer->scrollToTop();
-            }
+        auto contentLayer = m_listNode->getScrollLayer()->m_contentLayer;
+        if (contentLayer->getChildren() &&
+            contentLayer->getChildren()->count() > 0) {
+            contentLayer->updateLayout();
+            m_scrollLayer->scrollToTop();
         }
         m_needsLayout = false;
     }

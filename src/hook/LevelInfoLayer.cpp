@@ -1964,6 +1964,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         }
 
         m_orbsLabel->setVisible(true);
+        m_orbsLabel->setScale(0.45f);
         auto split = computeRubySplit(layerRef->m_level, rubyInitValue);
         int calculatedAtPercent = split.first;
         // int completionVal = split.second;

@@ -1,5 +1,6 @@
 #pragma once
 #include <Geode/Geode.hpp>
+#include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
 
@@ -12,6 +13,6 @@ private:
     void onAccountClicked(CCObject* sender);
     void onInfo(CCObject* sender);
     void onHeaderInfo(CCObject* sender);
-    ScrollLayer* m_scrollLayer = nullptr;
+    cue::ListNode* m_listNode = nullptr;
     LoadingSpinner* m_spinner = nullptr;
 };

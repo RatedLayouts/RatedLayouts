@@ -444,6 +444,7 @@ class $modify(EndLevelLayer) {
                                         "bigFont.fnt");
                                     if (rubyLabel) {
                                         rubyLabel->setID("rl-ruby-pop-label");
+                                        rubyLabel->setScale(0.5f);
                                         rubyLabel->setAnchorPoint({1.f, 0.5f});
                                         rubyLabel->setPosition(
                                             {-14, rubyPop->getContentSize().height / 2});

@@ -39,20 +39,20 @@ bool RLLeaderboardLayer::init() {
     listLayer->setPosition(
         {winSize / 2 - listLayer->getScaledContentSize() / 2 - 5});
 
-    auto scrollLayer = ScrollLayer::create(
-        {listLayer->getContentSize().width, listLayer->getContentSize().height});
-    scrollLayer->setPosition({0, 0});
-    listLayer->addChild(scrollLayer);
+    m_userListNode = cue::ListNode::create({listLayer->getContentSize().width, listLayer->getContentSize().height}, {191, 114, 62, 255}, cue::ListBorderStyle::None);
+    m_userListNode->setPosition({listLayer->getContentSize().width / 2, listLayer->getContentSize().height / 2});
+    listLayer->addChild(m_userListNode, 5);
+    m_scrollLayer = m_userListNode->getScrollLayer();
 
     if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
-        auto scrollBar = Scrollbar::create(scrollLayer);
+        auto scrollBar = Scrollbar::create(m_userListNode->getScrollLayer());
         scrollBar->setPosition({listLayer->getContentSize().width + 24.f,
             listLayer->getContentSize().height / 2});
         scrollBar->setContentHeight(listLayer->getContentSize().height - 20);
         listLayer->addChild(scrollBar, 10);
     }
 
-    auto contentLayer = scrollLayer->m_contentLayer;
+    auto contentLayer = m_userListNode->getScrollLayer()->m_contentLayer;
     if (contentLayer) {
         auto layout = ColumnLayout::create();
         contentLayer->setLayout(layout);
@@ -68,7 +68,6 @@ bool RLLeaderboardLayer::init() {
 
     this->addChild(listLayer);
     m_listLayer = listLayer;
-    m_scrollLayer = scrollLayer;
 
     auto typeMenu = CCMenu::create();
     typeMenu->setPosition({0, 0});
@@ -195,14 +194,17 @@ void RLLeaderboardLayer::onRefreshButton(CCObject* sender) {
     auto contentLayer = m_scrollLayer ? m_scrollLayer->m_contentLayer : nullptr;
     if (contentLayer) {
         // clear the list and show a spinner
-        contentLayer->removeAllChildrenWithCleanup(true);
+        if (m_userListNode) {
+            m_userListNode->clear();
+        }
+
         if (m_spinner) {
             m_spinner->removeFromParent();
             m_spinner = nullptr;
         }
         auto spinner = LoadingSpinner::create(100.f);
         spinner->setPosition(m_listLayer->getContentSize() / 2);
-        m_listLayer->addChild(spinner);
+        m_userListNode->addChild(spinner);
         m_spinner = spinner;
     }
 
@@ -313,7 +315,9 @@ void RLLeaderboardLayer::populateLeaderboard(
         m_spinner = nullptr;
     }
 
-    contentLayer->removeAllChildrenWithCleanup(true);
+    if (m_userListNode) {
+        m_userListNode->clear();
+    }
 
     int rank = 1;
     for (const auto& userValue : users) {
@@ -324,32 +328,23 @@ void RLLeaderboardLayer::populateLeaderboard(
         int score = userValue["score"].asInt().unwrapOrDefault();
         int nameplateId = userValue["nameplate"].asInt().unwrapOr(0);
 
-        auto cell = TableViewCell::create();
-        cell->setContentSize({356.f, 40.f});
+        auto rowContainer = CCLayer::create();
+        rowContainer->setContentSize({356.f, 40.f});
 
-        CCSprite* bgSprite = nullptr;
-        CCSprite* namePlate = nullptr;
         int currentAccountID = GJAccountManager::sharedState()->m_accountID;
 
-        if (accountId == currentAccountID) {
-            bgSprite = CCSprite::create();
-            bgSprite->setTextureRect(CCRectMake(0, 0, 356.f, 40.f));
+        CCSprite* bgSprite = CCSprite::create();
+        bgSprite->setTextureRect(CCRectMake(0, 0, 356.f, 40.f));
+        if (accountId == GJAccountManager::sharedState()->m_accountID) {
             bgSprite->setColor({230, 150, 10});
         } else if (rank % 2 == 1) {
-            bgSprite = CCSprite::create();
-            bgSprite->setTextureRect(CCRectMake(0, 0, 356.f, 40.f));
             bgSprite->setColor({161, 88, 44});
         } else {
-            bgSprite = CCSprite::create();
-            bgSprite->setTextureRect(CCRectMake(0, 0, 356.f, 40.f));
             bgSprite->setColor({194, 114, 62});
         }
-
-        if (bgSprite) {
-            bgSprite->setPosition({178.f, 20.f});
-            bgSprite->setOpacity(150);
-            cell->addChild(bgSprite, 0);
-        }
+        bgSprite->setPosition({178.f, 20.f});
+        bgSprite->setOpacity(150);
+        rowContainer->addChild(bgSprite, 0);
 
         CCNode* nameplateNode = nullptr;
         if (nameplateId != 0 &&
@@ -362,7 +357,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             lazy->setAutoResize(true);
             lazy->setPosition(
                 {bgSprite->getPositionX(), bgSprite->getPositionY()});
-            cell->addChild(lazy, -1);
+            rowContainer->addChild(lazy, -1);
             nameplateNode = lazy;
         }
 
@@ -374,7 +369,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
             glow->setColor({255, 215, 0});
-            cell->addChild(glow, 1);
+            rowContainer->addChild(glow, 1);
         } else if (rank == 2) {
             auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
             glow->setPosition({100.f, 40.5f});
@@ -382,7 +377,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
             glow->setColor({192, 192, 192});
-            cell->addChild(glow, 1);
+            rowContainer->addChild(glow, 1);
         } else if (rank == 3) {
             auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
             glow->setPosition({100.f, 40.5f});
@@ -390,7 +385,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
             glow->setColor({205, 127, 50});
-            cell->addChild(glow, 1);
+            rowContainer->addChild(glow, 1);
         }
 
         // award achievement for getting on the leaderboard for the first time :)
@@ -404,7 +399,7 @@ void RLLeaderboardLayer::populateLeaderboard(
         rankLabel->setScale(0.5f);
         rankLabel->setPosition({15.f, 20.f});
         rankLabel->setAnchorPoint({0.f, 0.5f});
-        cell->addChild(rankLabel, 2);
+        rowContainer->addChild(rankLabel, 2);
 
         auto username = userValue["username"].asString().unwrapOrDefault();
         auto accountLabel = CCLabelBMFont::create(username.c_str(), "goldFont.fnt");
@@ -425,7 +420,7 @@ void RLLeaderboardLayer::populateLeaderboard(
         }
         player->setPosition({55.f, 20.f});
         player->setScale(0.75f);
-        cell->addChild(player, 2);
+        rowContainer->addChild(player, 2);
 
         auto buttonMenu = CCMenu::create();
         buttonMenu->setPosition({0, 0});
@@ -437,7 +432,7 @@ void RLLeaderboardLayer::populateLeaderboard(
         accountButton->setAnchorPoint({0.f, 0.5f});
 
         buttonMenu->addChild(accountButton);
-        cell->addChild(buttonMenu, 2);
+        rowContainer->addChild(buttonMenu, 2);
 
         auto scoreLabelText = CCLabelBMFont::create(
             fmt::format("{}", GameToolbox::pointsToString(score)).c_str(),
@@ -445,7 +440,7 @@ void RLLeaderboardLayer::populateLeaderboard(
         scoreLabelText->setScale(0.5f);
         scoreLabelText->setPosition({320.f, 20.f});
         scoreLabelText->setAnchorPoint({1.f, 0.5f});
-        cell->addChild(scoreLabelText, 2);
+        rowContainer->addChild(scoreLabelText, 2);
 
         const bool isStar = m_starsTab->isToggled();
         const bool isPlanets = m_planetsTab && m_planetsTab->isToggled();
@@ -459,14 +454,14 @@ void RLLeaderboardLayer::populateLeaderboard(
         iconSprite->setScale(0.65f);
         iconSprite->setPosition({325.f, 20.f});
         iconSprite->setAnchorPoint({0.f, 0.5f});
-        cell->addChild(iconSprite, 2);
+        rowContainer->addChild(iconSprite, 2);
 
-        contentLayer->addChild(cell);
+        if (m_userListNode) {
+            m_userListNode->addCell(rowContainer);
+            m_userListNode->getScrollLayer()->m_contentLayer->updateLayout();
+        }
         rank++;
     }
-
-    // Update layout after all cells are added
-    contentLayer->updateLayout();
 }
 
 RLLeaderboardLayer* RLLeaderboardLayer::create() {
