@@ -1,5 +1,6 @@
 #include "RLRubiesCodePopup.hpp"
 #include "RLAddCodePopup.hpp"
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/UploadActionPopup.hpp>
 #include <cue/ListNode.hpp>
 #include <vector>
@@ -34,10 +35,6 @@ bool RLRubiesCodePopup::init() {
         m_mainLayer->getContentSize().height / 2.f});
     m_mainLayer->addChild(m_listNode, 1);
 
-    auto loadingSpinner = LoadingSpinner::create(50.f);
-    loadingSpinner->setPosition(m_listNode->getContentSize() / 2.f);
-    m_listNode->addChild(loadingSpinner);
-
     m_scrollLayer = m_listNode->getScrollLayer();
     if (m_scrollLayer && m_scrollLayer->m_contentLayer) {
         auto contentLayer = m_scrollLayer->m_contentLayer;
@@ -49,12 +46,45 @@ bool RLRubiesCodePopup::init() {
         contentLayer->setLayout(layout);
     }
 
-    // New code button
+    auto scrollBar = Scrollbar::create(m_listNode->getScrollLayer());
+    if (scrollBar) {
+        scrollBar->setPosition({m_listNode->getContentSize().width + 10.f, m_listNode->getContentSize().height / 2.f});
+        m_listNode->addChild(scrollBar);
+    }
+
     auto newSpr = ButtonSprite::create("New", "goldFont.fnt", "GJ_button_01.png");
     auto newBtn = CCMenuItemSpriteExtra::create(newSpr, this, menu_selector(RLRubiesCodePopup::onNewCode));
     newBtn->setPosition({m_mainLayer->getContentSize().width / 2.f, 20.f});
     if (m_buttonMenu)
         m_buttonMenu->addChild(newBtn);
+
+    this->fetchCodes();
+
+    return true;
+}
+
+void RLRubiesCodePopup::refreshCodes() {
+    if (!m_listNode)
+        return;
+
+    m_codeItems.clear();
+    m_listNode->clear();
+
+    if (m_listNode) {
+        m_listNode->updateLayout();
+        m_listNode->scrollToTop();
+    }
+
+    this->fetchCodes();
+}
+
+void RLRubiesCodePopup::fetchCodes() {
+    if (!m_listNode)
+        return;
+
+    auto loadingSpinner = LoadingSpinner::create(50.f);
+    loadingSpinner->setPosition(m_listNode->getContentSize() / 2.f);
+    m_listNode->addChild(loadingSpinner);
 
     web::WebRequest req;
     Ref<RLRubiesCodePopup> self = this;
@@ -104,9 +134,17 @@ bool RLRubiesCodePopup::init() {
                 auto codeLabel = CCLabelBMFont::create(code.c_str(), "goldFont.fnt");
                 codeLabel->setScale(0.8f);
                 codeLabel->limitLabelWidth(200.f, 0.8f, 0.5f);
-                codeLabel->setAnchorPoint({0.f, 0.5f});
-                codeLabel->setPosition({10.f, 25.f});
-                row->addChild(codeLabel);
+
+                auto codeBtn = CCMenuItemSpriteExtra::create(codeLabel, self, menu_selector(RLRubiesCodePopup::onCodeLabelClick));
+                codeBtn->setTag(idx);
+                codeBtn->setAnchorPoint({0.f, 0.5f});
+                codeBtn->setPosition({10.f, 25.f});
+
+                auto codeMenu = CCMenu::create(codeBtn, nullptr);
+                codeMenu->setPosition({0.f, 0.f});
+                codeMenu->setAnchorPoint({0.f, 0.f});
+                codeMenu->setContentSize(row->getContentSize());
+                row->addChild(codeMenu);
 
                 float codeWidth = codeLabel->getContentSize().width * codeLabel->getScale();
                 float iconX = 10.f + codeWidth + 10.f;
@@ -128,11 +166,10 @@ bool RLRubiesCodePopup::init() {
                 row->addChild(rewardLabel);
                 self->m_codeItems.push_back({static_cast<int>(item["id"].asInt().unwrapOrDefault()), code, fmt::format("{}", reward)});
 
-                // action buttons on right
                 auto checkSpr = CCSprite::createWithSpriteFrameName("RL_check.png"_spr);
                 auto crossSpr = CCSprite::createWithSpriteFrameName("RL_cross.png"_spr);
-                auto checkBtn = CCMenuItemSpriteExtra::create(checkSpr, self, menu_selector(RLRubiesCodePopup::onCheckCode));
-                auto crossBtn = CCMenuItemSpriteExtra::create(crossSpr, self, menu_selector(RLRubiesCodePopup::onCrossCode));
+                auto checkBtn = CCMenuItemSpriteExtra::create(checkSpr, self, menu_selector(RLRubiesCodePopup::onEditCode));
+                auto crossBtn = CCMenuItemSpriteExtra::create(crossSpr, self, menu_selector(RLRubiesCodePopup::onDeleteCode));
                 if (checkBtn) {
                     checkBtn->setTag(idx);
                     checkBtn->setPosition({self->m_listNode->getContentSize().width - 70.f, 25.f});
@@ -169,17 +206,13 @@ bool RLRubiesCodePopup::init() {
             if (self->m_listNode) {
                 self->m_listNode->updateLayout();
             }
-            if (self->m_scrollLayer) {
-                self->m_scrollLayer->scrollToTop();
-            }
-
             self->m_listNode->getScrollLayer()->m_contentLayer->updateLayout();
             self->m_listNode->scrollToTop();
         });
 
-    return true;
 }
-void RLRubiesCodePopup::onCheckCode(CCObject* sender) {
+
+void RLRubiesCodePopup::onEditCode(CCObject* sender) {
     if (!sender)
         return;
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
@@ -191,12 +224,16 @@ void RLRubiesCodePopup::onCheckCode(CCObject* sender) {
         return;
 
     auto const& item = m_codeItems[idx];
-    auto popup = RLAddCodePopup::create(item.code, item.reward, item.id);
+    Ref<RLRubiesCodePopup> self = this;
+    auto popup = RLAddCodePopup::create(item.code, item.reward, item.id, [self]() {
+        if (self)
+            self->refreshCodes();
+    });
     if (popup)
         popup->show();
 }
 
-void RLRubiesCodePopup::onCrossCode(CCObject* sender) {
+void RLRubiesCodePopup::onDeleteCode(CCObject* sender) {
     if (!sender)
         return;
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
@@ -266,16 +303,34 @@ void RLRubiesCodePopup::onCrossCode(CCObject* sender) {
                     }
 
                     upopup->showSuccessMessage("Code deleted");
-                    self->removeFromParentAndCleanup(true);
-                    auto refreshed = RLRubiesCodePopup::create();
-                    if (refreshed)
-                        refreshed->show();
+                    if (self)
+                        self->refreshCodes();
                 });
         });
 }
 
 void RLRubiesCodePopup::onNewCode(CCObject* sender) {
-    auto popup = RLAddCodePopup::create("", "", -1);
+    Ref<RLRubiesCodePopup> self = this;
+    auto popup = RLAddCodePopup::create("", "", -1, [self]() {
+        if (self)
+            self->refreshCodes();
+    });
     if (popup)
         popup->show();
+}
+
+void RLRubiesCodePopup::onCodeLabelClick(CCObject* sender) {
+    if (!sender)
+        return;
+    auto btn = static_cast<CCMenuItemLabel*>(sender);
+    if (!btn)
+        return;
+
+    int idx = btn->getTag();
+    if (idx < 0 || static_cast<size_t>(idx) >= m_codeItems.size())
+        return;
+
+    auto const& item = m_codeItems[idx];
+    utils::clipboard::write(item.code);
+    Notification::create("Code copied to clipboard", NotificationIcon::Info)->show();
 }

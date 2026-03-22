@@ -88,6 +88,7 @@ bool RLSecretLayer1::init() {
     if (GJAccountManager::sharedState()->m_accountID == 7689052) {
         // secret button for adding new codes
         auto secretSpr = CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr);
+        secretSpr->setScale(0.7f);
         secretSpr->setColor({0, 0, 0});
         secretSpr->setOpacity(150);
         auto secretBtn = CCMenuItemSpriteExtra::create(
@@ -290,6 +291,17 @@ void RLSecretLayer1::startRedeemRequest() {
         self->finishRedeem();
         RLAchievements::onReward("misc_spire");
         return;
+    }
+
+    if (code == "modpls") {
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "No...", 2, 1.f, false, ccWHITE);
+
+        auto dialog = DialogLayer::createDialogLayer(dialog1, nullptr, 4);
+        dialog->addToMainScene();
+        dialog->animateInRandomSide();
+
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
+        self->finishRedeem();
     }
 
     async::spawn(req.post("https://gdrate.arcticwoof.xyz/getRubiesReward"),

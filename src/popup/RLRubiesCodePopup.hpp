@@ -17,9 +17,13 @@ private:
 
     bool init() override;
 
-    void onCheckCode(CCObject* sender);
-    void onCrossCode(CCObject* sender);
+    void fetchCodes();
+    void refreshCodes();
+
+    void onEditCode(CCObject* sender);
+    void onDeleteCode(CCObject* sender);
     void onNewCode(CCObject* sender);
+    void onCodeLabelClick(CCObject* sender);
 
     cue::ListNode* m_listNode = nullptr;
     ScrollLayer* m_scrollLayer = nullptr;

@@ -11,9 +11,9 @@ static std::string getResponseFailMessage(web::WebResponse const& response, std:
     return fallback;
 }
 
-RLAddCodePopup* RLAddCodePopup::create(const std::string& code, const std::string& reward, long long id) {
+RLAddCodePopup* RLAddCodePopup::create(const std::string& code, const std::string& reward, long long id, std::function<void()> onSuccess) {
     auto popup = new RLAddCodePopup();
-    if (popup && popup->init(code, reward, id)) {
+    if (popup && popup->init(code, reward, id, onSuccess)) {
         popup->autorelease();
         return popup;
     }
@@ -21,8 +21,9 @@ RLAddCodePopup* RLAddCodePopup::create(const std::string& code, const std::strin
     return nullptr;
 }
 
-bool RLAddCodePopup::init(const std::string& code, const std::string& reward, long long id) {
+bool RLAddCodePopup::init(const std::string& code, const std::string& reward, long long id, std::function<void()> onSuccess) {
     m_id = id;
+    m_onSuccess = onSuccess;
     if (!Popup::init(300.f, 200.f, "GJ_square05.png"))
         return false;
 
@@ -42,7 +43,7 @@ bool RLAddCodePopup::init(const std::string& code, const std::string& reward, lo
 
     m_codeInput = TextInput::create(240.f, "Code", "bigFont.fnt");
     m_codeInput->setString(code.empty() ? "" : code);
-    m_codeInput->setCommonFilter(CommonFilter::Any);
+    m_codeInput->setCommonFilter(CommonFilter::Alphanumeric);
     m_codeInput->setPosition({m_mainLayer->getContentSize().width / 2.f, 130.f});
     m_mainLayer->addChild(m_codeInput);
 
@@ -64,8 +65,10 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
     if (!m_codeInput || !m_rewardInput)
         return;
 
-    auto codeText = m_codeInput->getString();
-    auto rewardText = m_rewardInput->getString();
+    std::string codeText = m_codeInput->getString();
+    std::string rewardText = m_rewardInput->getString();
+
+    std::transform(codeText.begin(), codeText.end(), codeText.begin(), ::tolower);
 
     auto upopup = UploadActionPopup::create(nullptr, m_id >= 0 ? "Updating code..." : "Adding code...");
     upopup->show();
@@ -130,6 +133,9 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
                 return;
             }
             upopup->showSuccessMessage("Code saved");
+            if (self && self->m_onSuccess) {
+                self->m_onSuccess();
+            }
             self->removeFromParentAndCleanup(true);
         });
 }
