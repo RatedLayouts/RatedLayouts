@@ -899,7 +899,7 @@ void RLLevelBrowserLayer::populateFromArray(CCArray* levels) {
     }
 
     if (m_listNode) {
-        m_listNode->updateLayout(true);
+        m_listNode->getScrollLayer()->m_contentLayer->updateLayout();
         m_listNode->scrollToTop();
     }
 
@@ -1059,11 +1059,7 @@ void RLLevelBrowserLayer::onCompactToggle(CCObject* sender) {
         }
     }
 
-    if (m_listNode) {
-        m_listNode->updateLayout(true);
-        m_listNode->scrollToTop();
-    }
-    m_needsLayout = false;
+    this->refreshLevels(false);
 }
 void RLLevelBrowserLayer::update(float dt) {
     if (m_needsLayout) {
