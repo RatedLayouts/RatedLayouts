@@ -70,6 +70,90 @@ int RLLevelBrowserLayer::parseModeParam(int fallback) const {
     return fallback;
 }
 
+void RLLevelBrowserLayer::updatePagingFromJson(matjson::Value const& json) {
+    if (json.contains("page")) {
+        if (auto p = json["page"].as<int>(); p) {
+            int srvPage = p.unwrap();
+            m_page = std::max(0, srvPage - 1);
+        }
+    }
+
+    if (json.contains("total")) {
+        if (auto tp = json["total"].as<int>(); tp) {
+            m_totalLevels = tp.unwrap();
+            m_totalPages = (m_totalLevels + PER_PAGE - 1) / PER_PAGE;
+        }
+    }
+
+    if (m_totalPages < 1)
+        m_totalPages = 1;
+
+    if (m_page < 0)
+        m_page = 0;
+    if (m_page >= m_totalPages)
+        m_page = (m_totalPages > 0) ? (m_totalPages - 1) : 0;
+
+    this->updatePageButton();
+}
+
+std::string RLLevelBrowserLayer::extractLevelIDs(matjson::Value const& json) const {
+    std::string levelIDs;
+    bool first = true;
+
+    auto appendID = [&](int id) {
+        if (!first)
+            levelIDs += ",";
+        levelIDs += numToString(id);
+        first = false;
+    };
+
+    if (json.contains("levels")) {
+        auto arr = json["levels"];
+        for (auto v : arr) {
+            if (auto id = v.as<int>(); id) {
+                appendID(id.unwrap());
+            }
+        }
+        return levelIDs;
+    }
+
+    if (json.contains("levelIds")) {
+        auto arr = json["levelIds"];
+        for (auto v : arr) {
+            if (auto id = v.as<int>(); id) {
+                appendID(id.unwrap());
+            }
+        }
+        return levelIDs;
+    }
+
+    if (json.type() == matjson::Type::Array) {
+        for (auto v : json) {
+            if (auto id = v.as<int>(); id) {
+                appendID(id.unwrap());
+            }
+        }
+    }
+
+    return levelIDs;
+}
+
+void RLLevelBrowserLayer::processFetchedLevelIDs(std::string const& levelIDs, std::string const& emptyMessage) {
+    if (!levelIDs.empty()) {
+        m_searchObject = GJSearchObject::create(SearchType::Type19, levelIDs.c_str());
+        auto glm = GameLevelManager::get();
+        if (glm) {
+            glm->m_levelManagerDelegate = this;
+            glm->getOnlineLevels(m_searchObject);
+        } else {
+            this->stopLoading();
+        }
+    } else {
+        Notification::create(emptyMessage, NotificationIcon::Warning)->show();
+        this->stopLoading();
+    }
+}
+
 void RLLevelBrowserLayer::applyModeFetch(bool force) {
     if (m_mode == Mode::Featured || m_mode == Mode::Sent ||
         m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends) {
@@ -513,61 +597,9 @@ void RLLevelBrowserLayer::fetchLevelsForType(int type) {
             }
             auto json = jsonRes.unwrap();
 
-            if (json.contains("page")) {
-                if (auto p = json["page"].as<int>(); p) {
-                    int srvPage = p.unwrap();
-                    self->m_page = std::max(0, srvPage - 1);
-                }
-            }
-
-            if (json.contains("total")) {
-                if (auto tp = json["total"].as<int>(); tp) {
-                    self->m_totalLevels = tp.unwrap();
-                    self->m_totalPages =
-                        (self->m_totalLevels + PER_PAGE - 1) / PER_PAGE;
-                }
-            }
-
-            if (self->m_totalPages < 1)
-                self->m_totalPages = 1;
-
-            if (self->m_page < 0)
-                self->m_page = 0;
-            if (self->m_page >= self->m_totalPages) {
-                self->m_page =
-                    (self->m_totalPages > 0) ? (self->m_totalPages - 1) : 0;
-            }
-            self->updatePageButton();
-
-            std::string levelIDs;
-            bool first = true;
-            if (json.contains("levelIds")) {
-                auto arr = json["levelIds"];
-                for (auto v : arr) {
-                    auto id = v.as<int>();
-                    if (!id)
-                        continue;
-                    if (!first)
-                        levelIDs += ",";
-                    levelIDs += numToString(id.unwrap());
-                    first = false;
-                }
-            }
-            if (!levelIDs.empty()) {
-                self->m_searchObject =
-                    GJSearchObject::create(SearchType::Type19, levelIDs.c_str());
-                auto glm = GameLevelManager::get();
-                if (glm) {
-                    glm->m_levelManagerDelegate = self;
-                    glm->getOnlineLevels(self->m_searchObject);
-                } else {
-                    self->stopLoading();
-                }
-            } else {
-                Notification::create("No levels found", NotificationIcon::Warning)
-                    ->show();
-                self->stopLoading();
-            }
+            self->updatePagingFromJson(json);
+            auto levelIDs = self->extractLevelIDs(json);
+            self->processFetchedLevelIDs(levelIDs, "No levels found");
         });
 }
 
@@ -611,73 +643,9 @@ void RLLevelBrowserLayer::fetchAccountLevels(int accountId) {
             }
             auto json = jsonRes.unwrap();
 
-            if (json.contains("page")) {
-                if (auto p = json["page"].as<int>(); p) {
-                    int srvPage = p.unwrap();
-                    self->m_page = std::max(0, srvPage - 1);
-                }
-            }
-
-            if (json.contains("total")) {
-                if (auto tp = json["total"].as<int>(); tp) {
-                    self->m_totalLevels = tp.unwrap();
-                    self->m_totalPages =
-                        (self->m_totalLevels + PER_PAGE - 1) / PER_PAGE;
-                }
-            }
-
-            if (self->m_totalPages < 1)
-                self->m_totalPages = 1;
-
-            if (self->m_page < 0)
-                self->m_page = 0;
-            if (self->m_page >= self->m_totalPages) {
-                self->m_page =
-                    (self->m_totalPages > 0) ? (self->m_totalPages - 1) : 0;
-            }
-            self->updatePageButton();
-
-            std::string levelIDs;
-            bool first = true;
-            if (json.contains("levels")) {
-                auto arr = json["levels"];
-                for (auto v : arr) {
-                    auto id = v.as<int>();
-                    if (!id)
-                        continue;
-                    if (!first)
-                        levelIDs += ",";
-                    levelIDs += numToString(id.unwrap());
-                    first = false;
-                }
-            } else if (json.contains("levelIds")) {
-                auto arr = json["levelIds"];
-                for (auto v : arr) {
-                    auto id = v.as<int>();
-                    if (!id)
-                        continue;
-                    if (!first)
-                        levelIDs += ",";
-                    levelIDs += numToString(id.unwrap());
-                    first = false;
-                }
-            }
-
-            if (!levelIDs.empty()) {
-                self->m_searchObject =
-                    GJSearchObject::create(SearchType::Type19, levelIDs.c_str());
-                auto glm = GameLevelManager::get();
-                if (glm) {
-                    glm->m_levelManagerDelegate = self;
-                    glm->getOnlineLevels(self->m_searchObject);
-                } else {
-                    self->stopLoading();
-                }
-            } else {
-                Notification::create("No levels found", NotificationIcon::Warning)
-                    ->show();
-                self->stopLoading();
-            }
+            self->updatePagingFromJson(json);
+            auto levelIDs = self->extractLevelIDs(json);
+            self->processFetchedLevelIDs(levelIDs, "No levels found");
         });
 }
 
@@ -717,65 +685,9 @@ void RLLevelBrowserLayer::performSearchQuery(ParamList const& params) {
                     }
                     auto json = jsonRes.unwrap();
 
-                    // handle page / total if present
-                    if (json.contains("page")) {
-                        if (auto p = json["page"].as<int>(); p) {
-                            int srvPage = p.unwrap();
-                            self->m_page = std::max(0, srvPage - 1);
-                        }
-                    }
-                    if (json.contains("total")) {
-                        if (auto t = json["total"].as<int>(); t) {
-                            self->m_totalLevels = t.unwrap();
-                            self->m_totalPages =
-                                (self->m_totalLevels + PER_PAGE - 1) / PER_PAGE;
-                        }
-                    }
-                    if (self->m_totalPages < 1)
-                        self->m_totalPages = 1;
-                    self->updatePageButton();
-
-                    std::string levelIDs;
-                    bool first = true;
-                    if (json.contains("levelIds")) {
-                        auto arr = json["levelIds"];
-                        for (auto v : arr) {
-                            auto id = v.as<int>();
-                            if (!id)
-                                continue;
-                            if (!first)
-                                levelIDs += ",";
-                            levelIDs += numToString(id.unwrap());
-                            first = false;
-                        }
-                    } else if (json.type() == matjson::Type::Array) {
-                        for (auto v : json) {
-                            auto id = v.as<int>();
-                            if (!id)
-                                continue;
-                            if (!first)
-                                levelIDs += ",";
-                            levelIDs += numToString(id.unwrap());
-                            first = false;
-                        }
-                    }
-
-                    if (!levelIDs.empty()) {
-                        self->m_searchObject =
-                            GJSearchObject::create(SearchType::Type19, levelIDs.c_str());
-                        auto glm = GameLevelManager::get();
-                        if (glm) {
-                            glm->m_levelManagerDelegate = self;
-                            glm->getOnlineLevels(self->m_searchObject);
-                        } else {
-                            self->stopLoading();
-                        }
-                    } else {
-                        Notification::create("No levels returned",
-                            NotificationIcon::Warning)
-                            ->show();
-                        self->stopLoading();
-                    }
+                    self->updatePagingFromJson(json);
+                    auto levelIDs = self->extractLevelIDs(json);
+                    self->processFetchedLevelIDs(levelIDs, "No levels returned");
                 });
             return;
         }

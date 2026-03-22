@@ -114,6 +114,11 @@ protected:
     void applyModeFetch(bool force);
     int computeModeType() const;
     int parseModeParam(int fallback) const;
+
+    void updatePagingFromJson(matjson::Value const& json);
+    std::string extractLevelIDs(matjson::Value const& json) const;
+    void processFetchedLevelIDs(std::string const& levelIDs, std::string const& emptyMessage);
+
     void presentSearchResults(web::WebResponse const& res);
     void presentEventSafeResults(web::WebResponse const& res);
     LevelCell* createLevelCell(GJGameLevel* level, int index, float cellH);
