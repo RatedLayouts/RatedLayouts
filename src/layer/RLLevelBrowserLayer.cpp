@@ -59,31 +59,28 @@ int RLLevelBrowserLayer::computeModeType() const {
     return 0;
 }
 
+int RLLevelBrowserLayer::parseModeParam(int fallback) const {
+    if (m_modeParams.empty())
+        return fallback;
+    auto& val = m_modeParams.front().second;
+    int parsed = 0;
+    auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
+    if (res.ec == std::errc())
+        return parsed;
+    return fallback;
+}
+
 void RLLevelBrowserLayer::applyModeFetch(bool force) {
     if (m_mode == Mode::Featured || m_mode == Mode::Sent ||
         m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends) {
         if (force)
             m_page = 0;
-        int type = computeModeType();
-        if (!m_modeParams.empty()) {
-            auto& val = m_modeParams.front().second;
-            int parsed = 0;
-            auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-            if (res.ec == std::errc())
-                type = parsed;
-        }
+        int type = parseModeParam(computeModeType());
         this->fetchLevelsForType(type);
     } else if (m_mode == Mode::Account) {
         if (force)
             m_page = 0;
-        int accountId = GJAccountManager::get()->m_accountID;
-        if (!m_modeParams.empty()) {
-            auto& val = m_modeParams.front().second;
-            int parsed = 0;
-            auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-            if (res.ec == std::errc())
-                accountId = parsed;
-        }
+        int accountId = parseModeParam(GJAccountManager::get()->m_accountID);
         this->fetchAccountLevels(accountId);
     } else if (m_mode == Mode::Search || m_mode == Mode::EventSafe) {
         if (!m_modeParams.empty())
@@ -162,10 +159,6 @@ void RLLevelBrowserLayer::setupControls() {
     }
 
     this->addChild(m_listLayer);
-}
-
-void RLLevelBrowserLayer::setupPageControls() {
-    // Keep this method available for future use; current initialization is handled in init.
 }
 
 bool RLLevelBrowserLayer::init(GJSearchObject* object) {
@@ -388,38 +381,7 @@ void RLLevelBrowserLayer::onPrevPage(CCObject* sender) {
         m_page--;
         m_levelCache.clear();
         this->updatePageButton();
-        if (m_mode == Mode::Featured || m_mode == Mode::Sent ||
-            m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends) {
-            int type = 0;
-            if (m_mode == Mode::Featured)
-                type = 2;
-            else if (m_mode == Mode::AdminSent)
-                type = 4;
-            else if (m_mode == Mode::LegendarySends)
-                type = 5;
-            else
-                type = 1;  // Sent
-            if (!m_modeParams.empty()) {
-                auto& val = m_modeParams.front().second;
-                int parsed = 0;
-                auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-                if (res.ec == std::errc())
-                    type = parsed;
-            }
-            this->fetchLevelsForType(type);
-        } else if (m_mode == Mode::Account) {
-            int accountId = GJAccountManager::get()->m_accountID;
-            if (!m_modeParams.empty()) {
-                auto& val = m_modeParams.front().second;
-                int parsed = 0;
-                auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-                if (res.ec == std::errc())
-                    accountId = parsed;
-            }
-            this->fetchAccountLevels(accountId);
-        } else if (m_mode == Mode::Search || m_mode == Mode::EventSafe) {
-            this->performSearchQuery(m_modeParams);
-        }
+        this->applyModeFetch(false);
     }
 }
 
@@ -430,38 +392,7 @@ void RLLevelBrowserLayer::onNextPage(CCObject* sender) {
         m_page++;
         m_levelCache.clear();
         this->updatePageButton();
-        if (m_mode == Mode::Featured || m_mode == Mode::Sent ||
-            m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends) {
-            int type = 0;
-            if (m_mode == Mode::Featured)
-                type = 2;
-            else if (m_mode == Mode::AdminSent)
-                type = 4;
-            else if (m_mode == Mode::LegendarySends)
-                type = 5;
-            else
-                type = 1;  // Sent
-            if (!m_modeParams.empty()) {
-                auto& val = m_modeParams.front().second;
-                int parsed = 0;
-                auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-                if (res.ec == std::errc())
-                    type = parsed;
-            }
-            this->fetchLevelsForType(type);
-        } else if (m_mode == Mode::Account) {
-            int accountId = GJAccountManager::get()->m_accountID;
-            if (!m_modeParams.empty()) {
-                auto& val = m_modeParams.front().second;
-                int parsed = 0;
-                auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-                if (res.ec == std::errc())
-                    accountId = parsed;
-            }
-            this->fetchAccountLevels(accountId);
-        } else if (m_mode == Mode::Search || m_mode == Mode::EventSafe) {
-            this->performSearchQuery(m_modeParams);
-        }
+        this->applyModeFetch(false);
     }
 }
 
@@ -492,38 +423,7 @@ void RLLevelBrowserLayer::setIDPopupClosed(SetIDPopup* popup, int value) {
     m_page = value - 1;
     m_levelCache.clear();
     this->updatePageButton();
-    if (m_mode == Mode::Featured || m_mode == Mode::Sent ||
-        m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends) {
-        int type = 0;
-        if (m_mode == Mode::Featured)
-            type = 2;
-        else if (m_mode == Mode::AdminSent)
-            type = 4;
-        else if (m_mode == Mode::LegendarySends)
-            type = 5;
-        else
-            type = 1;
-        if (!m_modeParams.empty()) {
-            auto& val = m_modeParams.front().second;
-            int parsed = 0;
-            auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-            if (res.ec == std::errc())
-                type = parsed;
-        }
-        this->fetchLevelsForType(type);
-    } else if (m_mode == Mode::Account) {
-        int accountId = GJAccountManager::get()->m_accountID;
-        if (!m_modeParams.empty()) {
-            auto& val = m_modeParams.front().second;
-            int parsed = 0;
-            auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-            if (res.ec == std::errc())
-                accountId = parsed;
-        }
-        this->fetchAccountLevels(accountId);
-    } else if (m_mode == Mode::Search || m_mode == Mode::EventSafe) {
-        this->performSearchQuery(m_modeParams);
-    }
+    this->applyModeFetch(false);
 }
 
 void RLLevelBrowserLayer::updatePageButton() {
@@ -548,66 +448,29 @@ void RLLevelBrowserLayer::updatePageButton() {
 
 void RLLevelBrowserLayer::refreshLevels(bool force) {
     startLoading();
-    // set delegate and request
     auto glm = GameLevelManager::get();
     if (!glm)
         return;
     glm->m_levelManagerDelegate = this;
 
-    // re-run the getLevels request with the current page
     if (m_mode == Mode::Featured || m_mode == Mode::Sent ||
-        m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends) {
-        if (force)
-            m_page = 0;
-        int type = 0;
-        if (m_mode == Mode::Featured)
-            type = 2;
-        else if (m_mode == Mode::AdminSent)
-            type = 4;
-        else if (m_mode == Mode::LegendarySends)
-            type = 5;
-        else
-            type = 1;  // Sent
-        if (!m_modeParams.empty()) {
-            auto& val = m_modeParams.front().second;
-            int parsed = 0;
-            auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-            if (res.ec == std::errc())
-                type = parsed;
-        }
-        this->fetchLevelsForType(type);
-        return;
-    }
-
-    if (m_mode == Mode::Account) {
-        if (force)
-            m_page = 0;
-        int accountId = GJAccountManager::get()->m_accountID;
-        if (!m_modeParams.empty()) {
-            auto& val = m_modeParams.front().second;
-            int parsed = 0;
-            auto res = std::from_chars(val.data(), val.data() + val.size(), parsed);
-            if (res.ec == std::errc())
-                accountId = parsed;
-        }
-        this->fetchAccountLevels(accountId);
+        m_mode == Mode::AdminSent || m_mode == Mode::LegendarySends ||
+        m_mode == Mode::Account) {
+        this->applyModeFetch(force);
         return;
     }
 
     if (m_mode == Mode::Search || m_mode == Mode::EventSafe) {
         if (!m_modeParams.empty()) {
-            this->performSearchQuery(m_modeParams);
-        } else if (m_searchObject) {
-            glm->getOnlineLevels(m_searchObject);
-        } else {
-            stopLoading();
+            this->applyModeFetch(force);
+            return;
         }
+    }
+
+    if (m_searchObject) {
+        glm->getOnlineLevels(m_searchObject);
     } else {
-        if (m_searchObject) {
-            glm->getOnlineLevels(m_searchObject);
-        } else {
-            stopLoading();
-        }
+        stopLoading();
     }
 }
 

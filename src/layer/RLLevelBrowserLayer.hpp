@@ -111,9 +111,9 @@ protected:
 
     void setupBackground();
     void setupControls();
-    void setupPageControls();
     void applyModeFetch(bool force);
     int computeModeType() const;
+    int parseModeParam(int fallback) const;
     void presentSearchResults(web::WebResponse const& res);
     void presentEventSafeResults(web::WebResponse const& res);
     LevelCell* createLevelCell(GJGameLevel* level, int index, float cellH);
