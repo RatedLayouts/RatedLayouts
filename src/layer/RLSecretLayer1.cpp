@@ -2,6 +2,7 @@
 #include <Geode/binding/GJAccountManager.hpp>
 #include "../include/RLDialogIcons.hpp"
 #include "RLSecretLayer1.hpp"
+#include "RLRubiesCodePopup.hpp"
 #include "../include/RLAchievements.hpp"
 
 using namespace geode::prelude;
@@ -84,8 +85,24 @@ bool RLSecretLayer1::init() {
         m_crystalParticle->setVisible(false);
     }
 
+    if (GJAccountManager::sharedState()->m_accountID == 7689052) {
+        // secret button for adding new codes
+        auto secretSpr = CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr);
+        secretSpr->setColor({0, 0, 0});
+        secretSpr->setOpacity(150);
+        auto secretBtn = CCMenuItemSpriteExtra::create(
+            secretSpr, this, menu_selector(RLSecretLayer1::onSecretPopup));
+        secretBtn->setPosition({winSize.width - 30, 30});
+        menu->addChild(secretBtn);
+    }
+
     this->setKeypadEnabled(true);
     return true;
+}
+
+void RLSecretLayer1::onSecretPopup(CCObject* sender) {
+    auto popup = RLRubiesCodePopup::create();
+    popup->show();
 }
 
 void RLSecretLayer1::onExitTransitionDidStart() {

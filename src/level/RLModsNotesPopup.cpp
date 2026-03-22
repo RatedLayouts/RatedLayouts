@@ -163,10 +163,8 @@ bool RLModsNotesPopup::init() {
                 float totalH = labelHeight + areaHeight + 8.f;
 
                 // alternate background color
-                ccColor4B bgColor = (idx % 2 == 0) ? ccColor4B{0x33, 0x44, 0x99, 255}
-                                                   : ccColor4B{0x24, 0x30, 0x6c, 255};
-                auto layer = CCLayerColor::create(
-                    bgColor, scrollRef->getContentSize().width, totalH);
+                ccColor4B bgColor = (idx % 2 == 0) ? ccColor4B{55, 70, 140, 255} : ccColor4B{40, 50, 100, 255};
+                auto layer = CCLayerColor::create(bgColor, scrollRef->getContentSize().width, totalH);
 
                 usernameLabel->setAnchorPoint({0.f, .5f});
                 usernameLabel->setScale(.6f);

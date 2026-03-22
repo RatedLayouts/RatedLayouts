@@ -19,6 +19,7 @@ private:
     CCParticleSystemQuad* m_crystalParticle = nullptr;
 
     void onRedeem(CCObject* sender);
+    void onSecretPopup(CCObject* sender);
     void startRedeemRequest();
     void finishRedeem();
 

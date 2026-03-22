@@ -322,8 +322,7 @@ class $modify(RLProfilePage, ProfilePage) {
         m_fields->m_rlStatsMenu->setScale(statsMenu->getScale());
 
         if (Loader::get()->isModLoaded("itzkiba.better_progression")) {  // me when hardcoding position because of this stupid mod be like:
-            m_fields->m_rlStatsMenu->setPositionY(248.f);
-            m_fields->m_rlStatsMenu->setPositionX(309.5f);
+            m_fields->m_rlStatsMenu->setPosition({248.f, 309.5f});
             m_fields->m_rlStatsMenu->setScale(0.845f);
         }
         m_fields->m_rlStatsMenu->setVisible(false);

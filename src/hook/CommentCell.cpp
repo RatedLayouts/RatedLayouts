@@ -40,11 +40,6 @@ class $modify(RLCommentCell, CommentCell) {
         }
 
         if (m_accountComment) {
-            // im cheeky and apply the color if is arcticwoof
-            if (comment->m_accountID == 7689052) {
-                applyCommentTextColor(comment->m_accountID);
-                return;
-            }
             return;
         }
 

@@ -16,6 +16,7 @@
 - Fixed issue where the comment text color isn't applied for users with [Comment Emojis Reloaded](mod:prevter.comment_emojis) mod enabled.
 - Adjusted the comment colors to be more visible on bright nameplates.
 - Added Comment Text Background for better visibility of comments on bright nameplates.
+- Added Leaderboard Whitelist for Leaderboard Moderators
 - Internal Code Refactor and optimizations
 
 # v0.4.3-beta.1

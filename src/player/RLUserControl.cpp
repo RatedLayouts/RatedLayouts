@@ -65,7 +65,7 @@ bool RLUserControl::init() {
     auto optionsMenu = CCMenu::create();
     optionsMenu->setPosition({m_mainLayer->getContentSize().width / 2,
         m_mainLayer->getContentSize().height / 2 - 15});
-    optionsMenu->setContentSize({m_mainLayer->getContentSize().width - 40, 150});
+    optionsMenu->setContentSize({m_mainLayer->getContentSize().width - 60, 150});
     optionsMenu->setLayout(RowLayout::create()
             ->setGap(6.f)
             ->setGrowCrossAxis(true)
@@ -73,6 +73,13 @@ bool RLUserControl::init() {
 
     m_optionsLayout = static_cast<RowLayout*>(optionsMenu->getLayout());
     m_optionsMenu = optionsMenu;
+
+    auto menuBg = NineSlice::create("square02_small.png");
+    menuBg->setContentSize({optionsMenu->getContentSize().width + 5,
+        optionsMenu->getContentSize().height + 10});
+    menuBg->setPosition(optionsMenu->getPosition());
+    menuBg->setOpacity(90);
+    m_mainLayer->addChild(menuBg, 1);
 
     auto spinner = LoadingSpinner::create(60.f);
     spinner->setPosition({m_mainLayer->getContentSize().width / 2.f,
@@ -196,7 +203,7 @@ bool RLUserControl::init() {
 
     m_optionsLayout = static_cast<RowLayout*>(optionsMenu->getLayout());
     optionsMenu->updateLayout();
-    m_mainLayer->addChild(optionsMenu);
+    m_mainLayer->addChild(optionsMenu, 2);
 
     optionsMenu->updateLayout();
 
@@ -762,8 +769,9 @@ void RLUserControl::onOptionAction(CCObject* sender) {
 
             std::string title = "Confirm Change";
             std::string body = fmt::format(
-                "Are you sure you want to <cg>{}</c> for user <cg>{}</c>?",
+                "Are you sure you want to <cy>{}</c> for user <cg>{} ({})</c>?",
                 actionDesc,
+                GameLevelManager::sharedState()->tryGetUsername(m_targetAccountId),
                 m_targetAccountId);
 
             Ref<RLUserControl> self = this;
@@ -868,6 +876,29 @@ void RLUserControl::setOptionState(const std::string& key, bool desired, bool up
                 excludeText.c_str(), 200, true, "goldFont.fnt", excludeBg.c_str(), 30.f, 1.f);
             excludeOpt->actionButton->setNormalImage(excludeOpt->actionSprite);
             excludeOpt->actionButton->setEnabled(true);
+        }
+    }
+
+    // whenever exclude is updated, whitelist is locked and styled as disabled
+    if (excludeOpt && excludeOpt->desired) {
+        if (whitelistOpt && whitelistOpt->actionButton) {
+            whitelistOpt->actionButton->setEnabled(false);
+            std::string whitelistText = whitelistOpt->desired ? "Remove Leaderboard Whitelist" : "Set Leaderboard Whitelist";
+            whitelistOpt->actionSprite = ButtonSprite::create(
+                whitelistText.c_str(), 200, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
+            whitelistOpt->actionButton->setNormalImage(whitelistOpt->actionSprite);
+        }
+    } else {
+        if (whitelistOpt) {
+            setOptionEnabled("whitelist", true);
+            if (whitelistOpt->actionButton) {
+                std::string whitelistText = whitelistOpt->desired ? "Remove Leaderboard Whitelist" : "Set Leaderboard Whitelist";
+                std::string whitelistBg = whitelistOpt->desired ? "GJ_button_02.png" : "GJ_button_01.png";
+                whitelistOpt->actionSprite = ButtonSprite::create(
+                    whitelistText.c_str(), 200, true, "goldFont.fnt", whitelistBg.c_str(), 30.f, 1.f);
+                whitelistOpt->actionButton->setNormalImage(whitelistOpt->actionSprite);
+                whitelistOpt->actionButton->setEnabled(true);
+            }
         }
     }
 
