@@ -2,7 +2,7 @@
 
 #include <Geode/Geode.hpp>
 #include "RLAchievementCell.hpp"
-#include "RLAchievements.hpp"
+#include "../include/RLAchievements.hpp"
 
 using namespace geode::prelude;
 

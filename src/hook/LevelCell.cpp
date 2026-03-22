@@ -11,869 +11,868 @@ extern const std::string legendaryPString;
 extern const std::string epicPString;
 
 class $modify(RLLevelCell, LevelCell) {
-  struct Fields {
-    std::optional<matjson::Value> m_pendingJson;
-    int m_pendingLevelId = 0;
-    async::TaskHolder<web::WebResponse> m_fetchTask;
-    int m_waitRetries = 0; // used for waiting for level data to arrive
-    ~Fields() { m_fetchTask.cancel(); }
-  };
+    struct Fields {
+        std::optional<matjson::Value> m_pendingJson;
+        int m_pendingLevelId = 0;
+        async::TaskHolder<web::WebResponse> m_fetchTask;
+        int m_waitRetries = 0;  // used for waiting for level data to arrive
+        ~Fields() { m_fetchTask.cancel(); }
+    };
 
-  void applyRatingToCell(const matjson::Value &json, int levelId) {
-    if (!this->m_mainLayer || !this->m_level) {
-      log::warn("applyRatingToCell called but LevelCell or main layer missing "
+    void applyRatingToCell(const matjson::Value& json, int levelId) {
+        if (!this->m_mainLayer || !this->m_level) {
+            log::warn(
+                "applyRatingToCell called but LevelCell or main layer missing "
                 "for level ID: {}",
                 levelId);
-      return;
-    }
-    int difficulty = json["difficulty"].asInt().unwrapOrDefault();
-    int featured = json["featured"].asInt().unwrapOrDefault();
-    int score = json["featuredScore"].asInt().unwrapOrDefault();
-    bool isLegacy = json["legacy"].asBool().unwrapOrDefault();
-    bool isRated = json["rated"].asBool().unwrapOrDefault();
-    bool grayRing = (isLegacy && !isRated);
+            return;
+        }
+        int difficulty = json["difficulty"].asInt().unwrapOrDefault();
+        int featured = json["featured"].asInt().unwrapOrDefault();
+        int score = json["featuredScore"].asInt().unwrapOrDefault();
+        bool isLegacy = json["legacy"].asBool().unwrapOrDefault();
+        bool isRated = json["rated"].asBool().unwrapOrDefault();
+        bool grayRing = (isLegacy && !isRated);
 
-    log::debug("difficulty: {}, featured: {}, score: {}", difficulty, featured,
-               score);
+        log::debug("difficulty: {}, featured: {}, score: {}", difficulty, featured, score);
 
-    // If no difficulty rating, nothing to apply
-    if (difficulty == 0) {
-      return;
-    }
-
-    // Map difficulty
-    int difficultyLevel = 0;
-    switch (difficulty) {
-    case 1:
-      difficultyLevel = -1;
-      break;
-    case 2:
-      difficultyLevel = 1;
-      break;
-    case 3:
-      difficultyLevel = 2;
-      break;
-    case 4:
-    case 5:
-      difficultyLevel = 3;
-      break;
-    case 6:
-    case 7:
-      difficultyLevel = 4;
-      break;
-    case 8:
-    case 9:
-      difficultyLevel = 5;
-      break;
-    case 10:
-      difficultyLevel = 7;
-      break;
-    case 15:
-      difficultyLevel = 8;
-      break;
-    case 20:
-      difficultyLevel = 6;
-      break;
-    case 25:
-      difficultyLevel = 9;
-      break;
-    case 30:
-      difficultyLevel = 10;
-      break;
-    default:
-      difficultyLevel = 0;
-      break;
-    }
-
-    // calculate the ruby value based on difficulty
-    int rubyInitValue = 0;
-    switch (difficulty) {
-    case 1:
-      rubyInitValue = 0;
-      break;
-    case 2:
-      rubyInitValue = 50;
-      break;
-    case 3:
-      rubyInitValue = 100;
-      break;
-    case 4:
-      rubyInitValue = 175;
-      break;
-    case 5:
-      rubyInitValue = 175;
-      break;
-    case 6:
-      rubyInitValue = 250;
-      break;
-    case 7:
-      rubyInitValue = 250;
-      break;
-    case 8:
-      rubyInitValue = 350;
-      break;
-    case 9:
-      rubyInitValue = 350;
-      break;
-    case 10:
-      rubyInitValue = 500;
-      break;
-    case 15:
-      rubyInitValue = 625;
-      break;
-    case 20:
-      rubyInitValue = 750;
-      break;
-    case 25:
-      rubyInitValue = 875;
-      break;
-    case 30:
-      rubyInitValue = 1000;
-      break;
-    default:
-      rubyInitValue = 0;
-      break;
-    }
-
-    // update  difficulty sprite
-    auto difficultyContainer =
-        m_mainLayer->getChildByID("difficulty-container");
-    if (!difficultyContainer) {
-      log::warn("difficulty-container not found"); // womp womp
-      return;
-    }
-
-    auto difficultySprite =
-        difficultyContainer->getChildByID("difficulty-sprite");
-    if (!difficultySprite) {
-      log::warn("difficulty-sprite not found");
-      return;
-    }
-
-    if (auto existingLegacy =
-            difficultySprite->getChildByID("rl-legacy-info-menu")) {
-      existingLegacy->setPosition({0, 0});
-      existingLegacy->setContentSize(
-          {difficultyContainer->getContentSize().width,
-           difficultyContainer->getContentSize().height});
-    }
-
-    difficultySprite->setPositionY(5);
-    auto sprite = static_cast<GJDifficultySprite *>(difficultySprite);
-    sprite->updateDifficultyFrame(difficultyLevel, GJDifficultyName::Short);
-
-    if (auto moreDifficultiesSpr = difficultyContainer->getChildByID(
-            "uproxide.more_difficulties/more-difficulties-spr")) {
-      moreDifficultiesSpr->setVisible(false);
-      sprite->setOpacity(255);
-    }
-
-    // move the download, likes icon and label
-    auto downloadIcon = m_mainLayer->getChildByID("downloads-icon");
-    auto downloadLabel = m_mainLayer->getChildByID("downloads-label");
-    auto likesIcon = m_mainLayer->getChildByID("likes-icon");
-    auto likesLabel = m_mainLayer->getChildByID("likes-label");
-    if (downloadIcon) {
-      downloadIcon->setPositionX(downloadIcon->getPositionX() - 7.f);
-    }
-    if (downloadLabel) {
-      downloadLabel->setPositionX(downloadLabel->getPositionX() - 7.f);
-    }
-    if (likesIcon) {
-      likesIcon->setPositionX(likesIcon->getPositionX() - 14.f);
-    }
-    if (likesLabel) {
-      likesLabel->setPositionX(likesLabel->getPositionX() - 14.f);
-    }
-
-    // remove any existing ruby nodes to avoid duplicates
-    if (auto existingRubyIcon = m_mainLayer->getChildByID("ruby-icon"))
-      existingRubyIcon->removeFromParent();
-    if (auto existingRubyLabel = m_mainLayer->getChildByID("ruby-label"))
-      existingRubyLabel->removeFromParent();
-
-    // add the ruby icon
-    CCSprite *rubyIcon =
-        CCSprite::createWithSpriteFrameName("RL_rubySmall.png"_spr);
-    rubyIcon->setPosition(
-        {likesIcon->getPositionX() + 45.f, likesIcon->getPositionY()});
-    rubyIcon->setID("ruby-icon");
-    m_mainLayer->addChild(rubyIcon);
-
-    // determine collected rubies
-    int collected = 0;
-    bool isCompleted = false;
-    if (this->m_level) {
-      int lvlId = static_cast<int>(this->m_level->m_levelID);
-      isCompleted =
-          GameStatsManager::sharedState()->hasCompletedLevel(this->m_level);
-      if (isCompleted) {
-        // completed: show full value
-        collected = rubyInitValue;
-      } else {
-        // not completed: compute based on normal percent
-        int percentage = 0;
-        // to the devs asking, why cant you just do m_level->m_normalPercent? or
-        // getNormalPercent()? i want you to try do that and see what percentage
-        // or value it returns? did it says 0 even though you have made some
-        // percent progress? no clue why it does that :/
-        if (auto pctNode =
-                this->m_mainLayer->getChildByID("percentage-label")) {
-          // so i just did the hacky way and take the label and use the value of
-          // that instead
-          auto pctLabel = static_cast<CCLabelBMFont *>(pctNode);
-          std::string s = pctLabel->getString();
-          std::string digits;
-          for (char ch : s) {
-            if (std::isdigit(static_cast<unsigned char>(ch)))
-              digits.push_back(ch);
-          }
-          if (!digits.empty()) {
-            percentage = numFromString<int>(digits).unwrapOrDefault();
-          } else {
-            percentage = this->m_level
-                             ? this->m_level->m_normalPercent
-                             : 0; // ts always returns 0 for some reason
-          }
-        } else {
-          percentage = this->m_level ? this->m_level->m_normalPercent
-                                     : 0; // ts always returns 0 for some reason
+        // If no difficulty rating, nothing to apply
+        if (difficulty == 0) {
+            return;
         }
 
-        double calcAtPercent = static_cast<double>(rubyInitValue) * 0.8 *
-                               (static_cast<double>(percentage) / 100.0);
-        collected = static_cast<int>(std::lround(calcAtPercent));
-        if (collected > rubyInitValue)
-          collected = rubyInitValue;
-      }
-    }
-
-    if (rubyIcon) {
-      std::string labelStr =
-          numToString(collected) + "/" + numToString(rubyInitValue);
-      auto rubyLabel = CCLabelBMFont::create(labelStr.c_str(), "bigFont.fnt");
-      rubyLabel->setPosition(
-          {rubyIcon->getPositionX() + 10.f, rubyIcon->getPositionY() - 1.f});
-      rubyLabel->setScale(0.4f);
-      rubyLabel->setAnchorPoint({0.f, 0.5f});
-      rubyLabel->setID("ruby-label");
-      if (isCompleted) {
-        // tinted red for completed levels
-        rubyLabel->setColor({255, 150, 150});
-        rubyLabel->setString(
-            numToString(rubyInitValue).c_str()); // just show total if completed
-      }
-      m_mainLayer->addChild(rubyLabel);
-    }
-
-    // featured score label
-    if (score > 0 && featured > 0) {
-      auto existingScoreLabel =
-          m_backgroundLayer->getChildByID("featured-score-label");
-      if (existingScoreLabel) {
-        existingScoreLabel->removeFromParent();
-      }
-      auto scoreLabel = CCLabelBMFont::create(
-          std::string("RL Featured Score: " + numToString(score)).c_str(),
-          "chatFont.fnt");
-      if (scoreLabel) {
-        scoreLabel->setPosition(
-            {m_backgroundLayer->getContentSize().width - 7.f, 5.f});
-        scoreLabel->setColor({150, 200, 255});
-        scoreLabel->setScale(0.5f);
-        scoreLabel->setAnchorPoint({1.0f, 0.f});
-        scoreLabel->setID("featured-score-label");
-        m_backgroundLayer->addChild(scoreLabel);
-      }
-
-      if (m_compactView) {
-        scoreLabel->setPosition(
-            {m_backgroundLayer->getContentSize().width - 5.f, 2.f});
-        scoreLabel->setScale(0.4f);
-      }
-    }
-
-    if (m_compactView) {
-      // ruby and icon
-      if (auto rubyIcon = m_mainLayer->getChildByID("ruby-icon")) {
-        rubyIcon->setPositionX(rubyIcon->getPositionX() - 8.f);
-        rubyIcon->setScale(0.6f);
-      }
-      if (auto rubyLabel = m_mainLayer->getChildByID("ruby-label")) {
-        rubyLabel->setPositionX(rubyLabel->getPositionX() - 10.f);
-        rubyLabel->setScale(0.3f);
-      }
-    }
-
-    // star or planet icon (planet for platformer levels)
-    // remove existing to avoid duplicate icons on repeated updates
-    if (auto existingIcon = difficultySprite->getChildByID("rl-star-icon")) {
-      existingIcon->removeFromParent();
-    }
-    if (auto existingRewardLabel =
-            difficultySprite->getChildByID("rl-reward-label")) {
-      existingRewardLabel->removeFromParent();
-    }
-    CCSprite *newStarIcon = nullptr;
-    // choose appropriate icon and grayscale if legacy but unrated
-    if (this->m_level && this->m_level->isPlatformer()) {
-      if (grayRing) {
-        newStarIcon =
-            CCSpriteGrayscale::createWithSpriteFrameName("RL_planetSmall.png"_spr);
-        if (!newStarIcon)
-          newStarIcon = CCSpriteGrayscale::create("RL_planetMed.png"_spr);
-      } else {
-        newStarIcon =
-            CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
-        if (!newStarIcon)
-          newStarIcon = CCSprite::create("RL_planetMed.png"_spr);
-      }
-    }
-    if (!newStarIcon) {
-      if (grayRing) {
-        newStarIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_starSmall.png"_spr);
-      } else {
-        newStarIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
-      }
-    }
-    if (newStarIcon) {
-      newStarIcon->setPosition(
-          {difficultySprite->getContentSize().width / 2 + 8, -8});
-      newStarIcon->setScale(0.75f);
-      newStarIcon->setID("rl-star-icon");
-      difficultySprite->addChild(newStarIcon);
-
-      // reward value label
-      auto rewardLabelValue =
-          CCLabelBMFont::create(numToString(difficulty).c_str(), "bigFont.fnt");
-      if (rewardLabelValue) {
-        rewardLabelValue->setPosition(
-            {newStarIcon->getPositionX() - 7, newStarIcon->getPositionY()});
-        rewardLabelValue->setScale(0.4f);
-        rewardLabelValue->setAnchorPoint({1.0f, 0.5f});
-        rewardLabelValue->setAlignment(kCCTextAlignmentRight);
-        rewardLabelValue->setID("rl-reward-label");
-        difficultySprite->addChild(rewardLabelValue);
-
-        if (this->m_level &&
-            GameStatsManager::sharedState()->hasCompletedOnlineLevel(
-                this->m_level->m_levelID)) {
-          if (this->m_level->isPlatformer()) {
-            rewardLabelValue->setColor({255, 160, 0}); // orange for planets
-          } else {
-            rewardLabelValue->setColor({0, 150, 255}); // cyan for stars
-          }
-        }
-      }
-
-      // Update featured coin visibility (support featured types: 1=featured,
-      // 2=epic, 3=legendary)
-      {
-        auto featuredCoin = difficultySprite->getChildByID("featured-coin");
-        auto epicFeaturedCoin =
-            difficultySprite->getChildByID("epic-featured-coin");
-        auto legendaryFeaturedCoin =
-            difficultySprite->getChildByID("legendary-featured-coin");
-        auto mythicFeaturedCoin =
-            difficultySprite->getChildByID("mythic-featured-coin");
-
-        if (featured == 1) {
-          // remove other types
-          if (epicFeaturedCoin)
-            epicFeaturedCoin->removeFromParent();
-          if (legendaryFeaturedCoin)
-            legendaryFeaturedCoin->removeFromParent();
-          if (mythicFeaturedCoin)
-            mythicFeaturedCoin->removeFromParent();
-          if (!featuredCoin) {
-            auto newFeaturedCoin =
-                grayRing ? CCSpriteGrayscale::createWithSpriteFrameName(
-                               "RL_featuredCoin.png"_spr)
-                         : CCSprite::createWithSpriteFrameName(
-                               "RL_featuredCoin.png"_spr);
-            if (newFeaturedCoin) {
-              newFeaturedCoin->setPosition(
-                  {difficultySprite->getContentSize().width / 2,
-                   difficultySprite->getContentSize().height / 2});
-              newFeaturedCoin->setID("featured-coin");
-              difficultySprite->addChild(newFeaturedCoin, -1);
-            }
-          }
-        } else if (featured == 2) {
-          // ensure only epic present
-          if (featuredCoin)
-            featuredCoin->removeFromParent();
-          if (legendaryFeaturedCoin)
-            legendaryFeaturedCoin->removeFromParent();
-          if (mythicFeaturedCoin)
-            mythicFeaturedCoin->removeFromParent();
-          if (!epicFeaturedCoin) {
-            auto newEpicCoin =
-                grayRing ? CCSpriteGrayscale::createWithSpriteFrameName(
-                               "RL_epicFeaturedCoin.png"_spr)
-                         : CCSprite::createWithSpriteFrameName(
-                               "RL_epicFeaturedCoin.png"_spr);
-            if (newEpicCoin) {
-              newEpicCoin->setPosition(
-                  {difficultySprite->getContentSize().width / 2,
-                   difficultySprite->getContentSize().height / 2});
-              newEpicCoin->setID("epic-featured-coin");
-              difficultySprite->addChild(newEpicCoin, -1);
-
-              // add particle (if configured) on top of epic ring
-              const std::string &pString = epicPString;
-              if (!pString.empty()) {
-                if (auto existingP =
-                        newEpicCoin->getChildByID("rating-particles")) {
-                  existingP->removeFromParent();
-                }
-                ParticleStruct pStruct;
-                GameToolbox::particleStringToStruct(pString, pStruct);
-                CCParticleSystemQuad *particle =
-                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
-                if (particle) {
-                  newEpicCoin->addChild(particle, 1);
-                  particle->resetSystem();
-                  particle->setPosition(newEpicCoin->getContentSize() / 2.f);
-                  particle->setID("rating-particles"_spr);
-                }
-              }
-            }
-          }
-        } else if (featured == 3) {
-          // legendary
-          if (featuredCoin)
-            featuredCoin->removeFromParent();
-          if (epicFeaturedCoin)
-            epicFeaturedCoin->removeFromParent();
-          if (mythicFeaturedCoin)
-            mythicFeaturedCoin->removeFromParent();
-          if (!legendaryFeaturedCoin) {
-            auto newLegendaryCoin =
-                grayRing ? CCSpriteGrayscale::createWithSpriteFrameName(
-                               "RL_legendaryFeaturedCoin.png"_spr)
-                         : CCSprite::createWithSpriteFrameName(
-                               "RL_legendaryFeaturedCoin.png"_spr);
-            if (newLegendaryCoin) {
-              newLegendaryCoin->setPosition(
-                  {difficultySprite->getContentSize().width / 2,
-                   difficultySprite->getContentSize().height / 2});
-              newLegendaryCoin->setID("legendary-featured-coin");
-              difficultySprite->addChild(newLegendaryCoin, -1);
-
-              // particle legendary ring
-              const std::string &pString = legendaryPString;
-              if (!pString.empty()) {
-                // remove any existing particles on this coin to avoid dupes
-                if (auto existingP =
-                        newLegendaryCoin->getChildByID("rating-particles")) {
-                  existingP->removeFromParent();
-                }
-                ParticleStruct pStruct;
-                GameToolbox::particleStringToStruct(pString, pStruct);
-                CCParticleSystemQuad *particle =
-                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
-                if (particle) {
-                  newLegendaryCoin->addChild(particle, 1);
-                  particle->resetSystem();
-                  particle->setPosition(newLegendaryCoin->getContentSize() /
-                                        2.f);
-                  particle->setID("rating-particles"_spr);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                }
-              }
-            }
-          }
-        } else {
-          if (featuredCoin)
-            featuredCoin->removeFromParent();
-          if (epicFeaturedCoin)
-            epicFeaturedCoin->removeFromParent();
-          if (legendaryFeaturedCoin)
-            legendaryFeaturedCoin->removeFromParent();
+        // Map difficulty
+        int difficultyLevel = 0;
+        switch (difficulty) {
+            case 1:
+                difficultyLevel = -1;
+                break;
+            case 2:
+                difficultyLevel = 1;
+                break;
+            case 3:
+                difficultyLevel = 2;
+                break;
+            case 4:
+            case 5:
+                difficultyLevel = 3;
+                break;
+            case 6:
+            case 7:
+                difficultyLevel = 4;
+                break;
+            case 8:
+            case 9:
+                difficultyLevel = 5;
+                break;
+            case 10:
+                difficultyLevel = 7;
+                break;
+            case 15:
+                difficultyLevel = 8;
+                break;
+            case 20:
+                difficultyLevel = 6;
+                break;
+            case 25:
+                difficultyLevel = 9;
+                break;
+            case 30:
+                difficultyLevel = 10;
+                break;
+            default:
+                difficultyLevel = 0;
+                break;
         }
 
-        // ensure particles exist for existing epic/legendary/mythic coins (if
-        // configured)
-        if (featured == 2) {
-          if (epicFeaturedCoin) {
-            if (!epicFeaturedCoin->getChildByID("rating-particles")) {
-              const std::string &pString = epicPString;
-              if (!pString.empty()) {
-                ParticleStruct pStruct;
-                GameToolbox::particleStringToStruct(pString, pStruct);
-                CCParticleSystemQuad *particle =
-                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
-                if (particle) {
-                  epicFeaturedCoin->addChild(particle, 1);
-                  particle->resetSystem();
-                  particle->setPosition(epicFeaturedCoin->getContentSize() /
-                                        2.f);
-                  particle->setID("rating-particles"_spr);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                }
-              }
-            }
-          }
-        } else if (featured == 3) {
-          if (legendaryFeaturedCoin) {
-            if (!legendaryFeaturedCoin->getChildByID("rating-particles")) {
-              const std::string &pString = legendaryPString;
-              if (!pString.empty()) {
-                ParticleStruct pStruct;
-                GameToolbox::particleStringToStruct(pString, pStruct);
-                CCParticleSystemQuad *particle =
-                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
-                if (particle) {
-                  legendaryFeaturedCoin->addChild(particle, 1);
-                  particle->resetSystem();
-                  particle->setPosition(
-                      legendaryFeaturedCoin->getContentSize() / 2.f);
-                  particle->setID("rating-particles"_spr);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                  particle->update(0.15f);
-                }
-              }
-            }
-          }
+        // calculate the ruby value based on difficulty
+        int rubyInitValue = 0;
+        switch (difficulty) {
+            case 1:
+                rubyInitValue = 0;
+                break;
+            case 2:
+                rubyInitValue = 50;
+                break;
+            case 3:
+                rubyInitValue = 100;
+                break;
+            case 4:
+                rubyInitValue = 175;
+                break;
+            case 5:
+                rubyInitValue = 175;
+                break;
+            case 6:
+                rubyInitValue = 250;
+                break;
+            case 7:
+                rubyInitValue = 250;
+                break;
+            case 8:
+                rubyInitValue = 350;
+                break;
+            case 9:
+                rubyInitValue = 350;
+                break;
+            case 10:
+                rubyInitValue = 500;
+                break;
+            case 15:
+                rubyInitValue = 625;
+                break;
+            case 20:
+                rubyInitValue = 750;
+                break;
+            case 25:
+                rubyInitValue = 875;
+                break;
+            case 30:
+                rubyInitValue = 1000;
+                break;
+            default:
+                rubyInitValue = 0;
+                break;
         }
 
-        // handle coin icons (if compact view, fetch coin nodes directly from
-        // m_mainLayer)
-        auto coinContainer = m_mainLayer->getChildByID("difficulty-container");
-        if (coinContainer) {
-          CCNode *coinIcon1 = nullptr;
-          CCNode *coinIcon2 = nullptr;
-          CCNode *coinIcon3 = nullptr;
+        // update  difficulty sprite
+        auto difficultyContainer =
+            m_mainLayer->getChildByID("difficulty-container");
+        if (!difficultyContainer) {
+            log::warn("difficulty-container not found");  // womp womp
+            return;
+        }
 
-          if (!m_compactView) {
-            coinIcon1 = coinContainer->getChildByID("coin-icon-1");
-            coinIcon2 = coinContainer->getChildByID("coin-icon-2");
-            coinIcon3 = coinContainer->getChildByID("coin-icon-3");
-          } else {
-            // compact view: coin icons live on the main layer
-            coinIcon1 = m_mainLayer->getChildByID("coin-icon-1");
-            coinIcon2 = m_mainLayer->getChildByID("coin-icon-2");
-            coinIcon3 = m_mainLayer->getChildByID("coin-icon-3");
-          }
+        auto difficultySprite =
+            difficultyContainer->getChildByID("difficulty-sprite");
+        if (!difficultySprite) {
+            log::warn("difficulty-sprite not found");
+            return;
+        }
 
-          // push difficulty sprite down if coins exist in non-compact view
-          if ((coinIcon1 || coinIcon2 || coinIcon3) && !m_compactView) {
-            difficultySprite->setPositionY(difficultySprite->getPositionY() +
-                                           10);
-          }
+        if (auto existingLegacy =
+                difficultySprite->getChildByID("rl-legacy-info-menu")) {
+            existingLegacy->setPosition({0, 0});
+            existingLegacy->setContentSize(
+                {difficultyContainer->getContentSize().width,
+                    difficultyContainer->getContentSize().height});
+        }
 
-          // Replace or darken coins when level is not suggested
-          bool coinVerified = json["coinVerified"].asBool().unwrapOrDefault();
-          if (coinVerified) {
-            // try to obtain a GJGameLevel for coin keys
-            GJGameLevel *levelPtr = this->m_level;
-            if (!levelPtr) {
-              auto glm = GameLevelManager::sharedState();
-              auto stored = glm->getStoredOnlineLevels(
-                  fmt::format("{}", levelId).c_str());
-              if (stored && stored->count() > 0) {
-                levelPtr = static_cast<GJGameLevel *>(stored->objectAtIndex(0));
-              }
-            }
+        difficultySprite->setPositionY(5);
+        auto sprite = static_cast<GJDifficultySprite*>(difficultySprite);
+        sprite->updateDifficultyFrame(difficultyLevel, GJDifficultyName::Short);
 
-            auto replaceCoinSprite = [levelPtr, this](CCNode *coinNode,
-                                                      int coinIndex) {
-              auto frame = CCSpriteFrameCache::sharedSpriteFrameCache()
-                               ->spriteFrameByName("RL_BlueCoinSmall.png"_spr);
-              CCTexture2D *blueCoinTexture = nullptr;
-              if (!frame) {
-                blueCoinTexture =
-                    CCTextureCache::sharedTextureCache()->addImage(
-                        "RL_BlueCoinSmall.png"_spr, true);
-                if (blueCoinTexture) {
-                  frame = CCSpriteFrame::createWithTexture(
-                      blueCoinTexture,
-                      {{0, 0}, blueCoinTexture->getContentSize()});
-                }
-              } else {
-                blueCoinTexture = frame->getTexture();
-              }
+        if (auto moreDifficultiesSpr = difficultyContainer->getChildByID(
+                "uproxide.more_difficulties/more-difficulties-spr")) {
+            moreDifficultiesSpr->setVisible(false);
+            sprite->setOpacity(255);
+        }
 
-              if (!frame || !blueCoinTexture) {
-                log::warn("failed to load blue coin frame/texture");
-                return;
-              }
-              if (!coinNode)
-                return;
-              auto coinSprite = typeinfo_cast<CCSprite *>(coinNode);
-              if (!coinSprite)
-                return;
+        // move the download, likes icon and label
+        auto downloadIcon = m_mainLayer->getChildByID("downloads-icon");
+        auto downloadLabel = m_mainLayer->getChildByID("downloads-label");
+        auto likesIcon = m_mainLayer->getChildByID("likes-icon");
+        auto likesLabel = m_mainLayer->getChildByID("likes-label");
+        if (downloadIcon) {
+            downloadIcon->setPositionX(downloadIcon->getPositionX() - 7.f);
+        }
+        if (downloadLabel) {
+            downloadLabel->setPositionX(downloadLabel->getPositionX() - 7.f);
+        }
+        if (likesIcon) {
+            likesIcon->setPositionX(likesIcon->getPositionX() - 14.f);
+        }
+        if (likesLabel) {
+            likesLabel->setPositionX(likesLabel->getPositionX() - 14.f);
+        }
 
-              bool coinCollected = false;
-              if (levelPtr) {
-                std::string coinKey = levelPtr->getCoinKey(coinIndex);
-                log::debug("LevelCell: checking coin {} key={}", coinIndex,
-                           coinKey);
-                coinCollected =
-                    GameStatsManager::sharedState()->hasPendingUserCoin(
-                        coinKey.c_str());
-              }
+        // remove any existing ruby nodes to avoid duplicates
+        if (auto existingRubyIcon = m_mainLayer->getChildByID("ruby-icon"))
+            existingRubyIcon->removeFromParent();
+        if (auto existingRubyLabel = m_mainLayer->getChildByID("ruby-label"))
+            existingRubyLabel->removeFromParent();
 
-              if (coinCollected) {
-                coinSprite->setDisplayFrame(frame);
-                coinSprite->setColor({255, 255, 255});
-                coinSprite->setOpacity(255);
-                coinSprite->setScale(0.6f);
-                log::debug("LevelCell: replaced coin {} with blue sprite",
-                           coinIndex);
-              } else {
-                coinSprite->setDisplayFrame(frame);
-                coinSprite->setColor({120, 120, 120});
-                coinSprite->setScale(0.6f);
-                log::debug("LevelCell: darkened coin {} (not present)",
-                           coinIndex);
-              }
+        // add the ruby icon
+        CCSprite* rubyIcon =
+            CCSprite::createWithSpriteFrameName("RL_rubySmall.png"_spr);
+        rubyIcon->setPosition(
+            {likesIcon->getPositionX() + 45.f, likesIcon->getPositionY()});
+        rubyIcon->setID("ruby-icon");
+        m_mainLayer->addChild(rubyIcon);
 
-              if (m_compactView) {
-                coinSprite->setScale(0.4f);
-              }
-            };
-
-            replaceCoinSprite(coinIcon1, 1);
-            replaceCoinSprite(coinIcon2, 2);
-            replaceCoinSprite(coinIcon3, 3);
-          }
-
-          // doing the dumb coin move
-          if (!m_compactView) {
-            if (coinIcon1) {
-              coinIcon1->setPositionY(coinIcon1->getPositionY() - 5);
-            }
-            if (coinIcon2) {
-              coinIcon2->setPositionY(coinIcon2->getPositionY() - 5);
-            }
-            if (coinIcon3) {
-              coinIcon3->setPositionY(coinIcon3->getPositionY() - 5);
-            }
-          }
-
-          // Handle pulsing level name for legendary/mythic featured
-          {
-            CCNode *nameNode = nullptr;
-            if (m_mainLayer) {
-              nameNode = m_mainLayer->getChildByID("level-name");
-              if (!nameNode)
-                nameNode = m_mainLayer->getChildByID("level-name-label");
-              if (!nameNode)
-                nameNode = m_mainLayer->getChildByID("level-label");
-            }
-
-            auto nameLabel = typeinfo_cast<CCLabelBMFont *>(nameNode);
-            if (featured == 3) {
-              if (nameLabel) {
-                nameLabel->stopActionByTag(0xF00D);
-                auto tintUp = CCTintTo::create(1.f, 150, 220, 255);
-                auto tintDown = CCTintTo::create(1.f, 200, 200, 255);
-                auto seq = CCSequence::create(tintUp, tintDown, nullptr);
-                auto repeat = CCRepeatForever::create(seq);
-                repeat->setTag(0xF00D);
-                nameLabel->runAction(repeat);
-              }
-            } else if (featured == 4) {
-              if (nameLabel) {
-                nameLabel->stopActionByTag(0xF00D);
-                auto tintUp = CCTintTo::create(1.f, 255, 220, 150);
-                auto tintDown = CCTintTo::create(1.f, 255, 255, 200);
-                auto seq = CCSequence::create(tintUp, tintDown, nullptr);
-                auto repeat = CCRepeatForever::create(seq);
-                repeat->setTag(0xF00D);
-                nameLabel->runAction(repeat);
-              }
+        // determine collected rubies
+        int collected = 0;
+        bool isCompleted = false;
+        if (this->m_level) {
+            int lvlId = static_cast<int>(this->m_level->m_levelID);
+            isCompleted =
+                GameStatsManager::sharedState()->hasCompletedLevel(this->m_level);
+            if (isCompleted) {
+                // completed: show full value
+                collected = rubyInitValue;
             } else {
-              if (nameLabel)
-                nameLabel->stopActionByTag(0xF00D);
+                // not completed: compute based on normal percent
+                int percentage = 0;
+                // to the devs asking, why cant you just do m_level->m_normalPercent? or
+                // getNormalPercent()? i want you to try do that and see what percentage
+                // or value it returns? did it says 0 even though you have made some
+                // percent progress? no clue why it does that :/
+                if (auto pctNode =
+                        this->m_mainLayer->getChildByID("percentage-label")) {
+                    // so i just did the hacky way and take the label and use the value of
+                    // that instead
+                    auto pctLabel = static_cast<CCLabelBMFont*>(pctNode);
+                    std::string s = pctLabel->getString();
+                    std::string digits;
+                    for (char ch : s) {
+                        if (std::isdigit(static_cast<unsigned char>(ch)))
+                            digits.push_back(ch);
+                    }
+                    if (!digits.empty()) {
+                        percentage = numFromString<int>(digits).unwrapOrDefault();
+                    } else {
+                        percentage = this->m_level
+                                         ? this->m_level->m_normalPercent
+                                         : 0;  // ts always returns 0 for some reason
+                    }
+                } else {
+                    percentage = this->m_level ? this->m_level->m_normalPercent
+                                               : 0;  // ts always returns 0 for some reason
+                }
+
+                double calcAtPercent = static_cast<double>(rubyInitValue) * 0.8 *
+                                       (static_cast<double>(percentage) / 100.0);
+                collected = static_cast<int>(std::lround(calcAtPercent));
+                if (collected > rubyInitValue)
+                    collected = rubyInitValue;
             }
-          }
         }
-      }
-    }
-  }
 
-  bool init() {
-    if (!LevelCell::init())
-      return false;
-    // i only want it for rl level browser, lol
-    if (auto scene = CCDirector::sharedDirector()->getRunningScene()) {
-      auto children = scene->getChildren();
-      if (children && children->count() > 0) {
-        auto first = children->objectAtIndex(0);
-        if (first && typeinfo_cast<RLLevelBrowserLayer *>(first)) {
-          this->m_compactView =
-              Mod::get()->getSavedValue<bool>("compact_mode", false);
-          return true;
-        }
-      }
-    }
-    return true;
-  }
-
-  void loadFromLevel(GJGameLevel *level) {
-
-    LevelCell::loadFromLevel(level);
-    log::debug("LevelCell loadFromLevel called for level ID: {}",
-               level ? level->m_levelID : 0);
-    // If no level or a local level
-    if (!level || level->m_levelID == 0) {
-      return;
-    }
-
-    int levelId = static_cast<int>(level->m_levelID);
-
-    // fetch directly here and apply or store on callback
-    Ref<LevelCell> cellRef = this;
-    auto req = web::WebRequest();
-    log::debug("Fetching rating data for level cell ID: {}", levelId);
-    async::spawn(
-        req.get(fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
-                            levelId)),
-        [cellRef, levelId, this](web::WebResponse const &response) {
-          log::debug("Received rating response from server for level ID: {}",
-                     levelId);
-
-          if (!response.ok()) {
-            log::warn("Server returned non-ok status: {} for level ID: {}",
-                      response.code(), levelId);
-            return;
-          }
-
-          auto jsonRes = response.json();
-          if (!jsonRes) {
-            log::warn("Failed to parse JSON response");
-            return;
-          }
-
-          auto json = jsonRes.unwrap();
-          int difficulty = json["difficulty"].asInt().unwrapOr(0);
-          bool isLegacy = json["legacy"].asBool().unwrapOr(false);
-
-          if (!cellRef)
-            return;
-
-          // if level is rated, check via checkRated endpoint
-          if (this->m_level->m_stars > 0 && difficulty > 0) {
-            checkRated(this->m_level->m_levelID);
-            return;
-          }
-
-          // if this rating came from the legacy system, add a small info button
-          if (isLegacy && !Mod::get()->getSettingValue<bool>("disableLegacyInfo")) {
-            auto difficultyContainer =
-                this->m_mainLayer->getChildByID("difficulty-container");
-            auto difficultySprite =
-                difficultyContainer
-                    ? difficultyContainer->getChildByID("difficulty-sprite")
-                    : nullptr;
-
-            if (difficultySprite) {
-              if (auto existing =
-                      difficultySprite->getChildByID("rl-legacy-info-menu")) {
-                existing->setPosition({0, 0});
-                existing->removeFromParent();
-              }
-
-              auto infoSpr =
-                  CCSprite::createWithSpriteFrameName("RL_info01.png"_spr);
-              infoSpr->setScale(0.3f);
-
-              auto infoBtn = CCMenuItemSpriteExtra::create(
-                  infoSpr, this, menu_selector(RLLevelCell::onLegacyInfo));
-              infoBtn->setID("rl-legacy-info-btn");
-              infoBtn->setPosition(
-                  {difficultySprite->getContentSize().width - 20,
-                   difficultySprite->getContentSize().height - 20});
-
-              auto infoMenu = CCMenu::createWithItem(infoBtn);
-              infoMenu->setID("rl-legacy-info-menu");
-              infoMenu->setPosition({0, 0});
-              infoMenu->setContentSize(
-                  {difficultySprite->getContentSize().width,
-                   difficultySprite->getContentSize().height});
-              difficultySprite->addChild(infoMenu, 100);
+        if (rubyIcon) {
+            std::string labelStr =
+                numToString(collected) + "/" + numToString(rubyInitValue);
+            auto rubyLabel = CCLabelBMFont::create(labelStr.c_str(), "bigFont.fnt");
+            rubyLabel->setPosition(
+                {rubyIcon->getPositionX() + 10.f, rubyIcon->getPositionY() - 1.f});
+            rubyLabel->setScale(0.4f);
+            rubyLabel->setAnchorPoint({0.f, 0.5f});
+            rubyLabel->setID("ruby-label");
+            if (isCompleted) {
+                // tinted red for completed levels
+                rubyLabel->setColor({255, 150, 150});
+                rubyLabel->setString(
+                    numToString(rubyInitValue).c_str());  // just show total if completed
             }
-          }
+            m_mainLayer->addChild(rubyLabel);
+        }
 
-          if (this->m_mainLayer && this->m_level &&
-              this->m_level->m_levelID == levelId) {
-            log::debug(
-                "Applying fetched rating data immediately for level ID: {}",
-                levelId);
-            this->applyRatingToCell(json, levelId);
-          } else {
-            this->m_fields->m_pendingJson = json;
-            this->m_fields->m_pendingLevelId = levelId;
-            this->scheduleUpdate();
-          }
-        });
+        // featured score label
+        if (score > 0 && featured > 0) {
+            auto existingScoreLabel =
+                m_backgroundLayer->getChildByID("featured-score-label");
+            if (existingScoreLabel) {
+                existingScoreLabel->removeFromParent();
+            }
+            auto scoreLabel = CCLabelBMFont::create(
+                std::string("RL Featured Score: " + numToString(score)).c_str(),
+                "chatFont.fnt");
+            if (scoreLabel) {
+                scoreLabel->setPosition(
+                    {m_backgroundLayer->getContentSize().width - 7.f, 5.f});
+                scoreLabel->setColor({150, 200, 255});
+                scoreLabel->setScale(0.5f);
+                scoreLabel->setAnchorPoint({1.0f, 0.f});
+                scoreLabel->setID("featured-score-label");
+                m_backgroundLayer->addChild(scoreLabel);
+            }
 
-    return;
-  }
+            if (m_compactView) {
+                scoreLabel->setPosition(
+                    {m_backgroundLayer->getContentSize().width - 5.f, 2.f});
+                scoreLabel->setScale(0.4f);
+            }
+        }
 
-  void onLegacyInfo(CCObject *sender) {
-    if (!this->m_level)
-      return;
-    auto popup = RLLegacyPopup::create(this->m_level);
-    if (popup) {
-      popup->show();
+        if (m_compactView) {
+            // ruby and icon
+            if (auto rubyIcon = m_mainLayer->getChildByID("ruby-icon")) {
+                rubyIcon->setPositionX(rubyIcon->getPositionX() - 8.f);
+                rubyIcon->setScale(0.6f);
+            }
+            if (auto rubyLabel = m_mainLayer->getChildByID("ruby-label")) {
+                rubyLabel->setPositionX(rubyLabel->getPositionX() - 10.f);
+                rubyLabel->setScale(0.3f);
+            }
+        }
+
+        // star or planet icon (planet for platformer levels)
+        // remove existing to avoid duplicate icons on repeated updates
+        if (auto existingIcon = difficultySprite->getChildByID("rl-star-icon")) {
+            existingIcon->removeFromParent();
+        }
+        if (auto existingRewardLabel =
+                difficultySprite->getChildByID("rl-reward-label")) {
+            existingRewardLabel->removeFromParent();
+        }
+        CCSprite* newStarIcon = nullptr;
+        // choose appropriate icon and grayscale if legacy but unrated
+        if (this->m_level && this->m_level->isPlatformer()) {
+            if (grayRing) {
+                newStarIcon =
+                    CCSpriteGrayscale::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+                if (!newStarIcon)
+                    newStarIcon = CCSpriteGrayscale::create("RL_planetMed.png"_spr);
+            } else {
+                newStarIcon =
+                    CCSprite::createWithSpriteFrameName("RL_planetSmall.png"_spr);
+                if (!newStarIcon)
+                    newStarIcon = CCSprite::create("RL_planetMed.png"_spr);
+            }
+        }
+        if (!newStarIcon) {
+            if (grayRing) {
+                newStarIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_starSmall.png"_spr);
+            } else {
+                newStarIcon = CCSprite::createWithSpriteFrameName("RL_starSmall.png"_spr);
+            }
+        }
+        if (newStarIcon) {
+            newStarIcon->setPosition(
+                {difficultySprite->getContentSize().width / 2 + 8, -8});
+            newStarIcon->setScale(0.75f);
+            newStarIcon->setID("rl-star-icon");
+            difficultySprite->addChild(newStarIcon);
+
+            // reward value label
+            auto rewardLabelValue =
+                CCLabelBMFont::create(numToString(difficulty).c_str(), "bigFont.fnt");
+            if (rewardLabelValue) {
+                rewardLabelValue->setPosition(
+                    {newStarIcon->getPositionX() - 7, newStarIcon->getPositionY()});
+                rewardLabelValue->setScale(0.4f);
+                rewardLabelValue->setAnchorPoint({1.0f, 0.5f});
+                rewardLabelValue->setAlignment(kCCTextAlignmentRight);
+                rewardLabelValue->setID("rl-reward-label");
+                difficultySprite->addChild(rewardLabelValue);
+
+                if (this->m_level &&
+                    GameStatsManager::sharedState()->hasCompletedOnlineLevel(
+                        this->m_level->m_levelID)) {
+                    if (this->m_level->isPlatformer()) {
+                        rewardLabelValue->setColor({255, 160, 0});  // orange for planets
+                    } else {
+                        rewardLabelValue->setColor({0, 150, 255});  // cyan for stars
+                    }
+                }
+            }
+
+            // Update featured coin visibility (support featured types: 1=featured,
+            // 2=epic, 3=legendary)
+            {
+                auto featuredCoin = difficultySprite->getChildByID("featured-coin");
+                auto epicFeaturedCoin =
+                    difficultySprite->getChildByID("epic-featured-coin");
+                auto legendaryFeaturedCoin =
+                    difficultySprite->getChildByID("legendary-featured-coin");
+                auto mythicFeaturedCoin =
+                    difficultySprite->getChildByID("mythic-featured-coin");
+
+                if (featured == 1) {
+                    // remove other types
+                    if (epicFeaturedCoin)
+                        epicFeaturedCoin->removeFromParent();
+                    if (legendaryFeaturedCoin)
+                        legendaryFeaturedCoin->removeFromParent();
+                    if (mythicFeaturedCoin)
+                        mythicFeaturedCoin->removeFromParent();
+                    if (!featuredCoin) {
+                        auto newFeaturedCoin =
+                            grayRing ? CCSpriteGrayscale::createWithSpriteFrameName(
+                                           "RL_featuredCoin.png"_spr)
+                                     : CCSprite::createWithSpriteFrameName(
+                                           "RL_featuredCoin.png"_spr);
+                        if (newFeaturedCoin) {
+                            newFeaturedCoin->setPosition(
+                                {difficultySprite->getContentSize().width / 2,
+                                    difficultySprite->getContentSize().height / 2});
+                            newFeaturedCoin->setID("featured-coin");
+                            difficultySprite->addChild(newFeaturedCoin, -1);
+                        }
+                    }
+                } else if (featured == 2) {
+                    // ensure only epic present
+                    if (featuredCoin)
+                        featuredCoin->removeFromParent();
+                    if (legendaryFeaturedCoin)
+                        legendaryFeaturedCoin->removeFromParent();
+                    if (mythicFeaturedCoin)
+                        mythicFeaturedCoin->removeFromParent();
+                    if (!epicFeaturedCoin) {
+                        auto newEpicCoin =
+                            grayRing ? CCSpriteGrayscale::createWithSpriteFrameName(
+                                           "RL_epicFeaturedCoin.png"_spr)
+                                     : CCSprite::createWithSpriteFrameName(
+                                           "RL_epicFeaturedCoin.png"_spr);
+                        if (newEpicCoin) {
+                            newEpicCoin->setPosition(
+                                {difficultySprite->getContentSize().width / 2,
+                                    difficultySprite->getContentSize().height / 2});
+                            newEpicCoin->setID("epic-featured-coin");
+                            difficultySprite->addChild(newEpicCoin, -1);
+
+                            // add particle (if configured) on top of epic ring
+                            const std::string& pString = epicPString;
+                            if (!pString.empty()) {
+                                if (auto existingP =
+                                        newEpicCoin->getChildByID("rating-particles")) {
+                                    existingP->removeFromParent();
+                                }
+                                ParticleStruct pStruct;
+                                GameToolbox::particleStringToStruct(pString, pStruct);
+                                CCParticleSystemQuad* particle =
+                                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
+                                if (particle) {
+                                    newEpicCoin->addChild(particle, 1);
+                                    particle->resetSystem();
+                                    particle->setPosition(newEpicCoin->getContentSize() / 2.f);
+                                    particle->setID("rating-particles"_spr);
+                                }
+                            }
+                        }
+                    }
+                } else if (featured == 3) {
+                    // legendary
+                    if (featuredCoin)
+                        featuredCoin->removeFromParent();
+                    if (epicFeaturedCoin)
+                        epicFeaturedCoin->removeFromParent();
+                    if (mythicFeaturedCoin)
+                        mythicFeaturedCoin->removeFromParent();
+                    if (!legendaryFeaturedCoin) {
+                        auto newLegendaryCoin =
+                            grayRing ? CCSpriteGrayscale::createWithSpriteFrameName(
+                                           "RL_legendaryFeaturedCoin.png"_spr)
+                                     : CCSprite::createWithSpriteFrameName(
+                                           "RL_legendaryFeaturedCoin.png"_spr);
+                        if (newLegendaryCoin) {
+                            newLegendaryCoin->setPosition(
+                                {difficultySprite->getContentSize().width / 2,
+                                    difficultySprite->getContentSize().height / 2});
+                            newLegendaryCoin->setID("legendary-featured-coin");
+                            difficultySprite->addChild(newLegendaryCoin, -1);
+
+                            // particle legendary ring
+                            const std::string& pString = legendaryPString;
+                            if (!pString.empty()) {
+                                // remove any existing particles on this coin to avoid dupes
+                                if (auto existingP =
+                                        newLegendaryCoin->getChildByID("rating-particles")) {
+                                    existingP->removeFromParent();
+                                }
+                                ParticleStruct pStruct;
+                                GameToolbox::particleStringToStruct(pString, pStruct);
+                                CCParticleSystemQuad* particle =
+                                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
+                                if (particle) {
+                                    newLegendaryCoin->addChild(particle, 1);
+                                    particle->resetSystem();
+                                    particle->setPosition(newLegendaryCoin->getContentSize() /
+                                                          2.f);
+                                    particle->setID("rating-particles"_spr);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (featuredCoin)
+                        featuredCoin->removeFromParent();
+                    if (epicFeaturedCoin)
+                        epicFeaturedCoin->removeFromParent();
+                    if (legendaryFeaturedCoin)
+                        legendaryFeaturedCoin->removeFromParent();
+                }
+
+                // ensure particles exist for existing epic/legendary/mythic coins (if
+                // configured)
+                if (featured == 2) {
+                    if (epicFeaturedCoin) {
+                        if (!epicFeaturedCoin->getChildByID("rating-particles")) {
+                            const std::string& pString = epicPString;
+                            if (!pString.empty()) {
+                                ParticleStruct pStruct;
+                                GameToolbox::particleStringToStruct(pString, pStruct);
+                                CCParticleSystemQuad* particle =
+                                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
+                                if (particle) {
+                                    epicFeaturedCoin->addChild(particle, 1);
+                                    particle->resetSystem();
+                                    particle->setPosition(epicFeaturedCoin->getContentSize() /
+                                                          2.f);
+                                    particle->setID("rating-particles"_spr);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                }
+                            }
+                        }
+                    }
+                } else if (featured == 3) {
+                    if (legendaryFeaturedCoin) {
+                        if (!legendaryFeaturedCoin->getChildByID("rating-particles")) {
+                            const std::string& pString = legendaryPString;
+                            if (!pString.empty()) {
+                                ParticleStruct pStruct;
+                                GameToolbox::particleStringToStruct(pString, pStruct);
+                                CCParticleSystemQuad* particle =
+                                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
+                                if (particle) {
+                                    legendaryFeaturedCoin->addChild(particle, 1);
+                                    particle->resetSystem();
+                                    particle->setPosition(
+                                        legendaryFeaturedCoin->getContentSize() / 2.f);
+                                    particle->setID("rating-particles"_spr);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // handle coin icons (if compact view, fetch coin nodes directly from
+                // m_mainLayer)
+                auto coinContainer = m_mainLayer->getChildByID("difficulty-container");
+                if (coinContainer) {
+                    CCNode* coinIcon1 = nullptr;
+                    CCNode* coinIcon2 = nullptr;
+                    CCNode* coinIcon3 = nullptr;
+
+                    if (!m_compactView) {
+                        coinIcon1 = coinContainer->getChildByID("coin-icon-1");
+                        coinIcon2 = coinContainer->getChildByID("coin-icon-2");
+                        coinIcon3 = coinContainer->getChildByID("coin-icon-3");
+                    } else {
+                        // compact view: coin icons live on the main layer
+                        coinIcon1 = m_mainLayer->getChildByID("coin-icon-1");
+                        coinIcon2 = m_mainLayer->getChildByID("coin-icon-2");
+                        coinIcon3 = m_mainLayer->getChildByID("coin-icon-3");
+                    }
+
+                    // push difficulty sprite down if coins exist in non-compact view
+                    if ((coinIcon1 || coinIcon2 || coinIcon3) && !m_compactView) {
+                        difficultySprite->setPositionY(difficultySprite->getPositionY() +
+                                                       10);
+                    }
+
+                    // Replace or darken coins when level is not suggested
+                    bool coinVerified = json["coinVerified"].asBool().unwrapOrDefault();
+                    if (coinVerified) {
+                        // try to obtain a GJGameLevel for coin keys
+                        GJGameLevel* levelPtr = this->m_level;
+                        if (!levelPtr) {
+                            auto glm = GameLevelManager::sharedState();
+                            auto stored = glm->getStoredOnlineLevels(
+                                fmt::format("{}", levelId).c_str());
+                            if (stored && stored->count() > 0) {
+                                levelPtr = static_cast<GJGameLevel*>(stored->objectAtIndex(0));
+                            }
+                        }
+
+                        auto replaceCoinSprite = [levelPtr, this](CCNode* coinNode,
+                                                     int coinIndex) {
+                            auto frame = CCSpriteFrameCache::sharedSpriteFrameCache()
+                                             ->spriteFrameByName("RL_BlueCoinSmall.png"_spr);
+                            CCTexture2D* blueCoinTexture = nullptr;
+                            if (!frame) {
+                                blueCoinTexture =
+                                    CCTextureCache::sharedTextureCache()->addImage(
+                                        "RL_BlueCoinSmall.png"_spr, true);
+                                if (blueCoinTexture) {
+                                    frame = CCSpriteFrame::createWithTexture(
+                                        blueCoinTexture,
+                                        {{0, 0}, blueCoinTexture->getContentSize()});
+                                }
+                            } else {
+                                blueCoinTexture = frame->getTexture();
+                            }
+
+                            if (!frame || !blueCoinTexture) {
+                                log::warn("failed to load blue coin frame/texture");
+                                return;
+                            }
+                            if (!coinNode)
+                                return;
+                            auto coinSprite = typeinfo_cast<CCSprite*>(coinNode);
+                            if (!coinSprite)
+                                return;
+
+                            bool coinCollected = false;
+                            if (levelPtr) {
+                                std::string coinKey = levelPtr->getCoinKey(coinIndex);
+                                log::debug("LevelCell: checking coin {} key={}", coinIndex, coinKey);
+                                coinCollected =
+                                    GameStatsManager::sharedState()->hasPendingUserCoin(
+                                        coinKey.c_str());
+                            }
+
+                            if (coinCollected) {
+                                coinSprite->setDisplayFrame(frame);
+                                coinSprite->setColor({255, 255, 255});
+                                coinSprite->setOpacity(255);
+                                coinSprite->setScale(0.6f);
+                                log::debug("LevelCell: replaced coin {} with blue sprite",
+                                    coinIndex);
+                            } else {
+                                coinSprite->setDisplayFrame(frame);
+                                coinSprite->setColor({120, 120, 120});
+                                coinSprite->setScale(0.6f);
+                                log::debug("LevelCell: darkened coin {} (not present)",
+                                    coinIndex);
+                            }
+
+                            if (m_compactView) {
+                                coinSprite->setScale(0.4f);
+                            }
+                        };
+
+                        replaceCoinSprite(coinIcon1, 1);
+                        replaceCoinSprite(coinIcon2, 2);
+                        replaceCoinSprite(coinIcon3, 3);
+                    }
+
+                    // doing the dumb coin move
+                    if (!m_compactView) {
+                        if (coinIcon1) {
+                            coinIcon1->setPositionY(coinIcon1->getPositionY() - 5);
+                        }
+                        if (coinIcon2) {
+                            coinIcon2->setPositionY(coinIcon2->getPositionY() - 5);
+                        }
+                        if (coinIcon3) {
+                            coinIcon3->setPositionY(coinIcon3->getPositionY() - 5);
+                        }
+                    }
+
+                    // Handle pulsing level name for legendary/mythic featured
+                    {
+                        CCNode* nameNode = nullptr;
+                        if (m_mainLayer) {
+                            nameNode = m_mainLayer->getChildByID("level-name");
+                            if (!nameNode)
+                                nameNode = m_mainLayer->getChildByID("level-name-label");
+                            if (!nameNode)
+                                nameNode = m_mainLayer->getChildByID("level-label");
+                        }
+
+                        auto nameLabel = typeinfo_cast<CCLabelBMFont*>(nameNode);
+                        if (featured == 3) {
+                            if (nameLabel) {
+                                nameLabel->stopActionByTag(0xF00D);
+                                auto tintUp = CCTintTo::create(1.f, 150, 220, 255);
+                                auto tintDown = CCTintTo::create(1.f, 200, 200, 255);
+                                auto seq = CCSequence::create(tintUp, tintDown, nullptr);
+                                auto repeat = CCRepeatForever::create(seq);
+                                repeat->setTag(0xF00D);
+                                nameLabel->runAction(repeat);
+                            }
+                        } else if (featured == 4) {
+                            if (nameLabel) {
+                                nameLabel->stopActionByTag(0xF00D);
+                                auto tintUp = CCTintTo::create(1.f, 255, 220, 150);
+                                auto tintDown = CCTintTo::create(1.f, 255, 255, 200);
+                                auto seq = CCSequence::create(tintUp, tintDown, nullptr);
+                                auto repeat = CCRepeatForever::create(seq);
+                                repeat->setTag(0xF00D);
+                                nameLabel->runAction(repeat);
+                            }
+                        } else {
+                            if (nameLabel)
+                                nameLabel->stopActionByTag(0xF00D);
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 
-  void onEnter() {
-    LevelCell::onEnter();
-
-    if (m_fields->m_pendingJson && this->m_level &&
-        this->m_level->m_levelID == m_fields->m_pendingLevelId) {
-      this->applyRatingToCell(m_fields->m_pendingJson.value(),
-                              m_fields->m_pendingLevelId);
-      m_fields->m_pendingJson = std::nullopt;
-      m_fields->m_pendingLevelId = 0;
+    bool init() {
+        if (!LevelCell::init())
+            return false;
+        // i only want it for rl level browser, lol
+        if (auto scene = CCDirector::sharedDirector()->getRunningScene()) {
+            auto children = scene->getChildren();
+            if (children && children->count() > 0) {
+                auto first = children->objectAtIndex(0);
+                if (first && typeinfo_cast<RLLevelBrowserLayer*>(first)) {
+                    this->m_compactView =
+                        Mod::get()->getSavedValue<bool>("compact_mode", false);
+                    return true;
+                }
+            }
+        }
+        return true;
     }
 
-    if (m_fields->m_pendingLevelId && this->m_level &&
-        this->m_level->m_levelID == m_fields->m_pendingLevelId) {
+    void loadFromLevel(GJGameLevel* level) {
+        LevelCell::loadFromLevel(level);
+        log::debug("LevelCell loadFromLevel called for level ID: {}",
+            level ? level->m_levelID : 0);
+        // If no level or a local level
+        if (!level || level->m_levelID == 0) {
+            return;
+        }
 
-      int pending = m_fields->m_pendingLevelId;
-      m_fields->m_pendingLevelId = 0;
+        int levelId = static_cast<int>(level->m_levelID);
 
-      if (this->m_level) {
-        loadFromLevel(this->m_level);
-      } else {
-        m_fields->m_pendingLevelId = 0;
-      }
+        // fetch directly here and apply or store on callback
+        Ref<LevelCell> cellRef = this;
+        auto req = web::WebRequest();
+        log::debug("Fetching rating data for level cell ID: {}", levelId);
+        async::spawn(
+            req.get(fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
+                levelId)),
+            [cellRef, levelId, this](web::WebResponse const& response) {
+                log::debug("Received rating response from server for level ID: {}",
+                    levelId);
+
+                if (!response.ok()) {
+                    log::warn("Server returned non-ok status: {} for level ID: {}",
+                        response.code(),
+                        levelId);
+                    return;
+                }
+
+                auto jsonRes = response.json();
+                if (!jsonRes) {
+                    log::warn("Failed to parse JSON response");
+                    return;
+                }
+
+                auto json = jsonRes.unwrap();
+                int difficulty = json["difficulty"].asInt().unwrapOr(0);
+                bool isLegacy = json["legacy"].asBool().unwrapOr(false);
+
+                if (!cellRef)
+                    return;
+
+                // if level is rated, check via checkRated endpoint
+                if (this->m_level->m_stars > 0 && difficulty > 0) {
+                    checkRated(this->m_level->m_levelID);
+                    return;
+                }
+
+                // if this rating came from the legacy system, add a small info button
+                if (isLegacy && !Mod::get()->getSettingValue<bool>("disableLegacyInfo")) {
+                    auto difficultyContainer =
+                        this->m_mainLayer->getChildByID("difficulty-container");
+                    auto difficultySprite =
+                        difficultyContainer
+                            ? difficultyContainer->getChildByID("difficulty-sprite")
+                            : nullptr;
+
+                    if (difficultySprite) {
+                        if (auto existing =
+                                difficultySprite->getChildByID("rl-legacy-info-menu")) {
+                            existing->setPosition({0, 0});
+                            existing->removeFromParent();
+                        }
+
+                        auto infoSpr =
+                            CCSprite::createWithSpriteFrameName("RL_info01.png"_spr);
+                        infoSpr->setScale(0.3f);
+
+                        auto infoBtn = CCMenuItemSpriteExtra::create(
+                            infoSpr, this, menu_selector(RLLevelCell::onLegacyInfo));
+                        infoBtn->setID("rl-legacy-info-btn");
+                        infoBtn->setPosition(
+                            {difficultySprite->getContentSize().width - 20,
+                                difficultySprite->getContentSize().height - 20});
+
+                        auto infoMenu = CCMenu::createWithItem(infoBtn);
+                        infoMenu->setID("rl-legacy-info-menu");
+                        infoMenu->setPosition({0, 0});
+                        infoMenu->setContentSize(
+                            {difficultySprite->getContentSize().width,
+                                difficultySprite->getContentSize().height});
+                        difficultySprite->addChild(infoMenu, 100);
+                    }
+                }
+
+                if (this->m_mainLayer && this->m_level &&
+                    this->m_level->m_levelID == levelId) {
+                    log::debug(
+                        "Applying fetched rating data immediately for level ID: {}",
+                        levelId);
+                    this->applyRatingToCell(json, levelId);
+                } else {
+                    this->m_fields->m_pendingJson = json;
+                    this->m_fields->m_pendingLevelId = levelId;
+                    this->scheduleUpdate();
+                }
+            });
+
+        return;
     }
-  }
-  void checkRated(int levelId) {
-    auto req = web::WebRequest();
-    matjson::Value jsonBody = matjson::Value::object();
-    jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
-    jsonBody["argonToken"] =
-        Mod::get()->getSavedValue<std::string>("argon_token");
-    jsonBody["levelId"] = levelId;
-    req.bodyJSON(jsonBody);
 
-    async::spawn(req.post("https://gdrate.arcticwoof.xyz/checkRated"),
-                 [levelId](web::WebResponse response) {
-                   if (!response.ok()) {
-                     log::debug("Level ID {} is not rated (server returned {})",
-                                levelId, response.code());
-                   } else {
-                     log::debug("Level ID {} is rated (server returned 200)",
-                                levelId);
-                   }
-                 });
-  }
+    void onLegacyInfo(CCObject* sender) {
+        if (!this->m_level)
+            return;
+        auto popup = RLLegacyPopup::create(this->m_level);
+        if (popup) {
+            popup->show();
+        }
+    }
+
+    void onEnter() {
+        LevelCell::onEnter();
+
+        if (m_fields->m_pendingJson && this->m_level &&
+            this->m_level->m_levelID == m_fields->m_pendingLevelId) {
+            this->applyRatingToCell(m_fields->m_pendingJson.value(),
+                m_fields->m_pendingLevelId);
+            m_fields->m_pendingJson = std::nullopt;
+            m_fields->m_pendingLevelId = 0;
+        }
+
+        if (m_fields->m_pendingLevelId && this->m_level &&
+            this->m_level->m_levelID == m_fields->m_pendingLevelId) {
+            int pending = m_fields->m_pendingLevelId;
+            m_fields->m_pendingLevelId = 0;
+
+            if (this->m_level) {
+                loadFromLevel(this->m_level);
+            } else {
+                m_fields->m_pendingLevelId = 0;
+            }
+        }
+    }
+    void checkRated(int levelId) {
+        auto req = web::WebRequest();
+        matjson::Value jsonBody = matjson::Value::object();
+        jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
+        jsonBody["argonToken"] =
+            Mod::get()->getSavedValue<std::string>("argon_token");
+        jsonBody["levelId"] = levelId;
+        req.bodyJSON(jsonBody);
+
+        async::spawn(req.post("https://gdrate.arcticwoof.xyz/checkRated"),
+            [levelId](web::WebResponse response) {
+                if (!response.ok()) {
+                    log::debug("Level ID {} is not rated (server returned {})",
+                        levelId,
+                        response.code());
+                } else {
+                    log::debug("Level ID {} is rated (server returned 200)",
+                        levelId);
+                }
+            });
+    }
 };

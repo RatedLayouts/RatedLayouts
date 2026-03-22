@@ -30,6 +30,9 @@
 			],
 			"RLSpire": [
 				"resources/RL_Spire/*.png"
+			],
+			"RLOracle": [
+				"resources/RL_Oracle/*.png"
 			]
 		},
 		"sprites": [

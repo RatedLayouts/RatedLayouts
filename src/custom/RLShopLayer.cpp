@@ -1,4 +1,5 @@
 #include "RLShopLayer.hpp"
+#include "../include/RLDialogIcons.hpp"
 #include "../utils/RLNameplateItem.hpp"
 #include "Geode/ui/General.hpp"
 #include "Geode/ui/Layout.hpp"
@@ -13,7 +14,7 @@
 #include <fmt/format.h>
 
 using namespace geode::prelude;
-using namespace ratedlayouts;
+using namespace rl;
 
 RLShopLayer* RLShopLayer::create() {
     auto layer = new RLShopLayer();
@@ -141,13 +142,13 @@ bool RLShopLayer::init() {
     menu->addChild(submitBtn);
 
     // bottom left redeem button
-    auto orcaleSpr = CCSprite::createWithSpriteFrameName("RL_oracle.png"_spr);
+    auto orcaleSpr = CCSprite::createWithSpriteFrameName("RL_observatoryDoor.png"_spr);
     orcaleSpr->setColor({50, 50, 50});
     orcaleSpr->setOpacity(150);
-    orcaleSpr->setScale(0.4f);
+    orcaleSpr->setScale(1.25f);
     auto redeemBtn = CCMenuItemSpriteExtra::create(
         orcaleSpr, this, menu_selector(RLShopLayer::onRedeemLayer));
-        redeemBtn->setPosition({20, 25});
+    redeemBtn->setPosition({20, 25});
     menu->addChild(redeemBtn);
 
     // shop item menu
@@ -363,11 +364,7 @@ void RLShopLayer::onLayoutCreator(CCObject* sender) {
     dialog->addToMainScene();
     dialog->animateInRandomSide();
 
-    auto awSprite =
-        CCSprite::createWithSpriteFrameName("RL_dialogIconAW.png"_spr);
-    awSprite->setPosition(dialog->m_characterSprite->getPosition());
-    dialog->m_mainLayer->addChild(awSprite, 1);
-    dialog->m_characterSprite->removeFromParent();
+    rl::setDialogObjectCustomIcon(dialog, "RL_dialogIconAW.png"_spr);
 }
 
 void RLShopLayer::onBuyItem(CCObject* sender) {

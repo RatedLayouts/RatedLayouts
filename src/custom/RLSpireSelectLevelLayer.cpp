@@ -1,4 +1,5 @@
 #include <Geode/Geode.hpp>
+#include "../include/RLDialogIcons.hpp"
 #include <cue/RepeatingBackground.hpp>
 #include "Geode/cocos/script_support/CCScriptSupport.h"
 #include "Geode/ui/MDPopup.hpp"
@@ -342,10 +343,7 @@ void RLSpireSelectLevelLayer::onRoomTransitionComplete() {
         dialog->addToMainScene();
         dialog->animateInRandomSide();
 
-        auto orSprite = CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-        orSprite->setPosition(dialog->m_characterSprite->getPosition());
-        dialog->m_characterSprite->setVisible(false);
-        dialog->m_mainLayer->addChild(orSprite, 1);
+        rl::setDialogObjectIcon(dialog, 0);
     }
 
     m_isRoomTransitionActive = false;

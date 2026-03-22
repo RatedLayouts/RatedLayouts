@@ -3,7 +3,7 @@
 #include "Geode/loader/Mod.hpp"
 #include "Geode/ui/Popup.hpp"
 #include "Geode/utils/general.hpp"
-#include "custom/RLAchievements.hpp"
+#include "include/RLAchievements.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
@@ -14,12 +14,12 @@
 
 using namespace geode::prelude;
 
-static std::string getResponseFailMessage(web::WebResponse const &response,
-                                          std::string const &fallback) {
-  auto message = response.string().unwrapOrDefault();
-  if (!message.empty())
-    return message;
-  return fallback;
+static std::string getResponseFailMessage(web::WebResponse const& response,
+    std::string const& fallback) {
+    auto message = response.string().unwrapOrDefault();
+    if (!message.empty())
+        return message;
+    return fallback;
 }
 
 // $execute {
@@ -51,161 +51,160 @@ static std::string getResponseFailMessage(web::WebResponse const &response,
 // };
 
 class $modify(RLSupportLayer, SupportLayer) {
-  struct Fields {
-    async::TaskHolder<web::WebResponse> m_getAccessTask;
-    async::TaskHolder<Result<std::string>> m_authTask;
-    CCMenu *m_argonMenu = nullptr;
-    ~Fields() {
-      m_getAccessTask.cancel();
-      m_authTask.cancel();
+    struct Fields {
+        async::TaskHolder<web::WebResponse> m_getAccessTask;
+        async::TaskHolder<Result<std::string>> m_authTask;
+        CCMenu* m_argonMenu = nullptr;
+        ~Fields() {
+            m_getAccessTask.cancel();
+            m_authTask.cancel();
+        }
+    };
+
+    void customSetup() {
+        if (Mod::get()->getSavedValue<bool>("isClassicMod") ||
+            Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
+            Mod::get()->getSavedValue<bool>("isPlatMod") ||
+            Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
+            Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
+            m_fields->m_argonMenu = CCMenu::create();
+            m_fields->m_argonMenu->setPosition({0, 0});
+            m_listLayer->addChild(m_fields->m_argonMenu, 10);
+            auto argonBtnSpr = ButtonSprite::create("Argon", 25, true, "bigFont.fnt", "GJ_button_04.png", 25.f, 1.f);
+            auto argonBtn = CCMenuItemSpriteExtra::create(
+                argonBtnSpr, this, menu_selector(RLSupportLayer::onGetArgon));
+            argonBtn->setPosition({328, 55});
+            m_fields->m_argonMenu->addChild(argonBtn);
+        }
+
+        SupportLayer::customSetup();
     }
-  };
 
-  void customSetup() {
-    if (Mod::get()->getSavedValue<bool>("isClassicMod") ||
-        Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
-        Mod::get()->getSavedValue<bool>("isPlatMod") ||
-        Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-        Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
-      m_fields->m_argonMenu = CCMenu::create();
-      m_fields->m_argonMenu->setPosition({0, 0});
-      m_listLayer->addChild(m_fields->m_argonMenu, 10);
-      auto argonBtnSpr = ButtonSprite::create("Argon", 25, true, "bigFont.fnt",
-                                              "GJ_button_04.png", 25.f, 1.f);
-      auto argonBtn = CCMenuItemSpriteExtra::create(
-          argonBtnSpr, this, menu_selector(RLSupportLayer::onGetArgon));
-      argonBtn->setPosition({328, 55});
-      m_fields->m_argonMenu->addChild(argonBtn);
+    void onGetArgon(CCObject* sender) {
+        m_uploadPopup = UploadActionPopup::create(nullptr, "Obtaining Token...");
+        m_uploadPopup->show();
+        auto accountData = argon::getGameAccountData();
+        m_fields->m_authTask.spawn(
+            argon::startAuth(std::move(accountData)),
+            [this](Result<std::string> res) {
+                if (res.isOk()) {
+                    auto token = std::move(res).unwrap();
+                    utils::clipboard::write(token);
+                    m_uploadPopup->showSuccessMessage(
+                        "Token copied to clipboard.");
+                } else {
+                    auto err = res.unwrapErr();
+                    log::warn("Auth failed: {}", err);
+                    m_uploadPopup->showFailMessage(err);
+                    argon::clearToken();
+                }
+            });
     }
 
-    SupportLayer::customSetup();
-  }
+    void onRequestAccess(
+        CCObject* sender) {  // i assume that no one will ever get gd mod xddd
+        m_uploadPopup = UploadActionPopup::create(nullptr, "Requesting Access...");
+        m_uploadPopup->show();
+        // argon my beloved <3
+        auto accountData = argon::getGameAccountData();
 
-  void onGetArgon(CCObject *sender) {
-    m_uploadPopup = UploadActionPopup::create(nullptr, "Obtaining Token...");
-    m_uploadPopup->show();
-    auto accountData = argon::getGameAccountData();
-    m_fields->m_authTask.spawn(
-        argon::startAuth(std::move(accountData)),
-        [this](Result<std::string> res) {
-          if (res.isOk()) {
-            auto token = std::move(res).unwrap();
-            utils::clipboard::write(token);
-            m_uploadPopup->showSuccessMessage(
-                "Token copied to clipboard.");
-          } else {
-            auto err = res.unwrapErr();
-            log::warn("Auth failed: {}", err);
-            m_uploadPopup->showFailMessage(err);
-            argon::clearToken();
-          }
-        });
-  }
+        Ref<RLSupportLayer> self = this;
 
-  void onRequestAccess(
-      CCObject *sender) { // i assume that no one will ever get gd mod xddd
-    m_uploadPopup = UploadActionPopup::create(nullptr, "Requesting Access...");
-    m_uploadPopup->show();
-    // argon my beloved <3
-    auto accountData = argon::getGameAccountData();
-
-    Ref<RLSupportLayer> self = this;
-
-    m_fields->m_authTask.spawn(
-        argon::startAuth(std::move(accountData)),
-        [self, this](Result<std::string> res) {
-          if (!self)
-            return;
-
-          if (res.isOk()) {
-            auto token = std::move(res).unwrap();
-            log::info("token obtained: {}", token);
-            Mod::get()->setSavedValue("argon_token", token);
-
-            // json body
-            matjson::Value jsonBody = matjson::Value::object();
-            jsonBody["argonToken"] = token;
-            jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
-
-            // verify the user's role
-            auto postReq = web::WebRequest();
-            postReq.bodyJSON(jsonBody);
-
-            m_fields->m_getAccessTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/getAccess"),
-                [self, this](web::WebResponse response) {
-                  if (!self)
+        m_fields->m_authTask.spawn(
+            argon::startAuth(std::move(accountData)),
+            [self, this](Result<std::string> res) {
+                if (!self)
                     return;
-                  log::info("Received response from server");
-                  if (!response.ok()) {
-                    log::warn("Server returned non-ok status: {}",
-                              response.code());
-                    m_uploadPopup->showFailMessage(getResponseFailMessage(
-                        response, "Failed! Try again later."));
-                    return;
-                  }
 
-                  auto jsonRes = response.json();
-                  if (!jsonRes) {
-                    log::warn("Failed to parse JSON response");
-                    m_uploadPopup->showFailMessage(
-                        "Failed to parse JSON response");
-                    return;
-                  }
+                if (res.isOk()) {
+                    auto token = std::move(res).unwrap();
+                    log::info("token obtained: {}", token);
+                    Mod::get()->setSavedValue("argon_token", token);
 
-                  auto json = jsonRes.unwrap();
-                  bool isClassicMod =
-                      json["isClassicMod"].asBool().unwrapOrDefault();
-                  bool isClassicAdmin =
-                      json["isClassicAdmin"].asBool().unwrapOrDefault();
-                  bool isLeaderboardMod =
-                      json["isLeaderboardMod"].asBool().unwrapOrDefault();
-                  bool isPlatMod = json["isPlatMod"].asBool().unwrapOrDefault();
-                  bool isPlatAdmin =
-                      json["isPlatAdmin"].asBool().unwrapOrDefault();
+                    // json body
+                    matjson::Value jsonBody = matjson::Value::object();
+                    jsonBody["argonToken"] = token;
+                    jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
 
-                  Mod::get()->setSavedValue<bool>("isClassicMod", isClassicMod);
-                  Mod::get()->setSavedValue<bool>("isClassicAdmin",
-                                                  isClassicAdmin);
-                  Mod::get()->setSavedValue<bool>("isLeaderboardMod",
-                                                  isLeaderboardMod);
-                  Mod::get()->setSavedValue<bool>("isPlatMod", isPlatMod);
-                  Mod::get()->setSavedValue<bool>("isPlatAdmin", isPlatAdmin);
+                    // verify the user's role
+                    auto postReq = web::WebRequest();
+                    postReq.bodyJSON(jsonBody);
 
-                  if (isClassicMod) {
-                    log::info("Granted Layout Mod role");
-                    m_uploadPopup->showSuccessMessage(
-                        "Granted Classic Layout Mod.");
-                  } else if (isClassicAdmin) {
-                    log::info("Granted Layout Admin role");
-                    m_uploadPopup->showSuccessMessage(
-                        "Granted Classic Layout Admin.");
-                  } else if (isLeaderboardMod) {
-                    log::info("Granted Leaderboard Layout Mod role");
-                    m_uploadPopup->showSuccessMessage(
-                        "Granted Leaderboard Layout Mod.");
-                  } else if (isPlatMod) {
-                    log::info("Granted Platformer Layout Mod role");
-                    m_uploadPopup->showSuccessMessage(
-                        "Granted Platformer Layout Mod.");
-                  } else if (isPlatAdmin) {
-                    log::info("Granted Platformer Admin role");
-                    m_uploadPopup->showSuccessMessage(
-                        "Granted Platformer Layout Admin.");
-                  } else {
-                    m_uploadPopup->showFailMessage("Nothing Happened.");
-                  }
+                    m_fields->m_getAccessTask.spawn(
+                        postReq.post("https://gdrate.arcticwoof.xyz/getAccess"),
+                        [self, this](web::WebResponse response) {
+                            if (!self)
+                                return;
+                            log::info("Received response from server");
+                            if (!response.ok()) {
+                                log::warn("Server returned non-ok status: {}",
+                                    response.code());
+                                m_uploadPopup->showFailMessage(getResponseFailMessage(
+                                    response, "Failed! Try again later."));
+                                return;
+                            }
 
-                  if (isClassicMod || isPlatMod || isLeaderboardMod) {
-                    RLAchievements::onReward("misc_moderator");
-                  }
-                });
-          } else {
-            auto err = res.unwrapErr();
-            log::warn("Auth failed: {}", err);
-            Notification::create(err, NotificationIcon::Error)->show();
-            argon::clearToken();
-          }
-        });
-  }
+                            auto jsonRes = response.json();
+                            if (!jsonRes) {
+                                log::warn("Failed to parse JSON response");
+                                m_uploadPopup->showFailMessage(
+                                    "Failed to parse JSON response");
+                                return;
+                            }
+
+                            auto json = jsonRes.unwrap();
+                            bool isClassicMod =
+                                json["isClassicMod"].asBool().unwrapOrDefault();
+                            bool isClassicAdmin =
+                                json["isClassicAdmin"].asBool().unwrapOrDefault();
+                            bool isLeaderboardMod =
+                                json["isLeaderboardMod"].asBool().unwrapOrDefault();
+                            bool isPlatMod = json["isPlatMod"].asBool().unwrapOrDefault();
+                            bool isPlatAdmin =
+                                json["isPlatAdmin"].asBool().unwrapOrDefault();
+
+                            Mod::get()->setSavedValue<bool>("isClassicMod", isClassicMod);
+                            Mod::get()->setSavedValue<bool>("isClassicAdmin",
+                                isClassicAdmin);
+                            Mod::get()->setSavedValue<bool>("isLeaderboardMod",
+                                isLeaderboardMod);
+                            Mod::get()->setSavedValue<bool>("isPlatMod", isPlatMod);
+                            Mod::get()->setSavedValue<bool>("isPlatAdmin", isPlatAdmin);
+
+                            if (isClassicMod) {
+                                log::info("Granted Layout Mod role");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Classic Layout Mod.");
+                            } else if (isClassicAdmin) {
+                                log::info("Granted Layout Admin role");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Classic Layout Admin.");
+                            } else if (isLeaderboardMod) {
+                                log::info("Granted Leaderboard Layout Mod role");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Leaderboard Layout Mod.");
+                            } else if (isPlatMod) {
+                                log::info("Granted Platformer Layout Mod role");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Platformer Layout Mod.");
+                            } else if (isPlatAdmin) {
+                                log::info("Granted Platformer Admin role");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Platformer Layout Admin.");
+                            } else {
+                                m_uploadPopup->showFailMessage("Nothing Happened.");
+                            }
+
+                            if (isClassicMod || isPlatMod || isLeaderboardMod) {
+                                RLAchievements::onReward("misc_moderator");
+                            }
+                        });
+                } else {
+                    auto err = res.unwrapErr();
+                    log::warn("Auth failed: {}", err);
+                    Notification::create(err, NotificationIcon::Error)->show();
+                    argon::clearToken();
+                }
+            });
+    }
 };

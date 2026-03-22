@@ -10,7 +10,7 @@ private:
     void keyBackClicked() override;
 
     void fetchSpireLevels();
-    void applySpireLevelsJson(matjson::Value const &json);
+    void applySpireLevelsJson(matjson::Value const& json);
     void createSpireDoors();
     void refreshDoorStates();
     void updateNavArrowState();

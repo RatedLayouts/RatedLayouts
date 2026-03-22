@@ -1,7 +1,8 @@
 #include <Geode/Geode.hpp>
 #include <Geode/binding/GJAccountManager.hpp>
+#include "../include/RLDialogIcons.hpp"
 #include "RLSecretLayer1.hpp"
-#include "RLAchievements.hpp"
+#include "../include/RLAchievements.hpp"
 
 using namespace geode::prelude;
 
@@ -98,11 +99,14 @@ void RLSecretLayer1::onEnterTransitionDidFinish() {
     // first time?
     if (!Mod::get()->getSavedValue<bool>("oracleFirstTime")) {
         Mod::get()->setSavedValue("oracleFirstTime", true);
-        DialogObject* dialog1 = DialogObject::create("The Oracle", "As it was <cp>foretold.</c>", 1, 1.f, false, ccWHITE);
-        DialogObject* dialog2 = DialogObject::create("The Oracle", fmt::format("<cg>{}</c>, your arrival has been <cp>lingering</c> on the <co>firmament</c> above for ages!", GJAccountManager::get()->m_username).c_str(), 0, 1.f, false, ccWHITE);
-        DialogObject* dialog3 = DialogObject::create("The Oracle", "I inquire that you learn to read the <cp>Cosmos</c>, that you may find <cg>riches unbound</c>!", 0, 1.f, false, ccWHITE);
-        DialogObject* dialog4 = DialogObject::create("The Oracle", "Now then.", 0, 1.f, false, ccWHITE);
-        DialogObject* dialog5 = DialogObject::create("The Oracle", "I shall watch your <cy>exploits</c> most <cg>attentively</c>.<d100> <cl>Enjoy</c>.", 0, 1.f, false, ccWHITE);
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "A <cg>visitor</c>?<d100> <cy>Surely not</c>?", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog2 = DialogObject::create("The Oracle", "...!", 0, 1.f, false, ccWHITE);
+        DialogObject* dialog3 = DialogObject::create("The Oracle", "By the <s100><cr>Red Comet</c></s>! Your <cg>arrival</c> has been <co>lingering</c> on the <cy>firmament above for ages</c>!", 2, 1.f, false, ccWHITE);
+        DialogObject* dialog4 = DialogObject::create("The Oracle", "...", 3, 1.f, false, ccWHITE);
+        DialogObject* dialog5 = DialogObject::create("The Oracle", "Do excuse me.", 4, 1.f, false, ccWHITE);
+        DialogObject* dialog6 = DialogObject::create("The Oracle", "I inquire that you <cg>learn to read</c> the <cp>Cosmos</c>, that you may find <cy>riches unbound</c>!", 0, 1.f, false, ccWHITE);
+        DialogObject* dialog7 = DialogObject::create("The Oracle", "Now then.", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog8 = DialogObject::create("The Oracle", "I shall watch your <co>exploits</c> most <cg>attentively</c>. <cl>Enjoy</c>.", 0, 1.f, false, ccWHITE);
 
         auto dialogArray = CCArray::create();
         dialogArray->addObject(dialog1);
@@ -110,16 +114,15 @@ void RLSecretLayer1::onEnterTransitionDidFinish() {
         dialogArray->addObject(dialog3);
         dialogArray->addObject(dialog4);
         dialogArray->addObject(dialog5);
+        dialogArray->addObject(dialog6);
+        dialogArray->addObject(dialog7);
+        dialogArray->addObject(dialog8);
 
         auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
         this->addChild(dialog, 100);
         dialog->animateInRandomSide();
 
-        auto orSprite =
-            CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-        orSprite->setPosition(dialog->m_characterSprite->getPosition());
-        dialog->m_mainLayer->addChild(orSprite, 3);
-        dialog->m_characterSprite->setVisible(false);
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
     }
 }
 
@@ -139,11 +142,7 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
         dialog->addToMainScene();
         dialog->animateInRandomSide();
 
-        auto orSprite =
-            CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-        orSprite->setPosition(dialog->m_characterSprite->getPosition());
-        dialog->m_characterSprite->setVisible(false);
-        dialog->m_mainLayer->addChild(orSprite, 1);
+        rl::setDialogObjectIcon(dialog, dialogObj->m_characterFrame);
         return;
     }
 
@@ -156,11 +155,7 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
         dialog->addToMainScene();
         dialog->animateInRandomSide();
 
-        auto orSprite =
-            CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-        orSprite->setPosition(dialog->m_characterSprite->getPosition());
-        dialog->m_characterSprite->setVisible(false);
-        dialog->m_mainLayer->addChild(orSprite, 1);
+        rl::setDialogObjectCustomIcon(dialog, "RL_dialogIcon_00.png"_spr);
         Notification::create("Argon authentication missing")->show();
         return;
     }
@@ -261,7 +256,7 @@ void RLSecretLayer1::startRedeemRequest() {
     auto req = web::WebRequest();
     req.bodyJSON(body);
 
-    if (code == "spire" && !Mod::get()->getSavedValue<bool>("hasCode")) { // if u reading this, bruh
+    if (code == "spire" && !Mod::get()->getSavedValue<bool>("hasCode")) {  // if u reading this, bruh
         Mod::get()->setSavedValue("hasCode", true);
         if (self->m_textLabel) {
             self->m_textLabel->setString("Something has aligned...");
@@ -278,11 +273,7 @@ void RLSecretLayer1::startRedeemRequest() {
         dialog->addToMainScene();
         dialog->animateInRandomSide();
 
-        auto orSprite =
-            CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-        orSprite->setPosition(dialog->m_characterSprite->getPosition());
-        dialog->m_mainLayer->addChild(orSprite, 1);
-        dialog->m_characterSprite->setVisible(false);
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
         self->finishRedeem();
         RLAchievements::onReward("misc_spire");
         return;
@@ -312,11 +303,7 @@ void RLSecretLayer1::startRedeemRequest() {
                 dialog->addToMainScene();
                 dialog->animateInRandomSide();
 
-                auto orSprite =
-                    CCSprite::createWithSpriteFrameName("RL_dialogIconOracle.png"_spr);
-                orSprite->setPosition(dialog->m_characterSprite->getPosition());
-                dialog->m_characterSprite->setVisible(false);
-                dialog->m_mainLayer->addChild(orSprite, 1);
+                rl::setDialogObjectCustomIcon(dialog, "RL_dialogIcon_00.png"_spr);
                 Notification::create("Redeem request failed with invalid response.")->show();
                 log::warn("Redeem request failed with invalid JSON response.");
                 self->finishRedeem();

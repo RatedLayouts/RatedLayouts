@@ -12,7 +12,7 @@ public:
 
 private:
     bool init() override;
-    void updateFromJson(const matjson::Value &json);
+    void updateFromJson(const matjson::Value& json);
     void onInfoButton(CCObject* sender);
     void onDeleteLegacy(CCObject* sender);
 

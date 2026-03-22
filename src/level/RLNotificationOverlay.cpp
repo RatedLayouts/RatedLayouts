@@ -4,204 +4,206 @@
 
 using namespace geode::prelude;
 
-RLNotificationOverlay *RLNotificationOverlay::create() {
-  auto ret = new RLNotificationOverlay();
-  if (ret && ret->init()) {
-    ret->autorelease();
-    return ret;
-  }
-  delete ret;
-  return nullptr;
+RLNotificationOverlay* RLNotificationOverlay::create() {
+    auto ret = new RLNotificationOverlay();
+    if (ret && ret->init()) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
 }
 
 RLNotificationOverlay::~RLNotificationOverlay() {
-  if (m_alertQueue) {
-    m_alertQueue->release();
-    m_alertQueue = nullptr;
-  }
+    if (m_alertQueue) {
+        m_alertQueue->release();
+        m_alertQueue = nullptr;
+    }
 }
 
-void RLNotificationOverlay::pushAlert(CCNode *alert) {
-  if (!alert || !m_alertQueue)
-    return;
+void RLNotificationOverlay::pushAlert(CCNode* alert) {
+    if (!alert || !m_alertQueue)
+        return;
 
-  m_alertQueue->addObject(alert);
+    m_alertQueue->addObject(alert);
 
-  if (!m_isShowingAlert) {
-    showNextAlert();
-  }
+    if (!m_isShowingAlert) {
+        showNextAlert();
+    }
 }
 
 void RLNotificationOverlay::showNextAlert() {
-  if (!m_alertQueue || m_alertQueue->count() == 0) {
-    m_isShowingAlert = false;
-    return;
-  }
+    if (!m_alertQueue || m_alertQueue->count() == 0) {
+        m_isShowingAlert = false;
+        return;
+    }
 
-  m_isShowingAlert = true;
-  FMODAudioEngine::sharedEngine()->playEffect("geode.loader/newNotif00.ogg");
+    m_isShowingAlert = true;
+    FMODAudioEngine::sharedEngine()->playEffect("geode.loader/newNotif00.ogg");
 
-  auto alert = static_cast<CCNode *>(m_alertQueue->objectAtIndex(0));
-  m_alertQueue->removeObjectAtIndex(0);
+    auto alert = static_cast<CCNode*>(m_alertQueue->objectAtIndex(0));
+    m_alertQueue->removeObjectAtIndex(0);
 
-  this->addChild(alert);
+    this->addChild(alert);
 
-  auto winSize = CCDirector::sharedDirector()->getWinSize();
-  auto finalPos = alert->getPosition();
-  alert->setPosition(ccp(-winSize.width, finalPos.y));
-  alert->runAction(CCSequence::create(
-      CCEaseIn::create(CCMoveTo::create(0.30f, finalPos), 2.0f), nullptr));
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    auto finalPos = alert->getPosition();
+    alert->setPosition(ccp(-winSize.width, finalPos.y));
+    alert->runAction(CCSequence::create(
+        CCEaseIn::create(CCMoveTo::create(0.30f, finalPos), 2.0f), nullptr));
 
-  if (auto notifAlert = typeinfo_cast<RLNotificationAlert *>(alert)) {
-    notifAlert->setOnCloseCallback([this]() { this->showNextAlert(); });
-  }
+    if (auto notifAlert = typeinfo_cast<RLNotificationAlert*>(alert)) {
+        notifAlert->setOnCloseCallback([this]() { this->showNextAlert(); });
+    }
 }
 
 bool RLNotificationOverlay::init() {
-  if (!CCLayer::init())
-    return false;
+    if (!CCLayer::init())
+        return false;
 
-  CCSize winSize = CCDirector::sharedDirector()->getWinSize();
+    CCSize winSize = CCDirector::sharedDirector()->getWinSize();
 
-  m_alertQueue = CCArray::create();
-  m_alertQueue->retain();
-  m_isShowingAlert = false;
+    m_alertQueue = CCArray::create();
+    m_alertQueue->retain();
+    m_isShowingAlert = false;
 
-  int latestLevelId =
-      Mod::get()->getSettingValue<int>("latestNotifiedRateLevelId");
-  int latestEventId =
-      Mod::get()->getSettingValue<int>("latestNotifiedRateEventId");
-  float pollingInterval = Mod::get()->getSettingValue<float>("pollingInterval");
+    int latestLevelId =
+        Mod::get()->getSettingValue<int>("latestNotifiedRateLevelId");
+    int latestEventId =
+        Mod::get()->getSettingValue<int>("latestNotifiedRateEventId");
+    float pollingInterval = Mod::get()->getSettingValue<float>("pollingInterval");
 
-  if (pollingInterval <= 0) {
+    if (pollingInterval <= 0) {
+        return true;
+    }
+
+    if (Mod::get()->getSettingValue<bool>("disableNewRate")) {
+        log::info("notifications are disabled");
+        return true;
+    }
+
+    this->schedule(schedule_selector(RLNotificationOverlay::callRateNotification),
+        static_cast<float>(pollingInterval));
+
     return true;
-  }
-
-  if (Mod::get()->getSettingValue<bool>("disableNewRate")) {
-    log::info("notifications are disabled");
-    return true;
-  }
-
-  this->schedule(schedule_selector(RLNotificationOverlay::callRateNotification),
-                 static_cast<float>(pollingInterval));
-
-  return true;
 }
 
 void RLNotificationOverlay::callRateNotification(float dt) {
-  if (Mod::get()->getSettingValue<bool>("disableNewRate")) {
-    log::info("notifications are disabled");
-    return;
-  }
+    if (Mod::get()->getSettingValue<bool>("disableNewRate")) {
+        log::info("notifications are disabled");
+        return;
+    }
 
-  if (PlayLayer::get() && Mod::get()->getSettingValue<bool>("disableNewRateInLevel")) {
-    log::info("notifications are disabled in level");
-    return;
-  }
+    if (PlayLayer::get() && Mod::get()->getSettingValue<bool>("disableNewRateInLevel")) {
+        log::info("notifications are disabled in level");
+        return;
+    }
 
-  auto req = web::WebRequest();
+    auto req = web::WebRequest();
 
-  log::debug("Polling for new rate notifications...");
-  async::spawn(
-      req.get("https://gdrate.arcticwoof.xyz/getNewRate"),
-      [this](web::WebResponse response) {
-        if (!response.ok()) {
-          log::warn("Rate notification fetch failed: {}", response.code());
-          return;
-        }
-
-        auto jsonRes = response.json();
-        if (!jsonRes) {
-          log::warn("Failed to parse JSON response for rate notification");
-          return;
-        }
-
-        auto json = jsonRes.unwrap();
-
-        // Helper struct and parser for nested objects
-        struct RateInfo {
-          bool present = false;
-          int levelId = 0;
-          std::string levelName;
-          int difficulty = 0;
-          int featured = 0;
-          int featuredScore = 0;
-          int accountId = 0;
-          std::string accountName;
-          bool isSuggested = false;
-          bool coinVerified = false;
-          bool isPlatformer = false;
-          std::string eventType;
-        };
-
-        auto parseObj = [](const matjson::Value &obj) {
-          RateInfo r;
-          if (!obj.isObject())
-            return r;
-          r.present = true;
-          r.levelId = obj["levelId"].asInt().unwrapOr(0);
-          r.levelName = obj["levelName"].asString().unwrapOr(std::string(""));
-          r.difficulty = obj["difficulty"].asInt().unwrapOr(0);
-          r.featured = obj["featured"].asInt().unwrapOr(0);
-          r.featuredScore = obj["featuredScore"].asInt().unwrapOr(0);
-          r.accountId = obj["accountId"].asInt().unwrapOr(0);
-          r.accountName =
-              obj["accountName"].asString().unwrapOr(std::string(""));
-          r.isSuggested = obj["isSuggested"].asBool().unwrapOr(false);
-          r.coinVerified = obj["coinVerified"].asBool().unwrapOr(false);
-          r.isPlatformer = obj["isPlatformer"].asBool().unwrapOr(false);
-          r.eventType = obj["eventType"].asString().unwrapOr(std::string(""));
-          return r;
-        };
-
-        RateInfo newRate = parseObj(json["newRate"]);
-        RateInfo newEvent = parseObj(json["newEvent"]);
-
-        // store new rate levelid and event id to avoid duplicate notifications
-        if (!newRate.present && !newEvent.present) {
-          log::debug("No new rate or event notifications");
-          return;
-        }
-        int currentLatestLevelId =
-            Mod::get()->getSavedValue<int>("latestNotifiedRateLevelId");
-        int currentLatestEventId =
-            Mod::get()->getSavedValue<int>("latestNotifiedRateEventId");
-        if (newRate.present) {
-          if (newRate.levelId != currentLatestLevelId) {
-            Ref<RLNotificationOverlay> self = this;
-            if (self) {
-              auto alert = RLNotificationAlert::create(
-                  "New Rated Layout", newRate.levelName, newRate.difficulty,
-                  newRate.featured, newRate.levelId, newRate.accountName,
-                  newRate.isPlatformer, "rate");
-              if (alert) {
-                self->pushAlert(alert);
-                Mod::get()->setSavedValue<int>("latestNotifiedRateLevelId",
-                                               newRate.levelId);
-              }
+    log::debug("Polling for new rate notifications...");
+    async::spawn(
+        req.get("https://gdrate.arcticwoof.xyz/getNewRate"),
+        [this](web::WebResponse response) {
+            if (!response.ok()) {
+                log::warn("Rate notification fetch failed: {}", response.code());
+                return;
             }
-          } else {
-            log::info("No new rate notifications");
-          }
-        }
-        if (newEvent.present) {
-          if (newEvent.levelId != currentLatestEventId) {
-            Ref<RLNotificationOverlay> self = this;
-            if (self) {
-              auto alert = RLNotificationAlert::create(
-                  fmt::format("New {} Layout", newEvent.eventType),
-                  newEvent.levelName, newEvent.difficulty, newEvent.featured,
-                  newEvent.levelId, newEvent.accountName, newEvent.isPlatformer,
-                  newEvent.eventType);
-              if (alert) {
-                self->pushAlert(alert);
-                Mod::get()->setSavedValue<int>("latestNotifiedRateEventId",
-                                               newEvent.levelId);
-              }
+
+            auto jsonRes = response.json();
+            if (!jsonRes) {
+                log::warn("Failed to parse JSON response for rate notification");
+                return;
             }
-          } else {
-            log::info("No new event notifications");
-          }
-        }
-      });
+
+            auto json = jsonRes.unwrap();
+
+            // Helper struct and parser for nested objects
+            struct RateInfo {
+                bool present = false;
+                int levelId = 0;
+                std::string levelName;
+                int difficulty = 0;
+                int featured = 0;
+                int featuredScore = 0;
+                int accountId = 0;
+                std::string accountName;
+                bool isSuggested = false;
+                bool coinVerified = false;
+                bool isPlatformer = false;
+                std::string eventType;
+            };
+
+            auto parseObj = [](const matjson::Value& obj) {
+                RateInfo r;
+                if (!obj.isObject())
+                    return r;
+                r.present = true;
+                r.levelId = obj["levelId"].asInt().unwrapOr(0);
+                r.levelName = obj["levelName"].asString().unwrapOr(std::string(""));
+                r.difficulty = obj["difficulty"].asInt().unwrapOr(0);
+                r.featured = obj["featured"].asInt().unwrapOr(0);
+                r.featuredScore = obj["featuredScore"].asInt().unwrapOr(0);
+                r.accountId = obj["accountId"].asInt().unwrapOr(0);
+                r.accountName =
+                    obj["accountName"].asString().unwrapOr(std::string(""));
+                r.isSuggested = obj["isSuggested"].asBool().unwrapOr(false);
+                r.coinVerified = obj["coinVerified"].asBool().unwrapOr(false);
+                r.isPlatformer = obj["isPlatformer"].asBool().unwrapOr(false);
+                r.eventType = obj["eventType"].asString().unwrapOr(std::string(""));
+                return r;
+            };
+
+            RateInfo newRate = parseObj(json["newRate"]);
+            RateInfo newEvent = parseObj(json["newEvent"]);
+
+            // store new rate levelid and event id to avoid duplicate notifications
+            if (!newRate.present && !newEvent.present) {
+                log::debug("No new rate or event notifications");
+                return;
+            }
+            int currentLatestLevelId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateLevelId");
+            int currentLatestEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateEventId");
+            if (newRate.present) {
+                if (newRate.levelId != currentLatestLevelId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Rated Layout", newRate.levelName, newRate.difficulty, newRate.featured, newRate.levelId, newRate.accountName, newRate.isPlatformer, "rate");
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateLevelId",
+                                newRate.levelId);
+                        }
+                    }
+                } else {
+                    log::info("No new rate notifications");
+                }
+            }
+            if (newEvent.present) {
+                if (newEvent.levelId != currentLatestEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            fmt::format("New {} Layout", newEvent.eventType),
+                            newEvent.levelName,
+                            newEvent.difficulty,
+                            newEvent.featured,
+                            newEvent.levelId,
+                            newEvent.accountName,
+                            newEvent.isPlatformer,
+                            newEvent.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateEventId",
+                                newEvent.levelId);
+                        }
+                    }
+                } else {
+                    log::info("No new event notifications");
+                }
+            }
+        });
 }

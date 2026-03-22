@@ -1,4 +1,5 @@
 #include <Geode/Geode.hpp>
+#include "../include/RLDialogIcons.hpp"
 #include "RLSpireLayer.hpp"
 #include "RLSpireSelectLevelLayer.hpp"
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
@@ -118,14 +119,11 @@ void RLSpireLayer::onSpireClick(CCObject* sender) {
         dialog->addToMainScene();
         dialog->animateInRandomSide();
 
-        auto awSprite =
-            CCSprite::createWithSpriteFrameName("RL_dialogIconAW.png"_spr);
-        awSprite->setPosition(dialog->m_characterSprite->getPosition());
-        dialog->m_mainLayer->addChild(awSprite, 1);
-        dialog->m_characterSprite->removeFromParent();
+        rl::setDialogObjectCustomIcon(dialog, "RL_dialogIconAW.png"_spr);
         return;
     }
 
+    // @geode-ignore(unknown-resource)
     FMODAudioEngine::sharedEngine()->playEffect("door01.ogg");
 
     // entering the spire

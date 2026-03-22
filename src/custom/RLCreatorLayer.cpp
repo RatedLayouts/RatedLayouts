@@ -14,7 +14,7 @@
 #include "../level/RLNotificationOverlay.hpp"
 #include "../level/RLSelectSends.hpp"
 #include "Geode/cocos/sprite_nodes/CCSprite.h"
-#include "RLAchievements.hpp"
+#include "../include/RLAchievements.hpp"
 #include "RLAchievementsPopup.hpp"
 #include "RLAddDialogue.hpp"
 #include "RLAnnouncementPopup.hpp"
