@@ -30,12 +30,6 @@ extern const std::string epicPString =
     "74902a0a1a0a1a0a3a1a0a0a0.258824a0a0.87451a0a1a0a1a0a0.3a0a0."
     "2a0a0a0a0a0a0a0a0a2a1a0a0a1a27a0a0a0a0a0a0a0a0a0a0a0a0a0a0";
 
-const std::string legendaryTitlePString =
-    "30,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
-    "1a90a180a8a0a100a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
-    "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
-    "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1";
-
 // most of the code here are just repositioning the stars and coins to fit the
 // new difficulty icon its very messy, yes but it just works do please clean up
 // my messy code pls
@@ -1061,11 +1055,16 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                 if (auto existing = layerRef->getChildByID("title-particles")) {
                                     existing->removeFromParent();
                                 }
-
-                                const std::string& pString = legendaryTitlePString;
-                                if (!pString.empty()) {
+                                const std::string& legendaryTitlePString =
+                                    fmt::format(
+                                        "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
+                                        "1a90a180a8a0a{}a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
+                                        "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
+                                        "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1",
+                                        titleLabel->getContentSize().width / 2);
+                                if (!legendaryTitlePString.empty()) {
                                     ParticleStruct pStruct;
-                                    GameToolbox::particleStringToStruct(pString, pStruct);
+                                    GameToolbox::particleStringToStruct(legendaryTitlePString, pStruct);
                                     CCParticleSystemQuad* particle =
                                         GameToolbox::particleFromStruct(pStruct, nullptr, false);
                                     if (particle) {
@@ -1654,10 +1653,16 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                     existing->removeFromParent();
                                 }
 
-                                const std::string& pString = legendaryTitlePString;
-                                if (!pString.empty()) {
+                                const std::string& legendaryTitlePString =
+                                    fmt::format(
+                                        "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
+                                        "1a90a180a8a0a{}a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
+                                        "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
+                                        "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1",
+                                        titleLabel->getContentSize().width / 2);
+                                if (!legendaryTitlePString.empty()) {
                                     ParticleStruct pStruct;
-                                    GameToolbox::particleStringToStruct(pString, pStruct);
+                                    GameToolbox::particleStringToStruct(legendaryTitlePString, pStruct);
                                     CCParticleSystemQuad* particle =
                                         GameToolbox::particleFromStruct(pStruct, nullptr, false);
                                     if (particle) {

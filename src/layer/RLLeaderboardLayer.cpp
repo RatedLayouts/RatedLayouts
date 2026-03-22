@@ -62,7 +62,7 @@ bool RLLeaderboardLayer::init() {
 
         auto spinner = LoadingSpinner::create(100.f);
         spinner->setPosition(contentLayer->getContentSize() / 2);
-        listLayer->addChild(spinner);
+        m_userListNode->addChild(spinner);
         m_spinner = spinner;
     }
 
