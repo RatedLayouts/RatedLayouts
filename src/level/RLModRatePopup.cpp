@@ -1,4 +1,5 @@
 #include "RLModRatePopup.hpp"
+#include "RLModRatePayloadBuilder.hpp"
 #include "Geode/ui/Popup.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
@@ -34,6 +35,214 @@ static std::string getResponseFailMessage(web::WebResponse const& response,
     if (!message.empty())
         return message;
     return fallback;
+}
+
+static std::string getDifficultyName(int suggestDifficulty) {
+    switch (suggestDifficulty) {
+        case 1:
+            return "Auto";
+        case 2:
+            return "Easy";
+        case 3:
+            return "Normal";
+        case 4:
+        case 5:
+            return "Hard";
+        case 6:
+        case 7:
+            return "Harder";
+        case 8:
+        case 9:
+            return "Insane";
+        case 10:
+            return "Easy Demon";
+        case 15:
+            return "Medium Demon";
+        case 20:
+            return "Hard Demon";
+        case 25:
+            return "Insane Demon";
+        case 30:
+            return "Extreme Demon";
+        default:
+            return "NA";
+    }
+}
+
+static std::string getFeaturedName(int suggestFeatured) {
+    switch (suggestFeatured) {
+        case 0:
+            return "Base";
+        case 1:
+            return "Featured";
+        case 2:
+            return "Epic";
+        case 3:
+            return "Legendary";
+        default:
+            return "NA";
+    }
+}
+
+bool RLModRatePopup::ensureToken(std::string &token, UploadActionPopup* popup,
+    const char* errorMessage) {
+    token = Mod::get()->getSavedValue<std::string>("argon_token");
+    if (token.empty()) {
+        log::error("Failed to get user token");
+        if (popup)
+            popup->showFailMessage(errorMessage);
+        return false;
+    }
+    return true;
+}
+
+bool RLModRatePopup::validateDifficultyOrRating(UploadActionPopup* popup) {
+    if (m_isRejected)
+        return true;
+
+    if (m_role == PopupRole::Dev) {
+        std::string diffStr;
+        if (m_difficultyInput)
+            diffStr = std::string(m_difficultyInput->getString());
+        if (diffStr.empty()) {
+            popup->showFailMessage("Enter a difficulty first!");
+            return false;
+        }
+        return true;
+    }
+
+    if (m_selectedRating == -1) {
+        popup->showFailMessage("Select a rating first!");
+        return false;
+    }
+
+    return true;
+}
+
+int RLModRatePopup::determineFeaturedValue() const {
+    if (m_role == PopupRole::Dev && m_featuredValueInput) {
+        auto fv = m_featuredValueInput->getString();
+        if (!fv.empty()) {
+            return numFromString<int>(fv).unwrapOr(0);
+        }
+        return 0;
+    }
+
+    if (m_isLegendary)
+        return 3;
+    if (m_isEpicFeatured)
+        return 2;
+    if (m_isFeatured)
+        return 1;
+    return 0;
+}
+
+void RLModRatePopup::applyFeaturedScore(matjson::Value &outBody) const {
+    if (!m_featuredScoreInput)
+        return;
+    auto scoreStr = m_featuredScoreInput->getString();
+    if (scoreStr.empty())
+        return;
+    if (m_isFeatured || m_isEpicFeatured || m_isLegendary ||
+        m_role == PopupRole::Dev) {
+        int score = numFromString<int>(scoreStr).unwrapOr(0);
+        outBody["featuredScore"] = score;
+    }
+}
+
+void RLModRatePopup::applyVerifiedFlag(matjson::Value& outBody) const {
+    if (m_verifiedToggleItem) {
+        outBody["verified"] = m_verifiedToggleItem->isToggled();
+    }
+}
+
+void RLModRatePopup::applyDifficultyField(matjson::Value &outBody) {
+    if (m_isRejected) {
+        outBody["isRejected"] = true;
+        return;
+    }
+
+    if (m_role == PopupRole::Dev && m_difficultyInput) {
+        auto diffStr = m_difficultyInput->getString();
+        int diff = numFromString<int>(diffStr).unwrapOr(0);
+        outBody["difficulty"] = diff;
+        updateDifficultySprite(diff);
+    } else {
+        outBody["difficulty"] = m_selectedRating;
+    }
+
+    if (m_role == PopupRole::Dev && m_silentToggleItem &&
+        m_silentToggleItem->isToggled()) {
+        outBody["silent"] = true;
+    }
+}
+
+void RLModRatePopup::clearRejectState() {
+    if (!m_isRejected)
+        return;
+    m_isRejected = false;
+    if (m_normalButtonsContainer) {
+        if (auto rejectBtn = m_normalButtonsContainer->getChildByID("rating-button-reject")) {
+            auto rejectBtnItem = static_cast<CCMenuItemSpriteExtra*>(rejectBtn);
+            auto rejectBg = CCSprite::create("GJ_button_04.png");
+            auto rejectLabel = CCLabelBMFont::create("-", "bigFont.fnt");
+            rejectLabel->setScale(0.75f);
+            rejectLabel->setPosition(rejectBg->getContentSize() / 2);
+            rejectBg->addChild(rejectLabel);
+            rejectBg->setID("button-bg-reject");
+            rejectBtnItem->setNormalImage(rejectBg);
+        }
+    }
+
+    if (m_role == PopupRole::Admin)
+        setSubmitButtonEnabled(true);
+}
+
+void RLModRatePopup::setSubmitButtonEnabled(bool enabled) {
+    if (!m_submitButtonItem)
+        return;
+    std::string spriteName = enabled ? "GJ_button_01.png" : "GJ_button_04.png";
+    auto enabledSpr = ButtonSprite::create("Rate", 80, true, "bigFont.fnt", spriteName.c_str(), 30.f, 1.f);
+    m_submitButtonItem->setNormalImage(enabledSpr);
+    m_submitButtonItem->setEnabled(enabled);
+}
+
+void RLModRatePopup::synchronizeCoinState() {
+    if (m_isFeatured)
+        m_coinCycleState = 1;
+    else if (m_isEpicFeatured)
+        m_coinCycleState = 2;
+    else if (m_isLegendary)
+        m_coinCycleState = 3;
+    else
+        m_coinCycleState = 0;
+}
+
+void RLModRatePopup::removeDifficultyCoin(const char* id) {
+    if (!m_difficultyContainer)
+        return;
+    if (auto coin = m_difficultyContainer->getChildByID(id))
+        coin->removeFromParent();
+}
+
+void RLModRatePopup::addDifficultyCoin(const char* spriteName, const char* id) {
+    if (!m_difficultyContainer)
+        return;
+    auto coin = CCSprite::createWithSpriteFrameName(spriteName);
+    if (!coin)
+        return;
+    coin->setPosition({-3, -1});
+    coin->setScale(1.2f);
+    coin->setID(id);
+    m_difficultyContainer->addChild(coin, -1);
+}
+
+void RLModRatePopup::setRejectButtonVisible(bool visible) {
+    if (!m_normalButtonsContainer)
+        return;
+    if (auto rejectBtn = m_normalButtonsContainer->getChildByID("rating-button-reject")) {
+        rejectBtn->setVisible(visible);
+    }
 }
 
 bool RLModRatePopup::init() {
@@ -232,66 +441,8 @@ void RLModRatePopup::onInfoButton(CCObject* sender) {
             bool isBanned = json["isBanned"].asBool().unwrapOrDefault();
             bool creatorBanned = json["creatorBanned"].asBool().unwrapOrDefault();
 
-            std::string difficultyName;
-            switch (suggestDifficulty) {
-                case 1:
-                    difficultyName = "Auto";
-                    break;
-                case 2:
-                    difficultyName = "Easy";
-                    break;
-                case 3:
-                    difficultyName = "Normal";
-                    break;
-                case 4:
-                case 5:
-                    difficultyName = "Hard";
-                    break;
-                case 6:
-                case 7:
-                    difficultyName = "Harder";
-                    break;
-                case 8:
-                case 9:
-                    difficultyName = "Insane";
-                    break;
-                case 10:
-                    difficultyName = "Easy Demon";
-                    break;
-                case 15:
-                    difficultyName = "Medium Demon";
-
-                    break;
-                case 20:
-                    difficultyName = "Hard Demon";
-                    break;
-                case 25:
-                    difficultyName = "Insane Demon";
-                    break;
-                case 30:
-                    difficultyName = "Extreme Demon";
-                    break;
-                default:
-                    difficultyName = "NA";
-                    break;
-            }
-            std::string featuredName;
-            switch (suggestFeatured) {
-                case 0:
-                    featuredName = "Base";
-                    break;
-                case 1:
-                    featuredName = "Featured";
-                    break;
-                case 2:
-                    featuredName = "Epic";
-                    break;
-                case 3:
-                    featuredName = "Legendary";
-                    break;
-                default:
-                    featuredName = "NA";
-            }
+            std::string difficultyName = getDifficultyName(suggestDifficulty);
+            std::string featuredName = getFeaturedName(suggestFeatured);
             std::string suggestDifficultyStr =
                 suggestDifficulty > 0
                     ? fmt::format("{} ({})", difficultyName, suggestDifficulty)
@@ -359,186 +510,13 @@ void RLModRatePopup::onInfoButton(CCObject* sender) {
 // an error message if submission should be aborted.
 bool RLModRatePopup::prepareRatePayload(matjson::Value& outBody,
     UploadActionPopup* popup) {
-    // token
-    auto token = Mod::get()->getSavedValue<std::string>("argon_token");
-    if (token.empty()) {
-        log::error("Failed to get user token");
-        popup->showFailMessage("Token not found!");
-        return false;
-    }
-
-    if (!m_isRejected) {
-        if (m_role == PopupRole::Dev) {
-            std::string diffStr;
-            if (m_difficultyInput)
-                diffStr = std::string(m_difficultyInput->getString());
-            if (diffStr.empty()) {
-                popup->showFailMessage("Enter a difficulty first!");
-                return false;
-            }
-        } else {
-            if (m_selectedRating == -1 && m_role != PopupRole::Dev) {
-                popup->showFailMessage("Select a rating first!");
-                return false;
-            }
-        }
-    }
-
-    outBody = matjson::Value::object();
-    outBody["accountId"] = GJAccountManager::get()->m_accountID;
-    outBody["argonToken"] = token;
-    outBody["levelId"] = m_levelId;
-    outBody["levelOwnerId"] = m_accountId;
-    outBody["isPlat"] = m_level->isPlatformer();
-
-    int featured = 0;
-    if (m_role == PopupRole::Dev && m_featuredValueInput) {
-        auto fv = m_featuredValueInput->getString();
-        if (!fv.empty()) {
-            featured = numFromString<int>(fv).unwrapOr(0);
-        }
-    } else {
-        if (m_isFeatured) {
-            featured = 1;
-        } else if (m_isEpicFeatured) {
-            featured = 2;
-        } else if (m_isLegendary) {
-            featured = 3;
-        }
-    }
-    outBody["featured"] = featured;
-
-    if (m_notesInput) {
-        auto noteStr = m_notesInput->getString();
-        if (!noteStr.empty()) {
-            outBody["note"] = std::string(noteStr);
-        }
-    }
-
-    if (m_isRejected) {
-        outBody["isRejected"] = true;
-    } else {
-        if (m_role == PopupRole::Dev && m_difficultyInput) {
-            auto diffStr = m_difficultyInput->getString();
-            int diff = numFromString<int>(diffStr).unwrapOr(0);
-            outBody["difficulty"] = diff;
-            updateDifficultySprite(diff);
-        } else {
-            outBody["difficulty"] = m_selectedRating;
-        }
-
-        if (m_featuredScoreInput) {
-            auto scoreStr = m_featuredScoreInput->getString();
-            if (!scoreStr.empty() &&
-                (m_isFeatured || m_isEpicFeatured || m_isLegendary ||
-                    m_role == PopupRole::Dev)) {
-                int score = numFromString<int>(scoreStr).unwrapOr(0);
-                outBody["featuredScore"] = score;
-            }
-        }
-
-        if (m_role == PopupRole::Dev && m_silentToggleItem &&
-            m_silentToggleItem->isToggled()) {
-            outBody["silent"] = true;
-        }
-
-        if (m_verifiedToggleItem) {
-            outBody["verified"] = m_verifiedToggleItem->isToggled();
-        }
-    }
-
-    return true;
+    return RLModRatePayloadBuilder(this, popup, false).build(outBody);
 }
 
 // similar helper for suggest payload
 bool RLModRatePopup::prepareSuggestPayload(matjson::Value& outBody,
     UploadActionPopup* popup) {
-    // token
-    auto token = Mod::get()->getSavedValue<std::string>("argon_token");
-    if (token.empty()) {
-        log::error("Failed to get user token");
-        popup->showFailMessage("Token not found");
-        return false;
-    }
-
-    if (!m_isRejected) {
-        if (m_role == PopupRole::Dev) {
-            std::string diffStr;
-            if (m_difficultyInput)
-                diffStr = std::string(m_difficultyInput->getString());
-            if (diffStr.empty()) {
-                popup->showFailMessage("Enter a difficulty first!");
-                return false;
-            }
-        } else {
-            if (m_selectedRating == -1) {
-                popup->showFailMessage("Select a rating first!");
-                return false;
-            }
-        }
-    }
-
-    outBody = matjson::Value::object();
-    outBody["accountId"] = GJAccountManager::get()->m_accountID;
-    outBody["argonToken"] = token;
-    outBody["levelId"] = m_levelId;
-    outBody["levelOwnerId"] = m_accountId;
-    outBody["isPlat"] = (m_level && m_level->isPlatformer());
-    outBody["suggest"] = true;
-
-    int featured = 0;
-    if (m_role == PopupRole::Dev && m_featuredValueInput) {
-        auto fv = m_featuredValueInput->getString();
-        if (!fv.empty()) {
-            featured = numFromString<int>(fv).unwrapOr(0);
-        }
-    } else {
-        if (m_isFeatured) {
-            featured = 1;
-        } else if (m_isEpicFeatured) {
-            featured = 2;
-        } else if (m_isLegendary) {
-            featured = 3;
-        }
-    }
-    outBody["featured"] = featured;
-
-    if (m_notesInput) {
-        auto noteStr = m_notesInput->getString();
-        if (!noteStr.empty()) {
-            outBody["note"] = std::string(noteStr);
-        }
-    }
-
-    if (m_featuredScoreInput) {
-        auto scoreStr = m_featuredScoreInput->getString();
-        if (!scoreStr.empty() &&
-            (m_isFeatured || m_isEpicFeatured || m_isLegendary ||
-                m_role == PopupRole::Dev)) {
-            int score = numFromString<int>(scoreStr).unwrapOr(0);
-            outBody["featuredScore"] = score;
-        }
-    }
-
-    if (m_isRejected) {
-        outBody["isRejected"] = true;
-    } else {
-        if (m_role == PopupRole::Dev && m_difficultyInput) {
-            auto diffStr = m_difficultyInput->getString();
-            int diff = numFromString<int>(diffStr).unwrapOr(0);
-            outBody["difficulty"] = diff;
-            updateDifficultySprite(diff);
-        } else {
-            outBody["difficulty"] = m_selectedRating;
-        }
-
-        if (m_role == PopupRole::Dev && m_silentToggleItem &&
-            m_silentToggleItem->isToggled()) {
-            outBody["silent"] = true;
-        }
-    }
-
-    return true;
+    return RLModRatePayloadBuilder(this, popup, true).build(outBody);
 }
 
 // initialize the rating / demon buttons and containers
@@ -1249,30 +1227,7 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
             log::info("Unrate button clicked");
 
             // clear reject state when admin uses unrate
-            if (m_isRejected) {
-                m_isRejected = false;
-                auto rejectBtn =
-                    m_normalButtonsContainer->getChildByID("rating-button-reject");
-                if (rejectBtn) {
-                    auto rejectBtnItem =
-                        static_cast<CCMenuItemSpriteExtra*>(rejectBtn);
-                    auto rejectBg =
-                        CCSprite::createWithSpriteFrameName("GJ_button_04.png");
-                    auto rejectLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-                    rejectLabel->setScale(0.75f);
-                    rejectLabel->setPosition(rejectBg->getContentSize() / 2);
-                    rejectBg->addChild(rejectLabel);
-                    rejectBg->setID("button-bg-reject");
-                    rejectBtnItem->setNormalImage(rejectBg);
-                }
-                // re-enable rate for admin when reject is cleared
-                if (m_role == PopupRole::Admin && m_submitButtonItem) {
-                    auto enabledSpr =
-                        ButtonSprite::create("Rate", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
-                    m_submitButtonItem->setNormalImage(enabledSpr);
-                    m_submitButtonItem->setEnabled(true);
-                }
-            }
+            clearRejectState();
 
             // Get argon token
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
@@ -1609,22 +1564,7 @@ void RLModRatePopup::onToggleLegendary(CCObject* sender) {
         m_coinCycleState = 0;
     }
 
-    // clear reject if set
-    if (m_isRejected) {
-        m_isRejected = false;
-        auto rejectBtn =
-            m_normalButtonsContainer->getChildByID("rating-button-reject");
-        if (rejectBtn) {
-            auto rejectBtnItem = static_cast<CCMenuItemSpriteExtra*>(rejectBtn);
-            auto rejectBg = CCSprite::create("GJ_button_04.png");
-            auto rejectLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-            rejectLabel->setScale(0.75f);
-            rejectLabel->setPosition(rejectBg->getContentSize() / 2);
-            rejectBg->addChild(rejectLabel);
-            rejectBg->setID("button-bg-reject");
-            rejectBtnItem->setNormalImage(rejectBg);
-        }
-    }
+    clearRejectState();
 
     // Only touch preview coins for non-Dev users
     if (m_role != PopupRole::Dev) {
@@ -1707,22 +1647,7 @@ void RLModRatePopup::onToggleEpicFeatured(CCObject* sender) {
         m_coinCycleState = 0;
     }
 
-    // clear reject if set
-    if (m_isRejected) {
-        m_isRejected = false;
-        auto rejectBtn =
-            m_normalButtonsContainer->getChildByID("rating-button-reject");
-        if (rejectBtn) {
-            auto rejectBtnItem = static_cast<CCMenuItemSpriteExtra*>(rejectBtn);
-            auto rejectBg = CCSprite::create("GJ_button_04.png");
-            auto rejectLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-            rejectLabel->setScale(0.75f);
-            rejectLabel->setPosition(rejectBg->getContentSize() / 2);
-            rejectBg->addChild(rejectLabel);
-            rejectBg->setID("button-bg-reject");
-            rejectBtnItem->setNormalImage(rejectBg);
-        }
-    }
+    clearRejectState();
 
     // Only touch preview coins for non-Dev users
     if (m_role != PopupRole::Dev) {
@@ -1928,18 +1853,15 @@ void RLModRatePopup::updateDifficultySprite(int rating) {
 }
 
 void RLModRatePopup::updateDifficultyCoinPreview() {
-    if (m_role == PopupRole::Dev)
-        return;
-    if (!m_difficultyContainer)
+    if (m_role == PopupRole::Dev || !m_difficultyContainer)
         return;
 
-    // hide reject button and show score input for cycle state >0 (admin only)
     auto rejectBtn = m_normalButtonsContainer
-                         ? m_normalButtonsContainer->getChildByID(
-                               "rating-button-reject")
+                         ? m_normalButtonsContainer->getChildByID("rating-button-reject")
                          : nullptr;
     int userRole = (m_role == PopupRole::Admin) ? 2
                                                 : ((m_role == PopupRole::Mod) ? 1 : 0);
+
     if (m_coinCycleState > 0) {
         if (rejectBtn)
             rejectBtn->setVisible(false);
@@ -1952,45 +1874,20 @@ void RLModRatePopup::updateDifficultyCoinPreview() {
             m_featuredScoreInput->setVisible(false);
     }
 
-    auto existingCoin = m_difficultyContainer->getChildByID("featured-coin");
-    if (existingCoin)
-        existingCoin->removeFromParent();
-    auto existingEpicCoin =
-        m_difficultyContainer->getChildByID("epic-featured-coin");
-    if (existingEpicCoin)
-        existingEpicCoin->removeFromParent();
-    auto existingLegendaryCoin =
-        m_difficultyContainer->getChildByID("legendary-featured-coin");
-    if (existingLegendaryCoin)
-        existingLegendaryCoin->removeFromParent();
+    removeDifficultyCoin("featured-coin");
+    removeDifficultyCoin("epic-featured-coin");
+    removeDifficultyCoin("legendary-featured-coin");
 
     switch (m_coinCycleState) {
-        case 1: {
-            auto coin = CCSprite::createWithSpriteFrameName("RL_featuredCoin.png"_spr);
-            coin->setPosition({-3, -1});
-            coin->setScale(1.2f);
-            coin->setID("featured-coin");
-            m_difficultyContainer->addChild(coin, -1);
+        case 1:
+            addDifficultyCoin("RL_featuredCoin.png"_spr, "featured-coin");
             break;
-        }
-        case 2: {
-            auto coin =
-                CCSprite::createWithSpriteFrameName("RL_epicFeaturedCoin.png"_spr);
-            coin->setPosition({-3, -1});
-            coin->setScale(1.2f);
-            coin->setID("epic-featured-coin");
-            m_difficultyContainer->addChild(coin, -1);
+        case 2:
+            addDifficultyCoin("RL_epicFeaturedCoin.png"_spr, "epic-featured-coin");
             break;
-        }
-        case 3: {
-            auto coin =
-                CCSprite::createWithSpriteFrameName("RL_legendaryFeaturedCoin.png"_spr);
-            coin->setPosition({-3, -1});
-            coin->setScale(1.2f);
-            coin->setID("legendary-featured-coin");
-            m_difficultyContainer->addChild(coin, -1);
+        case 3:
+            addDifficultyCoin("RL_legendaryFeaturedCoin.png"_spr, "legendary-featured-coin");
             break;
-        }
         default:
             break;
     }
@@ -2005,25 +1902,7 @@ void RLModRatePopup::onDifficultySpriteClicked(CCObject* sender) {
 
     // if rejecting previously, clear it
     if (m_isRejected && m_coinCycleState > 0) {
-        m_isRejected = false;
-        if (m_normalButtonsContainer) {
-            if (auto rejectBtn =
-                    m_normalButtonsContainer->getChildByID("rating-button-reject")) {
-                auto rejectBtnItem = static_cast<CCMenuItemSpriteExtra*>(rejectBtn);
-                auto rejectBg = CCSprite::create("GJ_button_04.png");
-                auto rejectLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-                rejectLabel->setScale(0.75f);
-                rejectLabel->setPosition(rejectBg->getContentSize() / 2);
-                rejectBg->addChild(rejectLabel);
-                rejectBg->setID("button-bg-reject");
-                rejectBtnItem->setNormalImage(rejectBg);
-            }
-        }
-        if (m_role == PopupRole::Admin && m_submitButtonItem) {
-            auto enabledSpr = ButtonSprite::create("Rate", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
-            m_submitButtonItem->setNormalImage(enabledSpr);
-            m_submitButtonItem->setEnabled(true);
-        }
+        clearRejectState();
     }
 
     updateDifficultyCoinPreview();

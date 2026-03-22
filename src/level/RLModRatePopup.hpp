@@ -5,6 +5,7 @@
 using namespace geode::prelude;
 
 class RLModRatePopup : public geode::Popup {
+    friend class RLModRatePayloadBuilder;
 public:
     enum class PopupRole {
         Mod,
@@ -92,4 +93,18 @@ private:
     void onDifficultySpriteClicked(CCObject* sender);
     void updateDifficultySprite(int rating);
     void updateDifficultyCoinPreview();
+
+    // helpers ig
+    bool ensureToken(std::string &token, UploadActionPopup* popup, const char* errorMessage = "Token not found!");
+    bool validateDifficultyOrRating(UploadActionPopup* popup);
+    int determineFeaturedValue() const;
+    void applyFeaturedScore(matjson::Value &outBody) const;
+    void applyVerifiedFlag(matjson::Value& outBody) const;
+    void applyDifficultyField(matjson::Value &outBody);
+    void clearRejectState();
+    void setSubmitButtonEnabled(bool enabled);
+    void synchronizeCoinState();
+    void removeDifficultyCoin(const char* id);
+    void addDifficultyCoin(const char* spriteName, const char* id);
+    void setRejectButtonVisible(bool visible);
 };
