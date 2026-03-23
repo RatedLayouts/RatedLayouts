@@ -1,17 +1,10 @@
 #include "RLUserLevelControl.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include "Geode/cocos/label_nodes/CCLabelBMFont.h"
 #include <Geode/Geode.hpp>
 #include <fmt/format.h>
 
 using namespace geode::prelude;
-
-static std::string getResponseFailMessage(web::WebResponse const& response,
-    std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty())
-        return message;
-    return fallback;
-}
 
 RLUserLevelControl* RLUserLevelControl::create(int accountId) {
     auto ret = new RLUserLevelControl();
@@ -107,7 +100,7 @@ void RLUserLevelControl::onRemoveLevel(CCObject* sender) {
 
             if (!res.ok()) {
                 upopup->showFailMessage(
-                    getResponseFailMessage(res, "Failed to remove level"));
+                    rl::getResponseFailMessage(res, "Failed to remove level"));
                 return;
             }
 

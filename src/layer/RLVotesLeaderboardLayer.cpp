@@ -1,4 +1,5 @@
 #include "RLVotesLeaderboardLayer.hpp"
+#include "../include/RLLayerBackground.hpp"
 #include <cue/RepeatingBackground.hpp>
 #include <cue/ListNode.hpp>
 
@@ -9,22 +10,7 @@ bool RLVotesLeaderboardLayer::init() {
     auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     // create if moving bg disabled
-    if (Mod::get()->getSettingValue<bool>("disableBackground") == true) {
-        auto bg = createLayerBG();
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-    } else {
-        auto value = Mod::get()->getSettingValue<int>("backgroundType");
-        std::string bgIndex = (value >= 1 && value <= 9)
-                                  ? ("0" + numToString(value))
-                                  : numToString(value);
-        std::string bgName = "game_bg_" + bgIndex + "_001.png";
-        auto bg = cue::RepeatingBackground::create(bgName.c_str(), 1.f, cue::RepeatMode::X);
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-    }
+    rl::addLayerBackground(this);
 
     addSideArt(this, SideArt::All, SideArtStyle::Layer, false);
 

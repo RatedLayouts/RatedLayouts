@@ -6,6 +6,8 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CommentCell.hpp>
 
+#include "../include/RLConstants.hpp"
+
 using namespace geode::prelude;
 
 class $modify(RLCommentCell, CommentCell) {
@@ -61,7 +63,7 @@ class $modify(RLCommentCell, CommentCell) {
 
         ccColor3B color = ccWHITE;  // default white
         // choose highest-priority role for color
-        if (accountId == 7689052) {
+        if (accountId == rl::DEV_ACCOUNT_ID) {
             color = {150, 255, 255};  // ArcticWoof cyan
         } else if (m_fields->isClassicAdmin) {
             color = {255, 170, 170};  // bright red
@@ -395,7 +397,7 @@ class $modify(RLCommentCell, CommentCell) {
                 CCSprite::createWithSpriteFrameName("RL_badgeBooster.png"_spr), 4, "rl-comment-booster-badge:4");
         }
 
-        if (accountId == 7689052) {  // ArcticWoof
+        if (accountId == rl::DEV_ACCOUNT_ID) {  // ArcticWoof
             addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr),
                 10,
                 "rl-comment-owner-badge:1");

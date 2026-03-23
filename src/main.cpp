@@ -4,6 +4,7 @@
 #include "Geode/ui/Popup.hpp"
 #include "Geode/utils/general.hpp"
 #include "include/RLAchievements.hpp"
+#include "include/RLNetworkUtils.hpp"
 #include <Geode/DefaultInclude.hpp>
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FLAlertLayer.hpp>
@@ -13,42 +14,6 @@
 #include <argon/argon.hpp>
 
 using namespace geode::prelude;
-
-static std::string getResponseFailMessage(web::WebResponse const& response,
-    std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty())
-        return message;
-    return fallback;
-}
-
-// $execute {
-//   // clear old cache on game start to prevent stale data issues
-//   auto saveDir = dirs::getModsSaveDir();
-//   auto userCache = saveDir / "user_role_cache.json";
-//   auto levelCache = saveDir / "level_ratings_cache.json";
-
-//   bool deletedAny = false;
-
-//   auto userCachePathStr = geode::utils::string::pathToString(userCache);
-//   auto levelCachePathStr = geode::utils::string::pathToString(levelCache);
-
-//   if (utils::file::readString(userCachePathStr)) {
-//     auto writeRes = utils::file::writeString(userCachePathStr, "{}");
-//     if (!writeRes) {
-//       log::warn("Failed to clear user cache file: {}", userCachePathStr);
-//     }
-//     deletedAny = true;
-//   }
-//   if (utils::file::readString(levelCachePathStr)) {
-//     auto writeRes = utils::file::writeString(levelCachePathStr, "{}");
-//     if (!writeRes) {
-//       log::warn("Failed to clear level cache file: {}", levelCachePathStr);
-//     }
-//     deletedAny = true;
-//     log::debug("cleared cache files");
-//   }
-// };
 
 class $modify(RLSupportLayer, SupportLayer) {
     struct Fields {
@@ -139,7 +104,7 @@ class $modify(RLSupportLayer, SupportLayer) {
                             if (!response.ok()) {
                                 log::warn("Server returned non-ok status: {}",
                                     response.code());
-                                m_uploadPopup->showFailMessage(getResponseFailMessage(
+                                m_uploadPopup->showFailMessage(rl::getResponseFailMessage(
                                     response, "Failed! Try again later."));
                                 return;
                             }

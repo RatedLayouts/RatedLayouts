@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <charconv>
 
+#include "../include/RLLayerBackground.hpp"
 #include <cue/RepeatingBackground.hpp>
 
 using namespace geode::prelude;
@@ -28,23 +29,7 @@ RLLevelBrowserLayer* RLLevelBrowserLayer::create(Mode mode,
 }
 
 void RLLevelBrowserLayer::setupBackground() {
-    if (Mod::get()->getSettingValue<bool>("disableBackground") == true) {
-        auto bg = createLayerBG();
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-        return;
-    }
-
-    auto value = Mod::get()->getSettingValue<int>("backgroundType");
-    std::string bgIndex = (value >= 1 && value <= 9)
-                              ? ("0" + numToString(value))
-                              : numToString(value);
-    std::string bgName = "game_bg_" + bgIndex + "_001.png";
-    auto bg = cue::RepeatingBackground::create(bgName.c_str(), 1.f, cue::RepeatMode::X);
-    bg->setColor(
-        Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-    addChild(bg, -1);
+    rl::addLayerBackground(this);
 }
 
 int RLLevelBrowserLayer::computeModeType() const {
@@ -253,23 +238,7 @@ bool RLLevelBrowserLayer::init(GJSearchObject* object) {
 
     m_searchObject = object;
 
-    // create if moving bg disabled
-    if (Mod::get()->getSettingValue<bool>("disableBackground") == true) {
-        auto bg = createLayerBG();
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-    } else {
-        auto value = Mod::get()->getSettingValue<int>("backgroundType");
-        std::string bgIndex = (value >= 1 && value <= 9)
-                                  ? ("0" + numToString(value))
-                                  : numToString(value);
-        std::string bgName = "game_bg_" + bgIndex + "_001.png";
-        auto bg = cue::RepeatingBackground::create(bgName.c_str(), 1.f, cue::RepeatMode::X);
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-    }
+    setupBackground();
 
     auto winSize = CCDirector::sharedDirector()->getWinSize();
     const char* title = m_title.empty() ? "Rated Layouts" : m_title.c_str();

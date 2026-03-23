@@ -15,6 +15,8 @@
 #include "../level/RLSelectSends.hpp"
 #include "Geode/cocos/sprite_nodes/CCSprite.h"
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
+#include "../include/RLLayerBackground.hpp"
 #include "RLAchievementsPopup.hpp"
 #include "RLAddDialogue.hpp"
 #include "RLAnnouncementPopup.hpp"
@@ -27,8 +29,6 @@
 #include "RLShopLayer.hpp"
 #include "RLSpireLayer.hpp"
 #include "ccTypes.h"
-
-const int DEV_ACCOUNTID = 7689052;
 
 struct ModInfo {
     std::string message;
@@ -108,22 +108,7 @@ bool RLCreatorLayer::init() {
     }
 
     // create if moving bg disabled
-    if (Mod::get()->getSettingValue<bool>("disableBackground") == true) {
-        auto bg = createLayerBG();
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-    } else {
-        auto value = Mod::get()->getSettingValue<int>("backgroundType");
-        std::string bgIndex = (value >= 1 && value <= 9)
-                                  ? ("0" + numToString(value))
-                                  : numToString(value);
-        std::string bgName = "game_bg_" + bgIndex + "_001.png";
-        auto bg = cue::RepeatingBackground::create(bgName.c_str(), 1.f, cue::RepeatMode::X);
-        bg->setColor(
-            Mod::get()->getSettingValue<cocos2d::ccColor3B>("rgbBackground"));
-        addChild(bg, -1);
-    }
+    rl::addLayerBackground(this);
 
     addSideArt(this, SideArt::All, SideArtStyle::LayerGray, false);
 
@@ -694,7 +679,7 @@ void RLCreatorLayer::onSentLayouts(CCObject* sender) {
         Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
         Mod::get()->getSavedValue<bool>("isClassicMod") ||
         Mod::get()->getSavedValue<bool>("isPlatMod") ||
-        GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
+        GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
         auto selectPopup = RLSelectSends::create();
         selectPopup->show();
         return;

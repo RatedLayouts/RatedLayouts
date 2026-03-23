@@ -6,6 +6,7 @@
 #include <argon/argon.hpp>
 
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "../layer/RLLevelBrowserLayer.hpp"
 #include "../player/RLDifficultyTotalPopup.hpp"
 #include "../player/RLUserControl.hpp"
@@ -16,7 +17,6 @@
 #include "Geode/utils/general.hpp"
 
 using namespace geode::prelude;
-const int DEV_ACCOUNTID = 7689052;
 
 class $modify(RLProfilePage, ProfilePage) {
     struct Fields {
@@ -255,7 +255,7 @@ class $modify(RLProfilePage, ProfilePage) {
             // if u are leaderboard mod show the manage button to manage your
             // leaderboard entries
             if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
-                GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
+                GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
                 if (!m_fields->m_rlButtonsMenu->getChildByID("rl-manage-btn")) {
                     auto modUserSpr =
                         CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr);
@@ -453,7 +453,7 @@ class $modify(RLProfilePage, ProfilePage) {
     void fetchProfileData(int accountId) {
         log::info("Fetching profile data for account ID: {}", accountId);
         m_fields->accountId = accountId;
-        if (m_fields->accountId == 7689052)
+        if (m_fields->accountId == rl::DEV_ACCOUNT_ID)
             RLAchievements::onReward("misc_arcticwoof");
 
         auto accountData = argon::getGameAccountData();
@@ -593,7 +593,7 @@ class $modify(RLProfilePage, ProfilePage) {
                     if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
                         Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
                         Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-                        GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
+                        GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
                         if (auto rlButtonsMenu =
                                 pageRef->getChildByIDRecursive("rl-buttons-menu")) {
                             // no recreate the manage button if it already exists
@@ -686,7 +686,7 @@ class $modify(RLProfilePage, ProfilePage) {
                     }
 
                     // if user is arcticwoof
-                    if (pageRef->m_accountID == 7689052) {
+                    if (pageRef->m_accountID == rl::DEV_ACCOUNT_ID) {
                         if (!usernameMenu->getChildByID("rl-profile-owner-badge:1")) {
                             auto ownerBadgeSprite = CCSprite::createWithSpriteFrameName(
                                 "RL_badgeOwner.png"_spr);
@@ -840,7 +840,7 @@ class $modify(RLProfilePage, ProfilePage) {
     void onUserManage(CCObject* sender) {
         // only leaderboard moderators may manage users
         if (!Mod::get()->getSavedValue<bool>("isLeaderboardMod") &&
-            GJAccountManager::sharedState()->m_accountID != DEV_ACCOUNTID) {
+            GJAccountManager::sharedState()->m_accountID != rl::DEV_ACCOUNT_ID) {
             Notification::create("You don't have permission to manage users.",
                 NotificationIcon::Error)
                 ->show();
@@ -854,7 +854,7 @@ class $modify(RLProfilePage, ProfilePage) {
     void onUserManageLevel(CCObject* sender) {
         // only leaderboard moderators may manage levels
         if (!Mod::get()->getSavedValue<bool>("isLeaderboardMod") &&
-            GJAccountManager::sharedState()->m_accountID != DEV_ACCOUNTID) {
+            GJAccountManager::sharedState()->m_accountID != rl::DEV_ACCOUNT_ID) {
             Notification::create("You don't have permission to manage levels.",
                 NotificationIcon::Error)
                 ->show();

@@ -1,5 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/binding/GJAccountManager.hpp>
+#include "../include/RLConstants.hpp"
 #include "../include/RLDialogIcons.hpp"
 #include "RLSecretLayer1.hpp"
 #include "RLRubiesCodePopup.hpp"
@@ -85,7 +86,7 @@ bool RLSecretLayer1::init() {
         m_crystalParticle->setVisible(false);
     }
 
-    if (GJAccountManager::sharedState()->m_accountID == 7689052) {
+    if (GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
         // secret button for adding new codes
         auto secretSpr = CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr);
         secretSpr->setScale(0.7f);
