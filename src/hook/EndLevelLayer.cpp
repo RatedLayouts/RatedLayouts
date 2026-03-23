@@ -386,6 +386,7 @@ class $modify(EndLevelLayer) {
                             difficultyLabel->setPosition(
                                 {-5, bigStarSprite->getContentSize().height / 2});
                             difficultyLabel->setAnchorPoint({1.0f, 0.5f});
+                            difficultyLabel->limitLabelWidth(80, 1.f, 0.5f);
                             difficultyLabel->setID(isPlat ? "rl-planet-reward-label"
                                                           : "rl-star-reward-label");
                             // start the label invisible so it can fade in with the star
@@ -444,7 +445,7 @@ class $modify(EndLevelLayer) {
                                         "bigFont.fnt");
                                     if (rubyLabel) {
                                         rubyLabel->setID("rl-ruby-pop-label");
-                                        rubyLabel->setScale(0.5f);
+                                        rubyLabel->limitLabelWidth(80, 1.f, 0.5f);
                                         rubyLabel->setAnchorPoint({1.f, 0.5f});
                                         rubyLabel->setPosition(
                                             {-14, rubyPop->getContentSize().height / 2});
@@ -678,5 +679,3 @@ class $modify(EndLevelLayer) {
             });
     }
 };
-
-

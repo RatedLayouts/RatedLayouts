@@ -86,9 +86,21 @@ void RLRubiesCodePopup::fetchCodes() {
     loadingSpinner->setPosition(m_listNode->getContentSize() / 2.f);
     m_listNode->addChild(loadingSpinner);
 
-    web::WebRequest req;
+    auto token = Mod::get()->getSavedValue<std::string>("argon_token");
+    auto accountId = GJAccountManager::get()->m_accountID;
+    if (token.empty()) {
+        Notification::create("Argon token missing", NotificationIcon::Error)->show();
+        if (loadingSpinner)
+            loadingSpinner->removeFromParent();
+        return;
+    }
+
+    matjson::Value body = matjson::Value::object();
+    body["accountId"] = accountId;
+    body["argonToken"] = token;
+
     Ref<RLRubiesCodePopup> self = this;
-    m_fetchTask.spawn(req.get("https://gdrate.arcticwoof.xyz/getRubiesCode"),
+    m_fetchTask.spawn(web::WebRequest().bodyJSON(body).post("https://gdrate.arcticwoof.xyz/getRubiesCode"),
         [self, loadingSpinner](web::WebResponse response) {
             if (!self)
                 return;
@@ -209,7 +221,6 @@ void RLRubiesCodePopup::fetchCodes() {
             self->m_listNode->getScrollLayer()->m_contentLayer->updateLayout();
             self->m_listNode->scrollToTop();
         });
-
 }
 
 void RLRubiesCodePopup::onEditCode(CCObject* sender) {
