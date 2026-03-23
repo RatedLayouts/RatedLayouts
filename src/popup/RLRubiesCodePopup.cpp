@@ -226,7 +226,7 @@ void RLRubiesCodePopup::fetchCodes() {
             }
             self->m_listNode->getScrollLayer()->m_contentLayer->updateLayout();
             self->m_listNode->scrollToTop();
-            self->m_title->setString(fmt::format("Oracle Rubies Codes ({} codes)", idx).c_str());
+            self->m_title->setString(fmt::format("Oracle Rubies Codes ({})", idx).c_str());
         });
 }
 
