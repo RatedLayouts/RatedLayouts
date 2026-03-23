@@ -566,18 +566,37 @@ void RLCommunityVotePopup::refreshFromServer() {
 
 void RLCommunityVotePopup::onInfo(CCObject*) {
     MDPopup::create(
-        "Community Voting Info",
-        "You can vote on <cl>suggested/rated layouts</c> based on three "
-        "categories:\n\n"
-        "<co>Originality (1 to 10)</c>: How original and distinct the layout "
-        "is.\n\n"
-        "<cr>Difficulty (1 to 30)</c>: The difficulty the level is according to "
-        "your experience.\n\n"
-        "<cg>Gameplay (1 to 10)</c>: How fun and enjoyable the layout is "
-        "overall.\n\n"
-        "### Please rate suggested/rated layouts <cg>honestly and fairly</c> "
-        "based on your experience playing them as <cr>Layout Admins</c> uses "
-        "this votes to help accurately rate layouts!",
+        "Community Votes & Layout Ratings",
+        "Depending on the community scoring that a layout obtains on any of the three categories, it is very likely to affect an individual layout's rating drastically.\n"
+        "Layout Admins will use these as references to further determine a layout's rating.\n\n"
+        "\r\n\r\n---\r\n\r\n"
+        "## Community Votes Specific Cases\n"
+        "A layout's rating tier can be changed based on these cases around community votes:\n"
+        "### Case 1: Lowering a Rating Tier\n"
+        "- If <co>Originality</c> or <cg>Gameplay</c> aspects of the community votes have a score of _**5 or lower** (rounded to zero decimal places/one significant figure)_, the **rating tier will be decreased indefinitely** than its earlier intended rate when still being sent.\n"
+        "### Case 2: Increase of a Rating Tier\n"
+        "- If <co>Originality</c> or <cg>Gameplay</c> aspects of the community vote have a score of __**9 or higher** (rounded to zero decimal places/one significant figure)__, the **rating tier will potentially be increased** based on staffs and community's general opinions, as long as it still fully adheres to standards.\n"
+        "### Case 3: Determining a Difficulty\n"
+        "- The <cr>Difficulty</c> score will be rounded to one or two significant figures and will determine the difficulty tier for a layout. <cy>*(Example: score of 21-24 will determine the layout being a Hard Demon rate, whilist 25-28 is Insane Demon. Similar spreads works on other difficulties)*</c>\n"
+        "\r\n\r\n---\r\n\r\n"
+        "## Community Votes Categories\n\n"
+        "All scores are rounded by nearest whole number/integer.\n"
+        "### Originality Score\n\n"
+        "<co>Originality Score</c> is used to determine how <cg>distinctive and recognizable</c> the work is done in said layouts, primarily how much the <cy>sync and song representation</c> is done in the gameplay, alongside the <cl>structuring/pattern style</c>. <co>Originality score</c> may be used to affect a rating tier, however standards still apply in the topic of <cy>sync and song representation</c>.\n"
+        "### Difficulty Score\n\n"
+        "Self explanatory. Ranges from <co>1-30</c> based on <cl>Sparks</c>/<co>Planets</c> difficulty ratings.\n\n"
+        "For Demons, these are how scores determine the difficulty of any layout:\n\n"
+        "- **10-14** = Easy Demon\n\n"
+        "- **15-19** = Medium Demon\n\n"
+        "- **20-24** = Hard Demon\n\n"
+        "- **25-28** = Insane Demon\n\n"
+        "- **29-30** = Extreme Demon\n\n"
+        "### Gameplay Score **(most important)**\n\n"
+        "This category determines whether a <cg>layout is enjoyable and engaging to play/buggy</c> or <cr>facing recurring and problematic issues around its playability</c>.\n\n"
+        "A score of _**8 = >**_ will _potentially increase the layouts rating tier_, however a score of _**<= 5**_ will _guarantee a rating tier decrease_. We track reports if a layout has recurring issues and is required to have a rating tier change.\n\n"
+        "\r\n\r\n---\r\n\r\n"
+        "### Extra note\n\n"
+        "It is **highly recommended** to beat a layout before submitting a community vote for it for a much more <cy>precise average</c>.",
         "OK")
         ->show();
 }
@@ -611,5 +630,3 @@ void RLCommunityVotePopup::onToggleAll(CCObject* sender) {
         refreshFromServer();
     }
 }
-
-

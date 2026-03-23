@@ -17,6 +17,7 @@
 - Adjusted the comment colors to be more visible on bright nameplates.
 - Added Comment Text Background for better visibility of comments on bright nameplates.
 - Added Leaderboard Whitelist for Leaderboard Moderators
+- Updated the **Community Votes** information.
 - Internal Code Refactor and optimizations
 
 # v0.4.3-beta.1
