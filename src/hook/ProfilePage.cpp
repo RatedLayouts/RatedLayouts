@@ -1,4 +1,7 @@
+#include <vcruntime_typeinfo.h>
 #include <Geode/Geode.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
+#include <Geode/binding/GameToolbox.hpp>
 #include <Geode/modify/ProfilePage.hpp>
 #include <Geode/utils/async.hpp>
 #include <argon/argon.hpp>
@@ -11,6 +14,7 @@
 #include "Geode/cocos/label_nodes/CCLabelBMFont.h"
 #include "Geode/loader/Mod.hpp"
 #include "Geode/ui/BasedButtonSprite.hpp"
+#include "Geode/utils/general.hpp"
 
 using namespace geode::prelude;
 const int DEV_ACCOUNTID = 7689052;
@@ -324,6 +328,7 @@ class $modify(RLProfilePage, ProfilePage) {
         if (Loader::get()->isModLoaded("itzkiba.better_progression")) {  // me when hardcoding position because of this stupid mod be like:
             m_fields->m_rlStatsMenu->setPosition({309.5f, 248.0f});
             m_fields->m_rlStatsMenu->setScale(0.845f);
+            m_fields->m_rlStatsMenu->setContentWidth(statsMenu->getContentSize().width - 100.f);
         }
         m_fields->m_rlStatsMenu->setVisible(false);
         statsMenu->setVisible(true);
@@ -343,9 +348,25 @@ class $modify(RLProfilePage, ProfilePage) {
         }
     }
 
+    void onInfo(CCObject* sender) {
+        if (m_fields->m_rlStatsMenu->isVisible()) {
+            FLAlertLayer::create(this->m_score->m_userName.c_str(),
+                "<cl>Sparks: </c>" + GameToolbox::pointsToString(m_fields->m_stars) + "\n" + "<co>Planets:</c> " + GameToolbox::pointsToString(m_fields->m_planets) + "\n" + "<cb>Blue Coins:</c> " + GameToolbox::pointsToString(m_fields->m_coins) + "\n" + "<cg>Votes:</c> " + GameToolbox::pointsToString(m_fields->m_votes) + (m_fields->m_points > 0 ? ("\n<cf>Blueprint Points:</c> " + GameToolbox::pointsToString(m_fields->m_points)) : ""),
+                "OK")
+                ->show();
+            return;
+        }
+        ProfilePage::onInfo(sender);
+    }
+
+    // rl hooks below
     void onStatsSwitcher(CCObject* sender) {
         auto statsMenu = getChildByIDRecursive("stats-menu");
         auto rlStatsMenu = getChildByIDRecursive("rl-stats-menu");
+
+        auto mainMenu = typeinfo_cast<CCMenu*>(getChildByIDRecursive("main-menu"));
+        auto infoButton = mainMenu->getChildByIDRecursive("info-button");
+
         auto switcher = typeinfo_cast<CCMenuItemToggler*>(sender);
 
         if (!statsMenu || !rlStatsMenu || !switcher)
@@ -355,10 +376,11 @@ class $modify(RLProfilePage, ProfilePage) {
             statsMenu->setVisible(false);
             if (auto m = typeinfo_cast<CCMenu*>(statsMenu))
                 m->setEnabled(false);
-
             rlStatsMenu->setVisible(true);
             if (auto m = typeinfo_cast<CCMenu*>(rlStatsMenu))
                 m->setEnabled(true);
+            // info button blue
+            typeinfo_cast<CCRGBAProtocol*>(infoButton)->setColor(ccColor3B{0, 180, 255});
         } else {
             statsMenu->setVisible(true);
             if (auto m = typeinfo_cast<CCMenu*>(statsMenu))
@@ -367,12 +389,15 @@ class $modify(RLProfilePage, ProfilePage) {
             rlStatsMenu->setVisible(false);
             if (auto m = typeinfo_cast<CCMenu*>(rlStatsMenu))
                 m->setEnabled(false);
+            // normal color
+            typeinfo_cast<CCRGBAProtocol*>(infoButton)->setColor(ccColor3B{255, 255, 255});
         }
     }
 
     void onToggleRLMenu(CCObject* sender) {
         if (!m_fields->m_rlButtonBg)
             return;
+
         auto winSize = CCDirector::sharedDirector()->getWinSize();
         float bgW = m_fields->m_rlButtonBg->getContentSize().width + 8.f;
         float arrowW = 0.f;

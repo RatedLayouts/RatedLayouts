@@ -17,6 +17,7 @@
 - Adjusted the comment colors to be more visible on bright nameplates.
 - Added Comment Text Background for better visibility of comments on bright nameplates.
 - Added Leaderboard Whitelist for Leaderboard Moderators
+- Stats Info Button at the Profile Page will now show their Rated Layouts stats when the stats menu is toggled to Rated Layouts stats.
 - Updated the **Community Votes** information.
 - Internal Code Refactor and optimizations
 
