@@ -1,5 +1,6 @@
 #include "RLRubiesCodePopup.hpp"
 #include "RLAddCodePopup.hpp"
+#include "../include/RLConstants.hpp"
 #include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/UploadActionPopup.hpp>
 #include <cue/ListNode.hpp>
@@ -283,7 +284,7 @@ void RLRubiesCodePopup::onDeleteCode(CCObject* sender) {
             }
 
             auto accountId = GJAccountManager::get()->m_accountID;
-            if (accountId != 7689052) {
+            if (accountId != rl::DEV_ACCOUNT_ID) {
                 upopup->showFailMessage("Not authorized");
                 return;
             }

@@ -1,13 +1,8 @@
 #include "RLBadgeRequestPopup.hpp"
 #include "../include/RLAchievements.hpp"
+#include "../include/RLNetworkUtils.hpp"
 
 using namespace geode::prelude;
-
-static std::string getResponseFailMessage(web::WebResponse const& response, std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty()) return message;
-    return fallback;
-}
 
 RLBadgeRequestPopup* RLBadgeRequestPopup::create() {
     auto ret = new RLBadgeRequestPopup();
@@ -85,7 +80,7 @@ void RLBadgeRequestPopup::onSubmit(CCObject* sender) {
             if (!self)
                 return;
             if (!res.ok()) {
-                upopup->showFailMessage(getResponseFailMessage(res, "Discord Username doesn't exists."));
+                upopup->showFailMessage(rl::getResponseFailMessage(res, "Discord Username doesn't exists."));
                 return;
             }
 

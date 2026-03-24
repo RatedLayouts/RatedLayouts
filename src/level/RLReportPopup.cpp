@@ -1,11 +1,6 @@
 #include "RLReportPopup.hpp"
 #include "../include/RLAchievements.hpp"
-
-static std::string getResponseFailMessage(web::WebResponse const& response, std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty()) return message;
-    return fallback;
-}
+#include "../include/RLNetworkUtils.hpp"
 
 RLReportPopup* RLReportPopup::create(int levelId) {
     RLReportPopup* popup = new RLReportPopup();
@@ -211,7 +206,7 @@ void RLReportPopup::onSubmit(CCObject* sender) {
                 [self, uploadPopup](web::WebResponse res) {
                     if (!self) return;
                     if (!res.ok()) {
-                        uploadPopup->showFailMessage(getResponseFailMessage(res, "Failed to submit report"));
+                        uploadPopup->showFailMessage(rl::getResponseFailMessage(res, "Failed to submit report"));
                         return;
                     }
                     auto j = res.json();

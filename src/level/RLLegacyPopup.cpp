@@ -1,4 +1,5 @@
 #include "RLLegacyPopup.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include "Geode/cocos/cocoa/CCObject.h"
 #include "Geode/ui/MDPopup.hpp"
 
@@ -34,14 +35,6 @@ static int mapRatingToLevel(int rating) {
         default:
             return 0;
     }
-}
-
-static std::string getResponseFailMessage(web::WebResponse const& response,
-    std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty())
-        return message;
-    return fallback;
 }
 
 void RLLegacyPopup::updateFromJson(const matjson::Value& json) {
@@ -306,14 +299,14 @@ void RLLegacyPopup::onDeleteLegacy(CCObject* sender) {
                     if (!self)
                         return;
                     if (!res.ok()) {
-                        uploadPopup->showFailMessage(getResponseFailMessage(
+                        uploadPopup->showFailMessage(rl::getResponseFailMessage(
                             res, "Failed to delete legacy layout! Try again later."));
                         return;
                     }
                     auto jsonRes = res.json();
                     if (!jsonRes) {
                         uploadPopup->showFailMessage(
-                            getResponseFailMessage(res, "Invalid server response"));
+                            rl::getResponseFailMessage(res, "Invalid server response"));
                         return;
                     }
                     auto json = jsonRes.unwrap();
@@ -322,7 +315,7 @@ void RLLegacyPopup::onDeleteLegacy(CCObject* sender) {
                         uploadPopup->showSuccessMessage("Legacy layout deleted");
                     } else {
                         uploadPopup->showFailMessage(
-                            getResponseFailMessage(res, "Failed! Try again later."));
+                            rl::getResponseFailMessage(res, "Failed! Try again later."));
                     }
                 });
         });

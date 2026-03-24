@@ -1,12 +1,7 @@
 #include "RLAddDialogue.hpp"
+#include "../include/RLNetworkUtils.hpp"
 
 using namespace geode::prelude;
-
-static std::string getResponseFailMessage(web::WebResponse const& response, std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty()) return message;
-    return fallback;
-}
 
 RLAddDialogue* RLAddDialogue::create() {
     auto popup = new RLAddDialogue();
@@ -91,7 +86,7 @@ void RLAddDialogue::onSubmit(CCObject* sender) {
         [self, upopup](web::WebResponse res) {
             if (!self) return;
             if (!res.ok()) {
-                upopup->showFailMessage(getResponseFailMessage(res, "Failed to submit dialogue!"));
+                upopup->showFailMessage(rl::getResponseFailMessage(res, "Failed to submit dialogue!"));
                 return;
             }
             upopup->showSuccessMessage("Dialogue submitted successfully!");

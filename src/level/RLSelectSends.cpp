@@ -1,4 +1,5 @@
 #include "RLSelectSends.hpp"
+#include "../include/RLConstants.hpp"
 #include "../layer/RLLevelBrowserLayer.hpp"
 #include "Geode/ui/Layout.hpp"
 #include "Geode/ui/MDTextArea.hpp"
@@ -6,8 +7,6 @@
 #include <Geode/binding/ButtonSprite.hpp>
 
 using namespace geode::prelude;
-
-const int DEV_ACCOUNTID = 7689052;
 
 RLSelectSends* RLSelectSends::create() {
     auto ret = new RLSelectSends();
@@ -62,7 +61,7 @@ bool RLSelectSends::init() {
 
     if (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
         Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-        GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
+        GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
         auto threePlusBtn = CCMenuItemSpriteExtra::create(
             ButtonSprite::create("3+ Sents", 180, true, "goldFont.fnt", "geode.loader/GE_button_01.png", 30.f, 1.f),
             this,

@@ -1,5 +1,6 @@
 #include "RLModRatePopup.hpp"
 #include "RLModRatePayloadBuilder.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include "Geode/ui/Popup.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
@@ -27,14 +28,6 @@ static void setTogglerGrayscale(CCMenuItemToggler* toggler,
         if (selectedSpr)
             spriteItem->setSelectedImage(selectedSpr);
     }
-}
-
-static std::string getResponseFailMessage(web::WebResponse const& response,
-    std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty())
-        return message;
-    return fallback;
 }
 
 static std::string getDifficultyName(int suggestDifficulty) {
@@ -846,7 +839,7 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(getResponseFailMessage(
+                        upopup->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -866,7 +859,7 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
                         upopup->showSuccessMessage("Level unbanned!");
                     } else {
                         upopup->showFailMessage(
-                            getResponseFailMessage(response, "Failed to unban level."));
+                            rl::getResponseFailMessage(response, "Failed to unban level."));
                     }
                 });
         });
@@ -922,7 +915,7 @@ void RLModRatePopup::onLegacyButton(CCObject* sender) {
             if (!self || !upopup)
                 return;
             if (!response.ok()) {
-                upopup->showFailMessage(getResponseFailMessage(
+                upopup->showFailMessage(rl::getResponseFailMessage(
                     response, "Failed to mark legacy"));
                 return;
             }
@@ -987,7 +980,7 @@ void RLModRatePopup::onBanLevelButton(CCObject* sender) {
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(getResponseFailMessage(
+                        upopup->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -1007,7 +1000,7 @@ void RLModRatePopup::onBanLevelButton(CCObject* sender) {
                         upopup->showSuccessMessage("Level banned!");
                     } else {
                         upopup->showFailMessage(
-                            getResponseFailMessage(response, "Failed to ban level."));
+                            rl::getResponseFailMessage(response, "Failed to ban level."));
                     }
                 });
         });
@@ -1058,7 +1051,7 @@ void RLModRatePopup::onDeleteSendsButton(CCObject* sender) {
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(getResponseFailMessage(
+                        upopup->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -1113,7 +1106,7 @@ void RLModRatePopup::onUnsendButton(CCObject* sender) {
             if (!response.ok()) {
                 log::warn("Server returned non-ok status: {}", response.code());
                 upopup->showFailMessage(
-                    getResponseFailMessage(response, "Failed! Try again later."));
+                    rl::getResponseFailMessage(response, "Failed! Try again later."));
                 return;
             }
             auto jsonRes = response.json();
@@ -1165,7 +1158,7 @@ void RLModRatePopup::onRateButton(CCObject* sender) {
             if (!response.ok()) {
                 log::warn("Server returned non-ok status: {}", response.code());
                 upopup->showFailMessage(
-                    getResponseFailMessage(response, "Failed! Try again later."));
+                    rl::getResponseFailMessage(response, "Failed! Try again later."));
                 return;
             }
 
@@ -1266,7 +1259,7 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(getResponseFailMessage(
+                        upopup->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -1400,7 +1393,7 @@ void RLModRatePopup::onSuggestButton(CCObject* sender) {
             if (!response.ok()) {
                 log::warn("Server returned non-ok status: {}", response.code());
                 upopup->showFailMessage(
-                    getResponseFailMessage(response, "Failed! Try again later."));
+                    rl::getResponseFailMessage(response, "Failed! Try again later."));
                 return;
             }
 
@@ -1970,7 +1963,7 @@ void RLModRatePopup::onSetEventButton(CCObject* sender) {
                     log::info("Received setEvent response for type: {}", type);
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(getResponseFailMessage(
+                        upopup->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }

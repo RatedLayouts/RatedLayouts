@@ -1,4 +1,6 @@
 #include "RLUserControl.hpp"
+#include "../include/RLConstants.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include "Geode/ui/Popup.hpp"
 
 #include <Geode/Geode.hpp>
@@ -18,16 +20,6 @@ static void setPromoBtnState(CCMenuItemSpriteExtra* btn,
     btn->setNormalImage(ButtonSprite::create(
         text.c_str(), 200, true, "goldFont.fnt", bg.c_str(), 30.f, 1.f));
 }
-
-static std::string getResponseFailMessage(web::WebResponse const& response,
-    std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty())
-        return message;
-    return fallback;
-}
-
-const int DEV_ACCOUNT_ID = 7689052;
 
 RLUserControl* RLUserControl::create(int accountId) {
     auto ret = new RLUserControl();
@@ -138,7 +130,7 @@ bool RLUserControl::init() {
     wipeBtn->setEnabled(false);
     optionsMenu->addChild(wipeBtn);
     m_wipeButton = wipeBtn;
-    if (GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID) {
+    if (GJAccountManager::get()->m_accountID == rl::DEV_ACCOUNT_ID) {
         wipeBtn->setVisible(true);
         wipeBtn->setEnabled(true);
     }
@@ -190,7 +182,7 @@ bool RLUserControl::init() {
     // If there's no profile to load (no target account), show dev buttons
     // immediately
     if (m_targetAccountId <= 0 &&
-        GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID) {
+        GJAccountManager::get()->m_accountID == rl::DEV_ACCOUNT_ID) {
         setPromoBtnState(lbModBtn, "Promote to LB Mod", true);
         setPromoBtnState(classicModBtn, "Promote to Classic Mod", true);
         setPromoBtnState(classicAdminBtn, "Promote to Classic Admin", true);
@@ -282,7 +274,7 @@ bool RLUserControl::init() {
                             bool hasPerms =
                                 (Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
                                     Mod::get()->getSavedValue<bool>("isPlatAdmin")) ||
-                                GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID;
+                                GJAccountManager::get()->m_accountID == rl::DEV_ACCOUNT_ID;
                             if (!hasPerms)
                                 showAction = false;
                         }
@@ -291,7 +283,7 @@ bool RLUserControl::init() {
                             bool hasPerms =
                                 Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
                                 Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-                                GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID;
+                                GJAccountManager::get()->m_accountID == rl::DEV_ACCOUNT_ID;
                             if (!hasPerms)
                                 showAction = false;
                         }
@@ -329,7 +321,7 @@ bool RLUserControl::init() {
                 }
 
                 // show or remove dev-only buttons depending on current account
-                if (GJAccountManager::get()->m_accountID != DEV_ACCOUNT_ID) {
+                if (GJAccountManager::get()->m_accountID != rl::DEV_ACCOUNT_ID) {
                     if (self->m_wipeButton) {
                         self->m_wipeButton->removeFromParentAndCleanup(true);
                         self->m_wipeButton = nullptr;
@@ -470,7 +462,7 @@ void RLUserControl::onWipeAction(CCObject* sender) {
                         log::warn("deleteUser returned non-ok status: {}",
                             response.code());
                         upopup->showFailMessage(
-                            getResponseFailMessage(response, "Failed to delete user"));
+                            rl::getResponseFailMessage(response, "Failed to delete user"));
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
                         return;
@@ -504,7 +496,7 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
     if (m_isInitializing)
         return;
 
-    if (GJAccountManager::get()->m_accountID != DEV_ACCOUNT_ID) {
+    if (GJAccountManager::get()->m_accountID != rl::DEV_ACCOUNT_ID) {
         FLAlertLayer::create("Access Denied",
             "You do not have permission to perform this action.",
             "OK")
@@ -653,7 +645,7 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
                     if (!response.ok()) {
                         log::warn("promoteUser returned non-ok status: {}",
                             response.code());
-                        upopup->showFailMessage(getResponseFailMessage(
+                        upopup->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed to update user role"));
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
@@ -902,7 +894,7 @@ void RLUserControl::setOptionState(const std::string& key, bool desired, bool up
         }
     }
 
-    if (GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID) {
+    if (GJAccountManager::get()->m_accountID == rl::DEV_ACCOUNT_ID) {
         setPromoBtnState(m_promoteLeaderboardModButton, "Promote to LB Mod", !m_targetIsLeaderboardMod);
         setPromoBtnState(m_promoteClassicModButton, "Promote to Classic Mod", !m_targetIsClassicMod);
         setPromoBtnState(m_promoteClassicAdminButton, "Promote to Classic Admin", !m_targetIsClassicAdmin);
@@ -979,7 +971,7 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
             if (!response.ok()) {
                 log::warn("setUser returned non-ok status: {}", response.code());
                 upopup->showFailMessage(
-                    getResponseFailMessage(response, "Failed to update user"));
+                    rl::getResponseFailMessage(response, "Failed to update user"));
                 // revert visual to persisted
                 auto currentOpt = self->getOptionByKey(key);
                 if (currentOpt) {
@@ -1026,7 +1018,7 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
                 upopup->showSuccessMessage("User has been updated!");
             } else {
                 upopup->showFailMessage(
-                    getResponseFailMessage(response, "Failed to update user"));
+                    rl::getResponseFailMessage(response, "Failed to update user"));
                 auto currentOpt = self->getOptionByKey(key);
                 if (currentOpt) {
                     self->m_isInitializing = true;

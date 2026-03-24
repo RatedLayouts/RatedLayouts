@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "../level/RLCommunityVotePopup.hpp"
 #include "../level/RLLegacyPopup.hpp"
 #include "../level/RLModRatePopup.hpp"
@@ -16,8 +17,6 @@
 
 using namespace geode::prelude;
 using namespace rl;
-
-const int DEV_ACCOUNTID = 7689052;
 
 extern const std::string legendaryPString =
     "30,2065,2,345,3,75,155,1,156,2,145,30a-1a2a0."
@@ -132,7 +131,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
         leftMenu->updateLayout();
 
-        if (GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNTID) {
+        if (GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNT_ID) {
             auto devButtonSprite =
                 CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
             devButtonSprite->setColor({255, 255, 0});
@@ -1223,7 +1222,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
         bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
         bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID);
 
         if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin || isDev) {
             shouldDisable = false;
@@ -1395,7 +1394,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 int isClassicAdmin = Mod::get()->getSavedValue<int>("isClassicAdmin");
                 int isPlatMod = Mod::get()->getSavedValue<int>("isPlatMod");
                 int isPlatAdmin = Mod::get()->getSavedValue<int>("isPlatAdmin");
-                bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+                bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID);
                 if (isClassicMod == 1 || isClassicAdmin == 1 || isDev) {
                     shouldDisable = false;
                     log::debug("Community vote enabled due to role override (role={})",
@@ -1701,7 +1700,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     }
 
     void onDevButton(CCObject* sender) {
-        if (GJAccountManager::sharedState()->m_accountID != DEV_ACCOUNTID) {
+        if (GJAccountManager::sharedState()->m_accountID != DEV_ACCOUNT_ID) {
             log::warn("nope");
             return;
         } else {
@@ -1805,7 +1804,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
         bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
         bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNTID);
+        bool isDev = (GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID);
         if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin || isDev) {
             shouldDisable = false;
             log::debug("Community vote enabled due to role override (classic/plat)");

@@ -1,15 +1,11 @@
 #include "RLAddCodePopup.hpp"
+#include "../include/RLConstants.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include <fmt/format.h>
 #include <Geode/binding/UploadActionPopup.hpp>
 #include "Geode/utils/general.hpp"
 
 using namespace geode::prelude;
-
-static std::string getResponseFailMessage(web::WebResponse const& response, std::string const& fallback) {
-    auto message = response.string().unwrapOrDefault();
-    if (!message.empty()) return message;
-    return fallback;
-}
 
 RLAddCodePopup* RLAddCodePopup::create(const std::string& code, const std::string& reward, long long id, std::function<void()> onSuccess) {
     auto popup = new RLAddCodePopup();
@@ -89,7 +85,7 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
     }
 
     auto accountId = GJAccountManager::get()->m_accountID;
-    if (accountId != 7689052) {
+    if (accountId != rl::DEV_ACCOUNT_ID) {
         upopup->showFailMessage("Not Authorized");
         return;
     }
@@ -115,7 +111,7 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
             if (!self || !upopup)
                 return;
             if (!response.ok()) {
-                upopup->showFailMessage(getResponseFailMessage(response, "Failed to save code"));
+                upopup->showFailMessage(rl::getResponseFailMessage(response, "Failed to save code"));
                 return;
             }
             auto jsonRes = response.json();

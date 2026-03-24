@@ -1,5 +1,6 @@
 #include "RLCommunityVotePopup.hpp"
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "../layer/RLVotesLeaderboardLayer.hpp"
 #include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/binding/UploadActionPopup.hpp>
@@ -7,15 +8,13 @@
 
 using namespace geode::prelude;
 
-const int DEV_ACCOUNT_ID = 7689052;
-
 // helper to determine whether the current account has moderator permissions
 static bool checkPerms() {
     return (Mod::get()->getSavedValue<bool>("isClassicMod") ||
             Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
             Mod::get()->getSavedValue<bool>("isPlatMod") ||
             Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-            GJAccountManager::get()->m_accountID == DEV_ACCOUNT_ID);
+            GJAccountManager::get()->m_accountID == rl::DEV_ACCOUNT_ID);
 }
 
 RLCommunityVotePopup* RLCommunityVotePopup::create() {
