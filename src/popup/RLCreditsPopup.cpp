@@ -2,9 +2,9 @@
 #include "../include/RLAchievements.hpp"
 #include <Geode/Geode.hpp>
 #include <cue/ListNode.hpp>
+#include "../include/RLConstants.hpp"
 
 using namespace geode::prelude;
-
 RLCreditsPopup* RLCreditsPopup::create() {
     auto ret = new RLCreditsPopup();
 
@@ -144,6 +144,9 @@ bool RLCreditsPopup::init() {
                 else if (text == "Platformer Layout Moderators")
                     headerBadge = CCSprite::createWithSpriteFrameName(
                         "RL_badgePlatMod01.png"_spr);
+                else if (text == "Leaderboard Layout Admins")
+                    headerBadge = CCSprite::createWithSpriteFrameName(
+                        "RL_badgelbAdmin01.png"_spr);
                 else if (text == "Leaderboard Layout Moderators")
                     headerBadge =
                         CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr);
@@ -194,6 +197,8 @@ bool RLCreditsPopup::init() {
                     infoTag = 7;
                 else if (text == "Platformer Layout Moderators")
                     infoTag = 8;
+                else if (text == "Leaderboard Layout Admins")
+                    infoTag = 11;
                 else if (text == "Leaderboard Layout Moderators")
                     infoTag = 9;
                 else if (text == "Rated Layouts Owner")
@@ -317,6 +322,12 @@ bool RLCreditsPopup::init() {
                 for (auto& val : arr)
                     addPlayer(val, false, true, false, false, true, false, false);
             }
+            if (json.contains("leaderboardAdmins") && json["leaderboardAdmins"].isArray()) {
+                addHeader("Leaderboard Layout Admins");
+                auto arr = json["leaderboardAdmins"].asArray().unwrap();
+                for (auto& val : arr)
+                    addPlayer(val, true, false, false, false, false, true, false);
+            }
             if (json.contains("leaderboardModerators") &&
                 json["leaderboardModerators"].isArray()) {
                 addHeader("Leaderboard Layout Moderators");
@@ -324,7 +335,6 @@ bool RLCreditsPopup::init() {
                 for (auto& val : arr)
                     addPlayer(val, false, true, false, false, false, true, false);
             }
-
             if (json.contains("supporters") && json["supporters"].isArray()) {
                 addHeader("Layout Supporters");
                 auto sup = json["supporters"].asArray().unwrap();
@@ -398,74 +408,31 @@ void RLCreditsPopup::onHeaderInfo(CCObject* sender) {
     int tag = btn->getTag();
     switch (tag) {
         case 3:  // Supporters
-            FLAlertLayer::create(
-                "Layout Supporter",
-                "<cp>Layout Supporter</c> are those who have supported development of "
-                "<cl>Rated "
-                "Layouts</c> through <cp>Ko-fi</c> membership donation.",
-                "OK")
-                ->show();
+            rl::showSupporterInfo();
             break;
         case 4:  // Boosters
-            FLAlertLayer::create(
-                "Layout Booster",
-                "<ca>Layout Booster</c> are those who boosted the <cl>Rated "
-                "Layouts Discord server</c>, they also have the same "
-                "benefits as <cp>Layout Supporter</c>.",
-                "OK")
-                ->show();
+            rl::showBoosterInfo();
             break;
         case 5:  // Classic Admins
-            FLAlertLayer::create(
-                "Classic Layout Admin",
-                "<cr>Classic Layout Admin</c> has the ability to rate, suggest levels "
-                "and <cg>manage Featured Layouts</c> for "
-                "<cc>classic levels</c> of <cl>Rated Layouts</c>. .",
-                "OK")
-                ->show();
+            rl::showClassicAdminInfo();
             break;
         case 6:  // Classic Mods
-            FLAlertLayer::create(
-                "Classic Layout Mod",
-                "<cb>Classic Layout Moderator</c> can suggest levels "
-                "for classic layouts to <cr>Classic Layout Admins</c>.",
-                "OK")
-                ->show();
+            rl::showClassicModInfo();
             break;
         case 7:  // Plat Admins
-            FLAlertLayer::create(
-                "Platformer Layout Admin",
-                "<cr>Platformer Layout Admin</c> has the abilities to rate, suggest "
-                "levels and <cg>manage Featured Layouts</c> for "
-                "<cc>platformer levels</c> of <cl>Rated Layouts</c>.",
-                "OK")
-                ->show();
+            rl::showPlatAdminInfo();
             break;
         case 8:  // Plat Mods
-            FLAlertLayer::create(
-                "Platformer Layout Mod",
-                "<cb>Platformer Layout Mod</c> can suggest levels for "
-                "<cc>platformer layouts</c> to <cr>Platformer Layout Admins</c>.",
-                "OK")
-                ->show();
+            rl::showPlatModInfo();
             break;
         case 9:  // Leaderboard Mods
-            FLAlertLayer::create(
-                "LB Layout Mod",
-                "<cb>Leaderboard Layout Mod</c> is responsible for <co>managing and "
-                "moderating the leaderboard</c> section of <cl>Rated Layouts</c>.",
-                "OK")
-                ->show();
+            rl::showLeaderboardModInfo();
+            break;
+        case 11:  // Leaderboard Admins
+            rl::showLeaderboardAdminInfo();
             break;
         case 10:  // Owner
-            FLAlertLayer::create(
-                "Rated Layouts Owner",
-                "<cf>ArcticWoof</c> is the creator and owner of "
-                "<cl>Rated Layouts</c>. He is the main developer and maintainer of "
-                "this <cp>Geode Mod</c> and has the ability to <cg>promote "
-                "users</c>.",
-                "OK")
-                ->show();
+            rl::showOwnerInfo();
             break;
         default:
             break;

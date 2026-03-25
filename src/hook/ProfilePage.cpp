@@ -34,6 +34,7 @@ class $modify(RLProfilePage, ProfilePage) {
         bool isClassicMod = false;
         bool isClassicAdmin = false;
         bool isLeaderboardMod = false;
+        bool isLeaderboardAdmin = false;
         bool isPlatMod = false;
         bool isPlatAdmin = false;
 
@@ -254,9 +255,8 @@ class $modify(RLProfilePage, ProfilePage) {
 
             // if u are leaderboard mod show the manage button to manage your
             // leaderboard entries
-            if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
-                GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
-                if (!m_fields->m_rlButtonsMenu->getChildByID("rl-manage-btn")) {
+            if (!m_fields->m_rlButtonsMenu->getChildByID("rl-manage-btn")) {
+                if (rl::isUserHasPerms() || rl::isUserOwner()) {
                     auto modUserSpr =
                         CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr);
                     auto modUserButton = EditorButtonSprite::create(
@@ -266,7 +266,7 @@ class $modify(RLProfilePage, ProfilePage) {
                     modUserBtnItem->setID("rl-manage-btn");
                     m_fields->m_rlButtonsMenu->addChild(modUserBtnItem);
                 }
-                if (!m_fields->m_rlButtonsMenu->getChildByID("rl-manage-level-btn")) {
+                if (rl::isUserLeaderboardMod() || rl::isUserLeaderboardAdmin() || rl::isUserOwner()) {
                     auto manageLevelSpr =
                         CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr);
                     auto manageLevelButton = EditorButtonSprite::create(
@@ -350,8 +350,8 @@ class $modify(RLProfilePage, ProfilePage) {
     void onInfo(CCObject* sender) {
         if (m_fields->m_rlStatsMenu->isVisible()) {
             auto morePoints = m_fields->m_points > 0
-                ? fmt::format("\n<cf>Blueprint Points:</c> {}", GameToolbox::pointsToString(m_fields->m_points))
-                : "";
+                                  ? fmt::format("\n<cf>Blueprint Points:</c> {}", GameToolbox::pointsToString(m_fields->m_points))
+                                  : "";
             auto statsInfo = fmt::format(
                 "<cl>Sparks: </c>{}\n<co>Planets:</c> {}\n<cb>Blue Coins:</c> {}\n<cg>Votes:</c> {}{}",
                 GameToolbox::pointsToString(m_fields->m_stars),
@@ -570,6 +570,8 @@ class $modify(RLProfilePage, ProfilePage) {
                     json["isClassicAdmin"].asBool().unwrapOrDefault();
                 bool isLeaderboardMod =
                     json["isLeaderboardMod"].asBool().unwrapOrDefault();
+                bool isLeaderboardAdmin =
+                    json["isLeaderboardAdmin"].asBool().unwrapOrDefault();
                 bool isPlatMod = json["isPlatMod"].asBool().unwrapOrDefault();
                 bool isPlatAdmin = json["isPlatAdmin"].asBool().unwrapOrDefault();
 
@@ -585,31 +587,28 @@ class $modify(RLProfilePage, ProfilePage) {
                 pageRef->m_fields->isClassicMod = isClassicMod;
                 pageRef->m_fields->isClassicAdmin = isClassicAdmin;
                 pageRef->m_fields->isLeaderboardMod = isLeaderboardMod;
+                pageRef->m_fields->isLeaderboardAdmin = isLeaderboardAdmin;
                 pageRef->m_fields->isPlatMod = isPlatMod;
                 pageRef->m_fields->isPlatAdmin = isPlatAdmin;
 
+                // create the user buttons manage
                 if (!Mod::get()->getSettingValue<bool>("disableRLMenu")) {
-                    // show mod button if leaderboard mod or dev
-                    if (Mod::get()->getSavedValue<bool>("isLeaderboardMod") ||
-                        Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
-                        Mod::get()->getSavedValue<bool>("isPlatAdmin") ||
-                        GJAccountManager::sharedState()->m_accountID == rl::DEV_ACCOUNT_ID) {
-                        if (auto rlButtonsMenu =
-                                pageRef->getChildByIDRecursive("rl-buttons-menu")) {
-                            // no recreate the manage button if it already exists
-                            if (!rlButtonsMenu->getChildByID("rl-manage-btn")) {
-                                auto modUserSpr = CCSprite::createWithSpriteFrameName(
-                                    "RL_badgelbMod01.png"_spr);
-                                auto modUserButton = EditorButtonSprite::create(
-                                    modUserSpr, EditorBaseColor::LightBlue, EditorBaseSize::Normal);
-                                auto modUserBtnItem = CCMenuItemSpriteExtra::create(
-                                    modUserButton, pageRef, menu_selector(RLProfilePage::onUserManage));
-                                modUserBtnItem->setID("rl-manage-btn");
-                                rlButtonsMenu->addChild(modUserBtnItem);
-                                rlButtonsMenu->updateLayout();
-                            }
-                            if (!rlButtonsMenu->getChildByID("rl-manage-level-btn") &&
-                                Mod::get()->getSavedValue<bool>("isLeaderboardMod")) {
+                    auto rlButtonsMenu = pageRef->getChildByIDRecursive("rl-buttons-menu");
+                    if (rlButtonsMenu && (rl::isUserHasPerms() || rl::isUserOwner())) {
+                        if (!rlButtonsMenu->getChildByID("rl-manage-btn")) {
+                            auto modUserSpr = CCSprite::createWithSpriteFrameName(
+                                "RL_badgelbMod01.png"_spr);
+                            auto modUserButton = EditorButtonSprite::create(
+                                modUserSpr, EditorBaseColor::LightBlue, EditorBaseSize::Normal);
+                            auto modUserBtnItem = CCMenuItemSpriteExtra::create(
+                                modUserButton, pageRef, menu_selector(RLProfilePage::onUserManage));
+                            modUserBtnItem->setID("rl-manage-btn");
+                            rlButtonsMenu->addChild(modUserBtnItem);
+                            rlButtonsMenu->updateLayout();
+                        }
+
+                        if (rlButtonsMenu && (rl::isUserLeaderboardAdmin() || rl::isUserLeaderboardMod() || rl::isUserOwner())) {
+                            if (!rlButtonsMenu->getChildByID("rl-manage-level-btn")) {
                                 auto manageLevelSpr = CCSprite::createWithSpriteFrameName(
                                     "RL_badgeMod01.png"_spr);
                                 auto manageLevelButton = EditorButtonSprite::create(
@@ -656,6 +655,12 @@ class $modify(RLProfilePage, ProfilePage) {
                         auto modBadgeSprite = CCSprite::createWithSpriteFrameName(
                             "RL_badgelbMod01.png"_spr);
                         addBadgeItem(modBadgeSprite, 9, "rl-profile-lb-mod-badge:3");
+                    }
+                    if (!usernameMenu->getChildByID("rl-profile-lb-admin-badge:2") &&
+                        pageRef->m_fields->isLeaderboardAdmin) {
+                        auto adminBadgeSprite = CCSprite::createWithSpriteFrameName(
+                            "RL_badgelbAdmin01.png"_spr);
+                        addBadgeItem(adminBadgeSprite, 11, "rl-profile-lb-admin-badge:2");
                     }
                     if (!usernameMenu->getChildByID("rl-profile-plat-admin-badge:2") &&
                         pageRef->m_fields->isPlatAdmin) {
@@ -761,76 +766,31 @@ class $modify(RLProfilePage, ProfilePage) {
         int tag = btn->getTag();
         switch (tag) {
             case 3:  // Supporters
-                FLAlertLayer::create(
-                    "Layout Supporter",
-                    "<cp>Layout Supporter</c> are those who have supported development "
-                    "of "
-                    "<cl>Rated "
-                    "Layouts</c> through <cp>Ko-fi</c> membership donation.",
-                    "OK")
-                    ->show();
+                rl::showSupporterInfo();
                 break;
             case 4:  // Boosters
-                FLAlertLayer::create(
-                    "Layout Booster",
-                    "<ca>Layout Booster</c> are those who boosted the <cl>Rated "
-                    "Layouts Discord server</c>, they also have the same "
-                    "benefits as <cp>Layout Supporter</c>.",
-                    "OK")
-                    ->show();
+                rl::showBoosterInfo();
                 break;
             case 5:  // Classic Admins
-                FLAlertLayer::create("Classic Layout Admin",
-                    "<cr>Classic Layout Admin</c> has the ability to "
-                    "rate, suggest levels "
-                    "and <cg>manage Featured Layouts</c> for "
-                    "<cc>classic levels</c> of <cl>Rated Layouts</c>.",
-                    "OK")
-                    ->show();
+                rl::showClassicAdminInfo();
                 break;
             case 6:  // Classic Mods
-                FLAlertLayer::create(
-                    "Classic Layout Mod",
-                    "<cb>Classic Layout Moderator</c> can suggest levels "
-                    "for classic layouts to <cr>Classic Layout Admins</c>.",
-                    "OK")
-                    ->show();
+                rl::showClassicModInfo();
                 break;
             case 7:  // Plat Admins
-                FLAlertLayer::create(
-                    "Platformer Layout Admin",
-                    "<cr>Platformer Layout Admin</c> has the abilities to rate, suggest "
-                    "levels and <cg>manage Featured Layouts</c> for "
-                    "<cc>platformer levels</c> of <cl>Rated Layouts</c>.",
-                    "OK")
-                    ->show();
+                rl::showPlatAdminInfo();
                 break;
             case 8:  // Plat Mods
-                FLAlertLayer::create(
-                    "Platformer Layout Mod",
-                    "<cb>Platformer Layout Moderator</c> can suggest levels for "
-                    "<cc>platformer layouts</c> to <cr>Platformer Layout Admins</c>.",
-                    "OK")
-                    ->show();
+                rl::showPlatModInfo();
                 break;
             case 9:  // Leaderboard Mods
-                FLAlertLayer::create(
-                    "LB Layout Mod",
-                    "<cb>Leaderboard Layout Moderator</c> is responsible for "
-                    "<co>managing and "
-                    "moderating the leaderboard</c> section of <cl>Rated Layouts</c>.",
-                    "OK")
-                    ->show();
+                rl::showLeaderboardModInfo();
                 break;
             case 10:  // Owner
-                FLAlertLayer::create(
-                    "Rated Layouts Owner",
-                    "<cf>ArcticWoof</c> is the creator and owner of "
-                    "<cl>Rated Layouts</c>. He is the main developer and maintainer of "
-                    "this <cp>Geode Mod</c> and has the ability to <cg>promote "
-                    "users</c>.",
-                    "OK")
-                    ->show();
+                rl::showOwnerInfo();
+                break;
+            case 11:  // Leaderboard Admins
+                rl::showLeaderboardAdminInfo();
                 break;
             default:
                 break;
@@ -839,8 +799,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
     void onUserManage(CCObject* sender) {
         // only leaderboard moderators may manage users
-        if (!Mod::get()->getSavedValue<bool>("isLeaderboardMod") &&
-            GJAccountManager::sharedState()->m_accountID != rl::DEV_ACCOUNT_ID) {
+        if (!rl::isUserHasPerms() || !rl::isUserOwner()) {
             Notification::create("You don't have permission to manage users.",
                 NotificationIcon::Error)
                 ->show();
@@ -853,8 +812,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
     void onUserManageLevel(CCObject* sender) {
         // only leaderboard moderators may manage levels
-        if (!Mod::get()->getSavedValue<bool>("isLeaderboardMod") &&
-            GJAccountManager::sharedState()->m_accountID != rl::DEV_ACCOUNT_ID) {
+        if (!(rl::isUserLeaderboardMod() || rl::isUserLeaderboardAdmin() || rl::isUserOwner())) {
             Notification::create("You don't have permission to manage levels.",
                 NotificationIcon::Error)
                 ->show();

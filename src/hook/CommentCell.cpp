@@ -21,6 +21,7 @@ class $modify(RLCommentCell, CommentCell) {
         bool isClassicMod = false;
         bool isClassicAdmin = false;
         bool isLeaderboardMod = false;
+        bool isLeaderboardAdmin = false;
         bool isPlatMod = false;
         bool isPlatAdmin = false;
 
@@ -69,6 +70,8 @@ class $modify(RLCommentCell, CommentCell) {
             color = {255, 170, 170};  // bright red
         } else if (m_fields->isPlatAdmin) {
             color = {255, 235, 161};  // bright orange
+        } else if (m_fields->isLeaderboardAdmin) {
+            color = {140, 255, 140};  // brighter green
         } else if (m_fields->isLeaderboardMod) {
             color = {183, 255, 183};  // bright green
         } else if (m_fields->isClassicMod) {
@@ -385,6 +388,10 @@ class $modify(RLCommentCell, CommentCell) {
             addBadgeItem(
                 CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr), 9, "rl-comment-lb-mod-badge:3");
         }
+        if (m_fields->isLeaderboardAdmin) {
+            addBadgeItem(
+                CCSprite::createWithSpriteFrameName("RL_badgelbAdmin01.png"_spr), 11, "rl-comment-lb-admin-badge:2");
+        }
         // supporter badge
         if (m_fields->supporter) {
             addBadgeItem(
@@ -414,74 +421,31 @@ class $modify(RLCommentCell, CommentCell) {
         int tag = btn->getTag();
         switch (tag) {
             case 3:  // Supporters
-                FLAlertLayer::create(
-                    "Layout Supporter",
-                    "<cp>Layout Supporter</c> are those who have supported development "
-                    "of "
-                    "<cl>Rated Layouts</c> through <cp>Ko-fi</c> membership donation.",
-                    "OK")
-                    ->show();
+            rl::showSupporterInfo();
                 break;
             case 4:  // Boosters
-                FLAlertLayer::create(
-                    "Layout Booster",
-                    "<ca>Layout Booster</c> are those who boosted the <cl>Rated "
-                    "Layouts Discord server</c>, they also have the same "
-                    "benefits as <cp>Layout Supporter</c>.",
-                    "OK")
-                    ->show();
+            rl::showBoosterInfo();
                 break;
             case 5:  // Classic Admins
-                FLAlertLayer::create("Classic Layout Admin",
-                    "<cr>Classic Layout Admin</c> has the ability to "
-                    "rate, suggest levels "
-                    "and <cg>manage Featured Layouts</c> for "
-                    "<cc>classic levels</c> of <cl>Rated Layouts</c>.",
-                    "OK")
-                    ->show();
+            rl::showClassicAdminInfo();
                 break;
             case 6:  // Classic Mods
-                FLAlertLayer::create(
-                    "Classic Layout Mod",
-                    "<cb>Classic Layout Moderator</c> can suggest levels "
-                    "for classic layouts to <cr>Classic Layout Admins</c>.",
-                    "OK")
-                    ->show();
+            rl::showClassicModInfo();
                 break;
             case 7:  // Plat Admins
-                FLAlertLayer::create(
-                    "Platformer Layout Admin",
-                    "<cr>Platformer Layout Admin</c> has the abilities to rate, suggest "
-                    "levels and <cg>manage Featured Layouts</c> for "
-                    "<cc>platformer levels</c> of <cl>Rated Layouts</c>.",
-                    "OK")
-                    ->show();
+            rl::showPlatAdminInfo();
                 break;
             case 8:  // Plat Mods
-                FLAlertLayer::create(
-                    "Platformer Layout Mod",
-                    "<cb>Platformer Layout Mod</c> can suggest levels for "
-                    "<cc>platformer layouts</c> to <cr>Platformer Layout Admins</c>.",
-                    "OK")
-                    ->show();
+            rl::showPlatModInfo();
                 break;
             case 9:  // Leaderboard Mods
-                FLAlertLayer::create(
-                    "LB Layout Mod",
-                    "<cb>Leaderboard Layout Mod</c> is responsible for <co>managing and "
-                    "moderating the leaderboard</c> section of <cl>Rated Layouts</c>.",
-                    "OK")
-                    ->show();
+            rl::showLeaderboardModInfo();
+                break;
+            case 11:  // Leaderboard Admins
+            rl::showLeaderboardAdminInfo();
                 break;
             case 10:  // Owner
-                FLAlertLayer::create(
-                    "Rated Layouts Owner",
-                    "<cf>ArcticWoof</c> is the creator and owner of "
-                    "<cl>Rated Layouts</c>. He is the main developer and maintainer of "
-                    "this <cp>Geode Mod</c> and has the ability to <cg>promote "
-                    "users</c>.",
-                    "OK")
-                    ->show();
+            rl::showOwnerInfo();
                 break;
             default:
                 break;

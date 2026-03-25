@@ -124,6 +124,8 @@ class $modify(RLSupportLayer, SupportLayer) {
                                 json["isClassicAdmin"].asBool().unwrapOrDefault();
                             bool isLeaderboardMod =
                                 json["isLeaderboardMod"].asBool().unwrapOrDefault();
+                            bool isLeaderboardAdmin =
+                                json["isLeaderboardAdmin"].asBool().unwrapOrDefault();
                             bool isPlatMod = json["isPlatMod"].asBool().unwrapOrDefault();
                             bool isPlatAdmin =
                                 json["isPlatAdmin"].asBool().unwrapOrDefault();
@@ -133,10 +135,24 @@ class $modify(RLSupportLayer, SupportLayer) {
                                 isClassicAdmin);
                             Mod::get()->setSavedValue<bool>("isLeaderboardMod",
                                 isLeaderboardMod);
+                            Mod::get()->setSavedValue<bool>("isLeaderboardAdmin",
+                                isLeaderboardAdmin);
                             Mod::get()->setSavedValue<bool>("isPlatMod", isPlatMod);
                             Mod::get()->setSavedValue<bool>("isPlatAdmin", isPlatAdmin);
 
-                            if (isClassicMod) {
+                            int roleCount = 0;
+                            roleCount += isClassicMod ? 1 : 0;
+                            roleCount += isClassicAdmin ? 1 : 0;
+                            roleCount += isLeaderboardMod ? 1 : 0;
+                            roleCount += isLeaderboardAdmin ? 1 : 0;
+                            roleCount += isPlatMod ? 1 : 0;
+                            roleCount += isPlatAdmin ? 1 : 0;
+
+                            if (roleCount > 1) {
+                                log::info("Granted Multiple roles");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Multiple roles.");
+                            } else if (isClassicMod) {
                                 log::info("Granted Layout Mod role");
                                 m_uploadPopup->showSuccessMessage(
                                     "Granted Classic Layout Mod.");
@@ -148,6 +164,10 @@ class $modify(RLSupportLayer, SupportLayer) {
                                 log::info("Granted Leaderboard Layout Mod role");
                                 m_uploadPopup->showSuccessMessage(
                                     "Granted Leaderboard Layout Mod.");
+                            } else if (isLeaderboardAdmin) {
+                                log::info("Granted Leaderboard Layout Admin role");
+                                m_uploadPopup->showSuccessMessage(
+                                    "Granted Leaderboard Layout Admin.");
                             } else if (isPlatMod) {
                                 log::info("Granted Platformer Layout Mod role");
                                 m_uploadPopup->showSuccessMessage(
@@ -160,7 +180,7 @@ class $modify(RLSupportLayer, SupportLayer) {
                                 m_uploadPopup->showFailMessage("Nothing Happened.");
                             }
 
-                            if (isClassicMod || isPlatMod || isLeaderboardMod) {
+                            if (isClassicMod || isPlatMod || isLeaderboardMod || isLeaderboardAdmin) {
                                 RLAchievements::onReward("misc_moderator");
                             }
                         });

@@ -40,17 +40,28 @@ private:
     async::TaskHolder<web::WebResponse> m_promoteUserTask;
     // promotion buttons
     CCMenuItemSpriteExtra* m_promoteLeaderboardModButton = nullptr;
+    CCMenuItemSpriteExtra* m_promoteLeaderboardAdminButton = nullptr;
     CCMenuItemSpriteExtra* m_promoteClassicModButton = nullptr;
     CCMenuItemSpriteExtra* m_promoteClassicAdminButton = nullptr;
     CCMenuItemSpriteExtra* m_promotePlatModButton = nullptr;
     CCMenuItemSpriteExtra* m_promotePlatAdminButton = nullptr;
-    CCMenuItemSpriteExtra* m_demoteButton = nullptr;
+    CCMenuItemSpriteExtra* m_demoteClassicButton = nullptr;
+    CCMenuItemSpriteExtra* m_demotePlatButton = nullptr;
+    CCMenuItemSpriteExtra* m_demoteLBButton = nullptr;
     // tracked state of the target account's roles (for UI updates)
     bool m_targetIsLeaderboardMod = false;
+    bool m_targetIsLeaderboardAdmin = false;
     bool m_targetIsClassicMod = false;
     bool m_targetIsClassicAdmin = false;
     bool m_targetIsPlatMod = false;
     bool m_targetIsPlatAdmin = false;
+    bool m_isRebuildingOptions = false;
+
+    CCMenuItemSpriteExtra* createUserOptionButton(const std::string& text, cocos2d::SEL_MenuHandler cb);
+    void createOptionButtons();
+    void rebuildUserOptions();
+    void updateOptionVisibility();
+
     void onOptionAction(CCObject* sender);
     void onWipeAction(CCObject* sender);
     void onPromoteAction(CCObject* sender);

@@ -68,26 +68,14 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         auto leftMenu = this->getChildByID("left-side-menu");
         bool isPlatformer = this->m_level->isPlatformer();
 
-        log::debug("isPlatformer = {}, starRatings = {}, legitCompleted = {}",
-            isPlatformer,
-            starRatings,
-            legitCompleted);
-
-        bool isClassicMod = Mod::get()->getSavedValue<bool>("isClassicMod");
-        bool isClassicAdmin = Mod::get()->getSavedValue<bool>("isClassicAdmin");
-        bool isPlatMod = Mod::get()->getSavedValue<bool>("isPlatMod");
-        bool isPlatAdmin = Mod::get()->getSavedValue<bool>("isPlatAdmin");
-        if (isClassicMod || isClassicAdmin || isPlatMod || isPlatAdmin) {
+        if (rl::isUserHasPerms()) {
             // add a role button for send/rate
-            auto iconSprite =
-                CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
             CCSprite* modButtonSprite = nullptr;
             CCSprite* devButtonSprite = nullptr;
 
-            if (starRatings != 0 ||
-                m_level->m_accountID ==
-                    GJAccountManager::sharedState()->m_accountID) {
-                if (isClassicMod || isClassicAdmin) {
+            // setup mod/admin button
+            if (starRatings != 0 || m_level->m_accountID == GJAccountManager::sharedState()->m_accountID) {
+                if (rl::isUserClassicAdmin() || rl::isUserClassicMod() && !isPlatformer) {
                     modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
                         "RL_starBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -96,7 +84,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         roleButtonSpr, this, menu_selector(RLLevelInfoLayer::onRoleButton));
                     roleButtonItem->setID("role-button");
                     leftMenu->addChild(roleButtonItem);
-                } else if (isPlatMod || isPlatAdmin) {
+                } else if ((rl::isUserPlatformerAdmin() || rl::isUserPlatformerMod()) && isPlatformer) {
                     modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
                         "RL_planetBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -107,7 +95,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     leftMenu->addChild(roleButtonItem);
                 }
             } else {
-                if (isClassicMod || isClassicAdmin) {
+                if ((rl::isUserClassicAdmin() || rl::isUserClassicMod()) && !isPlatformer) {
                     modButtonSprite =
                         CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -116,7 +104,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         roleButtonSpr, this, menu_selector(RLLevelInfoLayer::onRoleButton));
                     roleButtonItem->setID("role-button");
                     leftMenu->addChild(roleButtonItem);
-                } else if (isPlatMod || isPlatAdmin) {
+                } else if ((rl::isUserPlatformerAdmin() || rl::isUserPlatformerMod()) && isPlatformer) {
                     modButtonSprite =
                         CCSprite::createWithSpriteFrameName("RL_planetBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -131,7 +119,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
         leftMenu->updateLayout();
 
-        if (GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNT_ID) {
+        // dev specfic button
+        if (rl::isUserOwner()) {
             auto devButtonSprite =
                 CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
             devButtonSprite->setColor({255, 255, 0});
