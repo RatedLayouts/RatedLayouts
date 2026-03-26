@@ -1,4 +1,5 @@
 #include "RLAnnouncementPopup.hpp"
+#include "../include/RLConstants.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
 
@@ -20,7 +21,7 @@ bool RLAnnouncementPopup::init() {
 
     auto imageSpr =
         LazySprite::create({m_mainLayer->getScaledContentSize()}, true);
-    imageSpr->loadFromUrl("https://gdrate.arcticwoof.xyz/cdn/gauntletBanner.png",
+    imageSpr->loadFromUrl(std::string(rl::BASE_API_URL) + "/cdn/gauntletBanner.png",
         CCImage::kFmtPng,
         true);
     imageSpr->setAutoResize(true);
@@ -67,6 +68,6 @@ void RLAnnouncementPopup::onClick(CCObject* sender) {
                 NotificationIcon::Info)
                 ->show();
             utils::web::openLinkInBrowser(
-                "https://gdrate.arcticwoof.xyz/getRedirectURL");
+                std::string(rl::BASE_API_URL) + "/getRedirectURL");
         });
 }

@@ -6,6 +6,7 @@
 #include "Geode/ui/MDPopup.hpp"
 #include "Geode/utils/general.hpp"
 #include "RLSpireSelectLevelLayer.hpp"
+#include "../include/RLConstants.hpp"
 #include <unordered_set>
 #include <filesystem>
 
@@ -429,7 +430,7 @@ void RLSpireSelectLevelLayer::fetchSpireLevels() {
     Ref<RLSpireSelectLevelLayer> self = this;
     m_fetchTask.spawn(web::WebRequest()
                           .param("index", numToString(m_spireRoomIndex))
-                          .get("https://gdrate.arcticwoof.xyz/getSpireLevels"),
+                          .get(std::string(rl::BASE_API_URL) + "/getSpireLevels"),
         [self](web::WebResponse const& res) {
             if (!self) return;
 

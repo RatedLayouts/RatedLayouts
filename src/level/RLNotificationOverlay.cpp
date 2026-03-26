@@ -1,5 +1,6 @@
 #include "RLNotificationOverlay.hpp"
 #include "RLNotificationAlert.hpp"
+#include "../include/RLConstants.hpp"
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
@@ -103,7 +104,7 @@ void RLNotificationOverlay::callRateNotification(float dt) {
 
     log::debug("Polling for new rate notifications...");
     async::spawn(
-        req.get("https://gdrate.arcticwoof.xyz/getNewRate"),
+        req.get(std::string(rl::BASE_API_URL) + "/getNewRate"),
         [this](web::WebResponse response) {
             if (!response.ok()) {
                 log::warn("Rate notification fetch failed: {}", response.code());

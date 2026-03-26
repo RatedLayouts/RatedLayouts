@@ -2,6 +2,7 @@
 #include "../include/RLDialogIcons.hpp"
 #include "../utils/RLNameplateItem.hpp"
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "RLShopLayer.hpp"
 #include "ccTypes.h"
 #include <Geode/binding/GJAccountManager.hpp>
@@ -58,7 +59,7 @@ bool RLBuyItemPopup::init() {
     // preview icon (banner from server)
     auto plateName = fmt::format("nameplate_{}.png", m_itemId);
     std::string url =
-        "https://gdrate.arcticwoof.xyz/nameplates/banner/" + plateName;
+        std::string(rl::BASE_API_URL) + "/nameplates/banner/" + plateName;
     auto lazy = LazySprite::create(
         {m_mainLayer->getScaledContentSize() - CCSize{10, 10}}, true);
     lazy->loadFromUrl(url, CCImage::kFmtPng, true);
@@ -130,7 +131,7 @@ void RLBuyItemPopup::onApply(CCObject* sender) {
 
     Ref<RLBuyItemPopup> self = this;
     Ref<UploadActionPopup> popupRef = upopup;
-    async::spawn(req.post("https://gdrate.arcticwoof.xyz/setNameplate"),
+    async::spawn(req.post(std::string(rl::BASE_API_URL) + "/setNameplate"),
         [self, popupRef](web::WebResponse res) {
             if (!self || !popupRef)
                 return;

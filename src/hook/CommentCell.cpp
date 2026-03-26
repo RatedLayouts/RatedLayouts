@@ -133,7 +133,7 @@ class $modify(RLCommentCell, CommentCell) {
         body["argonToken"] = token;
 
         auto postTask = web::WebRequest().bodyJSON(body).post(
-            "https://gdrate.arcticwoof.xyz/profile");
+            std::string(rl::BASE_API_URL) + "/profile");
 
         Ref<RLCommentCell> cellRef = this;  // commentcell ref
 
@@ -264,7 +264,8 @@ class $modify(RLCommentCell, CommentCell) {
             if (cellRef->m_backgroundLayer && nameplate != 0 &&
                 !Mod::get()->getSettingValue<bool>("disableNameplateInComment")) {
                 std::string url = fmt::format(
-                    "https://gdrate.arcticwoof.xyz/nameplates/banner/nameplate_{}.png",
+                    "{}/nameplates/banner/nameplate_{}.png",
+                    std::string(rl::BASE_API_URL),
                     nameplate);
                 if (cellRef->m_compactMode) {
                     auto lazy = LazySprite::create(

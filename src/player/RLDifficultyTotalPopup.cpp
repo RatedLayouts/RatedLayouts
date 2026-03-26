@@ -1,5 +1,6 @@
 #include "RLDifficultyTotalPopup.hpp"
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 
 #include <unordered_map>
 using namespace geode::prelude;
@@ -287,7 +288,7 @@ bool RLDifficultyTotalPopup::init() {
     }
     Ref<RLDifficultyTotalPopup> self = this;
     m_difficultyTask.spawn(
-        req.get("https://gdrate.arcticwoof.xyz/getDifficulty"),
+        req.get(std::string(rl::BASE_API_URL) + "/getDifficulty"),
         [self](web::WebResponse res) {
             if (!self)
                 return;

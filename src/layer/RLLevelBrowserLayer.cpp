@@ -6,6 +6,7 @@
 #include <charconv>
 
 #include "../include/RLLayerBackground.hpp"
+#include "../include/RLConstants.hpp"
 #include <cue/RepeatingBackground.hpp>
 
 using namespace geode::prelude;
@@ -548,7 +549,7 @@ void RLLevelBrowserLayer::fetchLevelsForType(int type) {
         req.param("isPlat", "1");
     }
     self->m_searchTask.spawn(
-        req.get("https://gdrate.arcticwoof.xyz/getLevels"),
+        req.get(std::string(rl::BASE_API_URL) + "/getLevels"),
         [self](web::WebResponse res) {
             if (!self)
                 return;
@@ -594,7 +595,7 @@ void RLLevelBrowserLayer::fetchAccountLevels(int accountId) {
         req.param("isPlat", "1");
     }
     self->m_searchTask.spawn(
-        req.get("https://gdrate.arcticwoof.xyz/getAccountLevels"),
+        req.get(std::string(rl::BASE_API_URL) + "/getAccountLevels"),
         [self](web::WebResponse const& res) {
             if (!self)
                 return;
@@ -632,7 +633,7 @@ void RLLevelBrowserLayer::performSearchQuery(ParamList const& params) {
     for (auto const& p : params) {
         if (p.first == "safe") {
             std::string url =
-                std::string("https://gdrate.arcticwoof.xyz/getEvent?safe=") +
+                std::string(rl::BASE_API_URL) + "/getEvent?safe=" +
                 p.second + std::string("&amount=") + numToString(PER_PAGE) +
                 std::string("&page=") + numToString(self->m_page + 1);
             self->m_searchTask.spawn(
@@ -675,7 +676,7 @@ void RLLevelBrowserLayer::performSearchQuery(ParamList const& params) {
         .param("amount", numToString(PER_PAGE))
         .param("page", numToString(self->m_page + 1));
     self->m_searchTask.spawn(
-        req.get("https://gdrate.arcticwoof.xyz/search"),
+        req.get(std::string(rl::BASE_API_URL) + "/search"),
         [self](web::WebResponse const& res) {
             if (!self)
                 return;

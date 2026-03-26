@@ -12,6 +12,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
 #include <fmt/format.h>
+#include "../include/RLConstants.hpp"
 
 using namespace geode::prelude;
 using namespace rl;
@@ -426,7 +427,7 @@ void RLShopLayer::onUnequipNameplate(CCObject* sender) {
             Ref<UploadActionPopup> upRef = popupRef;
             Ref<RLShopLayer> self = this;
             async::spawn(
-                req.post("https://gdrate.arcticwoof.xyz/setNameplate"),
+                req.post(std::string(rl::BASE_API_URL) + "/setNameplate"),
                 [self, upRef](web::WebResponse res) {
                     if (!upRef)
                         return;
@@ -543,7 +544,7 @@ void RLShopLayer::loadShopPage(int page) {
 
     Ref<RLShopLayer> self = this;
     async::spawn(
-        req.post("https://gdrate.arcticwoof.xyz/getNameplates"),
+        req.post(std::string(rl::BASE_API_URL) + "/getNameplates"),
         [self](web::WebResponse res) {
             if (!self)
                 return;
@@ -576,7 +577,7 @@ void RLShopLayer::loadShopPage(int page) {
                         si.creatorId = it["accountId"].asInt().unwrapOrDefault();
                         si.creatorUsername =
                             it["username"].asString().unwrapOrDefault();
-                        si.iconUrl = "https://gdrate.arcticwoof.xyz" + it["url"].asString().unwrapOrDefault();
+                        si.iconUrl = std::string(rl::BASE_API_URL) + it["url"].asString().unwrapOrDefault();
 
                         self->m_shopItems.push_back(si);
                     }

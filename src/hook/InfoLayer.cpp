@@ -3,6 +3,7 @@
 #include <Geode/modify/InfoLayer.hpp>
 #include <Geode/utils/async.hpp>
 
+#include "../include/RLConstants.hpp"
 #include "../level/RLModsNotesPopup.hpp"
 #include "../level/RLReportPopup.hpp"
 
@@ -20,8 +21,7 @@ class $modify(RLLInfoLayer, InfoLayer) {
             int levelId = level->m_levelID;
 
             Ref<RLLInfoLayer> layerRef = this;
-            auto url = fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
-                levelId);
+            auto url = fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId);
             auto req = web::WebRequest();
             async::spawn(req.get(url), [layerRef](web::WebResponse response) {
                 log::info("Received /fetch response for level ID: {}",

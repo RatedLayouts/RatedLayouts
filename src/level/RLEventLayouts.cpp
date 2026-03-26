@@ -2,7 +2,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
 
-#include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "../layer/RLLevelBrowserLayer.hpp"
 #include <Geode/modify/GameLevelManager.hpp>
 #include <Geode/modify/LevelBrowserLayer.hpp>
@@ -224,7 +224,7 @@ bool RLEventLayouts::init() {
     {
         Ref<RLEventLayouts> self = this;
         self->m_eventTask.spawn(
-            web::WebRequest().get("https://gdrate.arcticwoof.xyz/getEvent"),
+            web::WebRequest().get(std::string(rl::BASE_API_URL) + "/getEvent"),
             [self](web::WebResponse res) {
                 if (!self)
                     return;

@@ -200,7 +200,7 @@ bool RLLegacyPopup::init() {
         auto req = web::WebRequest();
         req.param("levelId", numToString(lid));
         Ref<RLLegacyPopup> self = this;
-        m_fetchTask.spawn(req.get("https://gdrate.arcticwoof.xyz/getLegacy"),
+        m_fetchTask.spawn(req.get(std::string(rl::BASE_API_URL) + "/getLegacy"),
             [self](web::WebResponse response) {
                 if (!self)
                     return;
@@ -291,7 +291,7 @@ void RLLegacyPopup::onDeleteLegacy(CCObject* sender) {
             req.bodyJSON(body);
             Ref<RLLegacyPopup> self = this;
             self->m_deleteTask.spawn(
-                req.post("https://gdrate.arcticwoof.xyz/deleteLegacy"),
+                req.post(std::string(rl::BASE_API_URL) + "/deleteLegacy"),
                 [self, uploadPopup](web::WebResponse res) {
                     if (!self)
                         return;

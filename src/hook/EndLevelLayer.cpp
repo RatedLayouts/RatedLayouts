@@ -3,6 +3,7 @@
 #include "Geode/cocos/textures/CCTexture2D.h"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/EndLevelLayer.hpp>
+#include "../include/RLConstants.hpp"
 #include "../layer/RLSpireSelectLevelLayer.hpp"
 
 using namespace geode::prelude;
@@ -82,7 +83,8 @@ class $modify(EndLevelLayer) {
         Ref<EndLevelLayer> endLayerRef = this;
 
         m_fields->m_getTask.spawn(
-            getReq.get(fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
+            getReq.get(fmt::format("{}/fetch?levelId={}",
+                std::string(rl::BASE_API_URL),
                 levelId)),
             [this, endLayerRef, levelId, level](web::WebResponse response) {
                 log::info("Received rating response for completed level ID: {}",
@@ -264,7 +266,7 @@ class $modify(EndLevelLayer) {
                 submitReq.bodyJSON(jsonBody);
 
                 m_fields->m_submitTask.spawn(
-                    submitReq.post("https://gdrate.arcticwoof.xyz/submitComplete"),
+                    submitReq.post(std::string(rl::BASE_API_URL) + "/submitComplete"),
                     [endLayerRef, starReward, levelId, isPlat, level, difficulty](web::WebResponse submitResponse) {
                         log::info("Received submitComplete response for level ID: {}",
                             levelId);

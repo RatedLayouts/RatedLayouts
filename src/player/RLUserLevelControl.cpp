@@ -1,5 +1,6 @@
 #include "RLUserLevelControl.hpp"
 #include "../include/RLNetworkUtils.hpp"
+#include "../include/RLConstants.hpp"
 #include "Geode/cocos/label_nodes/CCLabelBMFont.h"
 #include <Geode/Geode.hpp>
 #include <fmt/format.h>
@@ -91,7 +92,7 @@ void RLUserLevelControl::onRemoveLevel(CCObject* sender) {
     req.bodyJSON(body);
     Ref<RLUserLevelControl> self = this;
     self->m_removeLevelTask.spawn(
-        req.post("https://gdrate.arcticwoof.xyz/deleteCompletionLevel"),
+        req.post(std::string(rl::BASE_API_URL) + "/deleteCompletionLevel"),
         [self, upopup](web::WebResponse res) {
             if (!self || !upopup)
                 return;

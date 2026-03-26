@@ -305,7 +305,7 @@ void RLSecretLayer1::startRedeemRequest() {
         self->finishRedeem();
     }
 
-    async::spawn(req.post("https://gdrate.arcticwoof.xyz/getRubiesReward"),
+    async::spawn(req.post(std::string(rl::BASE_API_URL) + "/getRubiesReward"),
         [self](web::WebResponse res) {
             if (!self) {
                 return;

@@ -1,4 +1,4 @@
-#include "Geode/cocos/base_nodes/CCNode.h"
+#include "../include/RLConstants.hpp"
 #include <capeling.garage-stats-menu/include/StatsDisplayAPI.h>
 
 #include <Geode/Geode.hpp>
@@ -52,7 +52,7 @@ class $modify(GJGarageLayer) {
         postReq.bodyJSON(jsonBody);
         m_fields->m_profileTask.cancel();
         m_fields->m_profileTask.spawn(
-            postReq.post("https://gdrate.arcticwoof.xyz/profile"),
+            postReq.post(std::string(rl::BASE_API_URL) + "/profile"),
             [this](web::WebResponse response) {
                 log::info("Received response from server");
 

@@ -1,5 +1,5 @@
 #include "RLGauntletLevelsLayer.hpp"
-
+#include "../include/RLConstants.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <algorithm>
@@ -97,7 +97,7 @@ void RLGauntletLevelsLayer::fetchLevelDetails(int gauntletId) {
     request.bodyJSON(postData);
     Ref<RLGauntletLevelsLayer> self = this;
     m_getLevelsTask.spawn(
-        request.post("https://gdrate.arcticwoof.xyz/getLevelsGauntlets"),
+        request.post(std::string(rl::BASE_API_URL) + "/getLevelsGauntlets"),
         [self](web::WebResponse const& response) {
             if (!self)
                 return;

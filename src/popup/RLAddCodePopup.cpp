@@ -98,10 +98,10 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
 
     std::string endpoint;
     if (m_id >= 0) {
-        endpoint = "https://gdrate.arcticwoof.xyz/setRubiesCode";
+        endpoint = std::string(rl::BASE_API_URL) + "/setRubiesCode";
         body["id"] = m_id;
     } else {
-        endpoint = "https://gdrate.arcticwoof.xyz/addRubiesCode";
+        endpoint = std::string(rl::BASE_API_URL) + "/addRubiesCode";
     }
 
     Ref<RLAddCodePopup> self = this;

@@ -3,6 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/utils/async.hpp>
+#include "../include/RLConstants.hpp"
 
 using namespace geode::prelude;
 using namespace rl;
@@ -28,8 +29,7 @@ class $modify(RLPlayLayer, PlayLayer) {
             Ref<RLPlayLayer> self = this;
             auto req = web::WebRequest();
             std::string url =
-                fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
-                    static_cast<int>(level->m_levelID));
+                fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), static_cast<int>(level->m_levelID));
             async::spawn(req.get(url), [self, lvlId = static_cast<int>(level->m_levelID)](web::WebResponse resp) {
                 if (!self)
                     return;

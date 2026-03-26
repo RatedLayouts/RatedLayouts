@@ -1,5 +1,6 @@
 #include "RLAddDialogue.hpp"
 #include "../include/RLNetworkUtils.hpp"
+#include "../include/RLConstants.hpp"
 
 using namespace geode::prelude;
 
@@ -82,7 +83,7 @@ void RLAddDialogue::onSubmit(CCObject* sender) {
     req.bodyJSON(body);
     Ref<RLAddDialogue> self = this;
     self->m_setDialogueTask.spawn(
-        req.post("https://gdrate.arcticwoof.xyz/setDialogue"),
+        req.post(std::string(rl::BASE_API_URL) + "/setDialogue"),
         [self, upopup](web::WebResponse res) {
             if (!self) return;
             if (!res.ok()) {

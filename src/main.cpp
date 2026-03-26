@@ -94,7 +94,7 @@ class $modify(RLSupportLayer, SupportLayer) {
                     postReq.bodyJSON(jsonBody);
 
                     m_fields->m_getAccessTask.spawn(
-                        postReq.post("https://gdrate.arcticwoof.xyz/getAccess"),
+                        postReq.post(std::string(rl::BASE_API_URL) + "/getAccess"),
                         [self, this](web::WebResponse response) {
                             if (!self)
                                 return;

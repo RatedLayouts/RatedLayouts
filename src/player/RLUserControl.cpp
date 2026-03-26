@@ -345,7 +345,7 @@ bool RLUserControl::init() {
         postReq.bodyJSON(jsonBody);
         Ref<RLUserControl> self = this;
         m_profileTask.spawn(
-            postReq.post("https://gdrate.arcticwoof.xyz/profile"),
+            postReq.post(std::string(rl::BASE_API_URL) + "/profile"),
             [self](web::WebResponse response) {
                 if (!self)
                     return;  // popup destroyed or otherwise invalid
@@ -574,7 +574,7 @@ void RLUserControl::onWipeAction(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
             Ref<RLUserControl> self = this;
             self->m_deleteUserTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/deleteUser"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/deleteUser"),
                 [self, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;
@@ -790,7 +790,7 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
             Ref<RLUserControl> self = this;
             self->m_promoteUserTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/promoteUser"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/promoteUser"),
                 [self, upopup, setLBMod, setLBAdmin, setClassicMod, setClassicAdmin, setPlatMod, setPlatAdmin, demoteClassicMod, demoteClassicAdmin, demotePlatMod, demotePlatAdmin, demoteLBMod, demoteLBAdmin, targetHasClassic, targetHasPlat, targetHasLB](web::WebResponse response) {
                     if (!self || !upopup)
                         return;
@@ -1192,7 +1192,7 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
     postReq.bodyJSON(jsonBody);
     Ref<RLUserControl> self = this;
     m_setUserTask.spawn(
-        postReq.post("https://gdrate.arcticwoof.xyz/setUser"),
+        postReq.post(std::string(rl::BASE_API_URL) + "/setUser"),
         [self, key, value, upopup](web::WebResponse response) {
             if (!self || !upopup)
                 return;

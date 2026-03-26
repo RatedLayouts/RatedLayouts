@@ -41,7 +41,7 @@ static arc::Future<std::optional<ModInfo>> fetchModInfoAsync() {
     log::debug("Fetching mod info from API");
     co_return co_await []() -> arc::Future<std::optional<ModInfo>> {
         auto req = web::WebRequest();
-        auto response = co_await req.get("https://gdrate.arcticwoof.xyz/v1/");
+        auto response = co_await req.get(std::string(rl::BASE_API_URL) + "/v1/");
         if (!response.ok()) {
             log::warn("Failed to fetch mod info from server");
             co_return std::nullopt;
@@ -283,7 +283,7 @@ bool RLMenuLayer::init() {
     // check server announcement id and set badge visibility
     Ref<RLMenuLayer> self = this;
     m_announcementTask.spawn(
-        web::WebRequest().get("https://gdrate.arcticwoof.xyz/getAnnoucement"),
+        web::WebRequest().get(std::string(rl::BASE_API_URL) + "/getAnnoucement"),
         [self](web::WebResponse const& res) {
             if (!self)
                 return;
@@ -466,7 +466,7 @@ void RLMenuLayer::onAnnoucementButton(CCObject* sender) {
 
     Ref<RLMenuLayer> self = this;
     m_announcementTask.spawn(
-        web::WebRequest().get("https://gdrate.arcticwoof.xyz/getAnnoucement"),
+        web::WebRequest().get(std::string(rl::BASE_API_URL) + "/getAnnoucement"),
         [self, menuItem](web::WebResponse const& res) {
             if (!self)
                 return;
@@ -533,7 +533,7 @@ void RLMenuLayer::onUnknownButton(CCObject* sender) {
     // fetch dialogue from server and show it in a dialog
     Ref<RLMenuLayer> self = this;
     m_dialogueTask.spawn(
-        web::WebRequest().get("https://gdrate.arcticwoof.xyz/getDialogue"),
+        web::WebRequest().get(std::string(rl::BASE_API_URL) + "/getDialogue"),
         [self, menuItem](web::WebResponse const& res) {
             if (!self)
                 return;
@@ -669,7 +669,7 @@ void RLMenuLayer::onFeaturedLayouts(CCObject* sender) {
 }
 
 void RLMenuLayer::onSentLayouts(CCObject* sender) {
-    if (rl::isUserClassicAdmin() || rl::isUserPlatformerAdmin() || rl::isUserClassicMod() || rl::isUserPlatformerMod()) {
+    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
         auto selectPopup = RLSelectSends::create();
         selectPopup->show();
         return;

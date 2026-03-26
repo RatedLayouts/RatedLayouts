@@ -1,6 +1,7 @@
 #include "RLModRatePopup.hpp"
 #include "RLModRatePayloadBuilder.hpp"
 #include "../include/RLNetworkUtils.hpp"
+#include "../include/RLConstants.hpp"
 #include "Geode/ui/Popup.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/binding/ButtonSprite.hpp>
@@ -391,7 +392,7 @@ void RLModRatePopup::onInfoButton(CCObject* sender) {
 
     Ref<RLModRatePopup> self = this;
     m_getModLevelTask.spawn(
-        postReq.post("https://gdrate.arcticwoof.xyz/getModLevel"),
+        postReq.post(std::string(rl::BASE_API_URL) + "/getModLevel"),
         [self, sender](web::WebResponse response) {
             if (!self)
                 return;
@@ -831,7 +832,7 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
             Ref<RLModRatePopup> self = this;
             Ref<UploadActionPopup> upopup = popup;
             m_unbanLevelTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/setUnban"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/setUnban"),
                 [self, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;
@@ -910,7 +911,7 @@ void RLModRatePopup::onLegacyButton(CCObject* sender) {
     Ref<RLModRatePopup> self = this;
     Ref<UploadActionPopup> upopup = popup;
     m_setLegacyTask.spawn(
-        req.post("https://gdrate.arcticwoof.xyz/setLegacy"),
+        req.post(std::string(rl::BASE_API_URL) + "/setLegacy"),
         [self, upopup](web::WebResponse response) {
             if (!self || !upopup)
                 return;
@@ -972,7 +973,7 @@ void RLModRatePopup::onBanLevelButton(CCObject* sender) {
             Ref<RLModRatePopup> self = this;
             Ref<UploadActionPopup> upopup = popup;
             m_banLevelTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/setBan"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/setBan"),
                 [self, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;
@@ -1043,7 +1044,7 @@ void RLModRatePopup::onDeleteSendsButton(CCObject* sender) {
             Ref<RLModRatePopup> self = this;
             Ref<UploadActionPopup> upopup = popup;
             m_deleteSendsTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/deleteSends"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/deleteSends"),
                 [self, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;
@@ -1098,7 +1099,7 @@ void RLModRatePopup::onUnsendButton(CCObject* sender) {
     Ref<RLModRatePopup> self = this;
     Ref<UploadActionPopup> upopup = popup;
     m_unsendTask.spawn(
-        postReq.post("https://gdrate.arcticwoof.xyz/setUnsend"),
+        postReq.post(std::string(rl::BASE_API_URL) + "/setUnsend"),
         [self, upopup](web::WebResponse response) {
             if (!self || !upopup)
                 return;
@@ -1149,7 +1150,7 @@ void RLModRatePopup::onRateButton(CCObject* sender) {
     Ref<RLModRatePopup> self = this;
     Ref<UploadActionPopup> upopup = popup;
     m_setRateTask.spawn(
-        postReq.post("https://gdrate.arcticwoof.xyz/setRate"),
+        postReq.post(std::string(rl::BASE_API_URL) + "/setRate"),
         [self, upopup](web::WebResponse response) {
             if (!self || !upopup)
                 return;
@@ -1251,7 +1252,7 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
             Ref<RLModRatePopup> self = this;
             Ref<UploadActionPopup> upopup = popup;
             m_setUnrateTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/setUnrate"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/setUnrate"),
                 [self, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;
@@ -1384,7 +1385,7 @@ void RLModRatePopup::onSuggestButton(CCObject* sender) {
     Ref<RLModRatePopup> self = this;
     Ref<UploadActionPopup> upopup = popup;
     m_setRateTask.spawn(
-        postReq.post("https://gdrate.arcticwoof.xyz/setSuggest"),
+        postReq.post(std::string(rl::BASE_API_URL) + "/setSuggest"),
         [self, upopup](web::WebResponse response) {
             if (!self || !upopup)
                 return;
@@ -1956,7 +1957,7 @@ void RLModRatePopup::onSetEventButton(CCObject* sender) {
             Ref<UploadActionPopup> upopup = popup;
 
             self->m_setEventTask.spawn(
-                postReq.post("https://gdrate.arcticwoof.xyz/setEvent"),
+                postReq.post(std::string(rl::BASE_API_URL) + "/setEvent"),
                 [self, type, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;

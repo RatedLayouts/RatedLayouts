@@ -67,7 +67,7 @@ bool RLCreditsPopup::init() {
     web::WebRequest req;
     self->m_spinner = nullptr;  // keep consistent
     async::spawn(
-        req.get("https://gdrate.arcticwoof.xyz/getCredits"),
+        req.get(std::string(rl::BASE_API_URL) + "/getCredits"),
         [self](web::WebResponse res) {
             if (!self)
                 return;

@@ -1,5 +1,6 @@
 #include "RLReportPopup.hpp"
 #include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "../include/RLNetworkUtils.hpp"
 
 RLReportPopup* RLReportPopup::create(int levelId) {
@@ -202,7 +203,7 @@ void RLReportPopup::onSubmit(CCObject* sender) {
             req.bodyJSON(body);
             Ref<RLReportPopup> self = this;
             self->m_reportTask.spawn(
-                req.post("https://gdrate.arcticwoof.xyz/setReport"),
+                req.post(std::string(rl::BASE_API_URL) + "/setReport"),
                 [self, uploadPopup](web::WebResponse res) {
                     if (!self) return;
                     if (!res.ok()) {

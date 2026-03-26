@@ -1,5 +1,5 @@
 #include "RLBadgeRequestPopup.hpp"
-#include "../include/RLAchievements.hpp"
+#include "../include/RLConstants.hpp"
 #include "../include/RLNetworkUtils.hpp"
 
 using namespace geode::prelude;
@@ -75,7 +75,7 @@ void RLBadgeRequestPopup::onSubmit(CCObject* sender) {
     req.bodyJSON(body);
     Ref<RLBadgeRequestPopup> self = this;
     self->m_getSupporterTask.spawn(
-        req.post("https://gdrate.arcticwoof.xyz/getSupporter"),
+        req.post(std::string(rl::BASE_API_URL) + "/getSupporter"),
         [self, upopup](web::WebResponse res) {
             if (!self)
                 return;

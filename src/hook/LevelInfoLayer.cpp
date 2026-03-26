@@ -75,7 +75,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
             // setup mod/admin button
             if (starRatings != 0 || m_level->m_accountID == GJAccountManager::sharedState()->m_accountID) {
-                if (rl::isUserClassicAdmin() || rl::isUserClassicMod() && !isPlatformer) {
+                if (rl::isUserClassicRole() && !isPlatformer) {
                     modButtonSprite = CCSpriteGrayscale::createWithSpriteFrameName(
                         "RL_starBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -95,7 +95,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     leftMenu->addChild(roleButtonItem);
                 }
             } else {
-                if ((rl::isUserClassicAdmin() || rl::isUserClassicMod()) && !isPlatformer) {
+                if ((rl::isUserClassicRole() || rl::isUserOwner()) && !isPlatformer) {
                     modButtonSprite =
                         CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -154,7 +154,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         Ref<RLLevelInfoLayer> layerRef = this;
 
         auto url =
-            fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}", levelId);
+            fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId);
         auto req = web::WebRequest();
         async::spawn(req.get(url), [layerRef](web::WebResponse response) {
             log::info("Received rating response from server");
@@ -367,7 +367,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             submitReq.bodyJSON(jsonBody);
 
             m_fields->m_submitTask.spawn(
-                submitReq.post("https://gdrate.arcticwoof.xyz/submitComplete"),
+                submitReq.post(std::string(rl::BASE_API_URL) + "/submitComplete"),
                 [layerRef, difficulty, levelId](web::WebResponse submitResponse) {
                     // re-fetch sprite here in case the layer changed/destroyed
                     CCNode* difficultySprite = nullptr;
@@ -1373,10 +1373,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 }
 
                 // Mods/Admins can always vote regardless of percentages
-                if ((rl::isUserClassicMod() || rl::isUserClassicAdmin() || rl::isUserOwner()) && !this->m_level->isPlatformer()) {
+                if ((rl::isUserClassicRole() || rl::isUserOwner()) && !this->m_level->isPlatformer()) {
                     shouldDisable = false;
                 }
-                if (rl::isUserPlatformerMod() || rl::isUserPlatformerAdmin() || rl::isUserOwner() && this->m_level->isPlatformer()) {
+                if (rl::isUserPlatformerRole() || rl::isUserOwner() && this->m_level->isPlatformer()) {
                     shouldDisable = false;
                 }
 
@@ -1426,7 +1426,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     shouldDisable = !(normalPct >= 20 || practicePct >= 80);
                 }
 
-                if (rl::isUserClassicMod() || rl::isUserClassicAdmin() || rl::isUserPlatformerMod() || rl::isUserPlatformerAdmin()) {
+                if (rl::isUserClassicRole() || rl::isUserPlatformerRole()) {
                     shouldDisable = false;
                 }
 
@@ -1700,7 +1700,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             return;
         }
 
-
         if (rl::isUserClassicMod() && !isPlatformer) {
             log::info("Role button clicked as Classic Mod");
             auto popup =
@@ -1761,7 +1760,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         bool shouldDisable = true;
         shouldDisable = !(normalPct >= 20 || practicePct >= 80);
 
-        if (rl::isUserClassicMod() || rl::isUserClassicAdmin() || rl::isUserPlatformerMod() || rl::isUserPlatformerAdmin() || rl::isUserOwner()) {
+        if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
             shouldDisable = false;
             log::debug("Community vote enabled due to role override (classic/plat)");
         }
@@ -2002,7 +2001,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 Ref<RLLevelInfoLayer> layerRef = this;
 
                 m_fields->m_accessTask.spawn(
-                    postReq.post("https://gdrate.arcticwoof.xyz/access"),
+                    postReq.post(std::string(rl::BASE_API_URL) + "/access"),
                     [layerRef](web::WebResponse response) {
                         log::info("Received response from server");
 
@@ -2129,7 +2128,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         jsonBody["levelId"] = levelId;
         req.bodyJSON(jsonBody);
 
-        async::spawn(req.post("https://gdrate.arcticwoof.xyz/checkRated"),
+        async::spawn(req.post(std::string(rl::BASE_API_URL) + "/checkRated"),
             [levelId](web::WebResponse response) {
                 if (!response.ok()) {
                     log::debug("Level ID {} is not rated (server returned {})",
@@ -2155,7 +2154,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
             async::spawn(
                 getReq.get(fmt::format(
-                    "https://gdrate.arcticwoof.xyz/fetch?levelId={}", levelId)),
+                    "{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId)),
                 [layerRef, levelId, level](web::WebResponse response) {
                     log::info(
                         "Received updated rating data from server for level ID: {}",
@@ -2313,8 +2312,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             Ref<RLLevelInfoLayer> layerRef = this;
             auto req = web::WebRequest();
             async::spawn(
-                req.get(fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
-                    levelId)),
+                req.get(fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId)),
                 [layerRef, levelId](web::WebResponse response) {
                     if (!layerRef)
                         return;

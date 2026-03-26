@@ -1,4 +1,5 @@
 #include "RLGauntletSelectLayer.hpp"
+#include "../include/RLConstants.hpp"
 
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
@@ -86,7 +87,7 @@ void RLGauntletSelectLayer::onGauntletButtonClick(CCObject* sender) {
 void RLGauntletSelectLayer::fetchGauntlets() {
     web::WebRequest request;
     m_gauntletsTask.spawn(
-        request.get("https://gdrate.arcticwoof.xyz/getGauntlets"),
+        request.get(std::string(rl::BASE_API_URL) + "/getGauntlets"),
         [this](web::WebResponse const& response) {
             if (response.ok()) {
                 auto jsonRes = response.json();

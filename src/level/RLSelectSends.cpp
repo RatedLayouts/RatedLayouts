@@ -42,7 +42,7 @@ bool RLSelectSends::init() {
     showAllBtn->m_scaleMultiplier = 1.05f;
     m_buttonMenu->addChild(showAllBtn);
 
-    if (rl::isUserClassicAdmin() || rl::isUserPlatformerAdmin() || rl::isUserClassicMod() || rl::isUserPlatformerMod() || rl::isUserOwner()) {
+    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
         auto mostBtn = CCMenuItemSpriteExtra::create(
             ButtonSprite::create("Most Sents", 180, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f),
             this,

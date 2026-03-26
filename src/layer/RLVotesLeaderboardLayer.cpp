@@ -1,4 +1,5 @@
 #include "RLVotesLeaderboardLayer.hpp"
+#include "../include/RLConstants.hpp"
 #include "../include/RLLayerBackground.hpp"
 #include <cue/RepeatingBackground.hpp>
 #include <cue/ListNode.hpp>
@@ -126,7 +127,7 @@ void RLVotesLeaderboardLayer::fetchLeaderboard(int amount) {
     Ref<RLVotesLeaderboardLayer> self = this;
     auto request = web::WebRequest().param("amount", amount);
     async::spawn(
-        request.get("https://gdrate.arcticwoof.xyz/getVotesLeaderboard"),
+        request.get(std::string(rl::BASE_API_URL) + "/getVotesLeaderboard"),
         [self](web::WebResponse response) {
             if (!self)
                 return;
@@ -224,7 +225,8 @@ void RLVotesLeaderboardLayer::populateLeaderboard(
         if (nameplateId != 0 &&
             !Mod::get()->getSettingValue<bool>("disableNameplate")) {
             std::string url = fmt::format(
-                "https://gdrate.arcticwoof.xyz/nameplates/banner/nameplate_{}.png",
+                "{}/nameplates/banner/nameplate_{}.png",
+                std::string(rl::BASE_API_URL),
                 nameplateId);
             auto lazy = LazySprite::create(
                 {bgSprite->getScaledContentSize() + CCSize(25, 25)}, false);

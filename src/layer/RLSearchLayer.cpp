@@ -3,6 +3,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include "../include/RLLayerBackground.hpp"
+#include "../include/RLConstants.hpp"
 #include <cue/RepeatingBackground.hpp>
 
 using namespace geode::prelude;
@@ -519,7 +520,7 @@ void RLSearchLayer::onRandomButton(CCObject* sender) {
     params.emplace_back("accountId",
         numToString(GJAccountManager::get()->m_accountID));
 
-    std::string url = "https://gdrate.arcticwoof.xyz/getRandomLevel";
+    std::string url = std::string(rl::BASE_API_URL) + "/getRandomLevel";
     if (!params.empty()) {
         url += "?";
         for (size_t i = 0; i < params.size(); ++i) {

@@ -1,4 +1,5 @@
 #include "RLModsNotesPopup.hpp"
+#include "../include/RLConstants.hpp"
 
 static std::string mapRatingToLevel(int rating) {
     switch (rating) {
@@ -111,7 +112,7 @@ bool RLModsNotesPopup::init() {
     // im googing with ref<> rn
 
     m_getNotesTask.spawn(
-        req.get("https://gdrate.arcticwoof.xyz/getNotes"),
+        req.get(std::string(rl::BASE_API_URL) + "/getNotes"),
         [self, scrollRef, contentRef, spinnerRef](web::WebResponse response) {
             if (!self)
                 return;

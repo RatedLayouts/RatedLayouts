@@ -2,6 +2,7 @@
 #include "../include/RLAchievements.hpp"
 #include "../include/RLLayerBackground.hpp"
 #include <cue/RepeatingBackground.hpp>
+#include "../include/RLConstants.hpp"
 
 bool RLLeaderboardLayer::init() {
     if (!CCLayer::init())
@@ -245,7 +246,7 @@ void RLLeaderboardLayer::onLeaderboardTypeButton(CCObject* sender) {
 void RLLeaderboardLayer::fetchLeaderboard(int type, int amount) {
     Ref<RLLeaderboardLayer> self = this;
     auto request = web::WebRequest().param("type", type).param("amount", amount);
-    async::spawn(request.get("https://gdrate.arcticwoof.xyz/getScore"),
+    async::spawn(request.get(std::string(rl::BASE_API_URL) + "/getScore"),
         [self](web::WebResponse response) {
             if (!self)
                 return;
@@ -336,7 +337,8 @@ void RLLeaderboardLayer::populateLeaderboard(
         if (nameplateId != 0 &&
             !Mod::get()->getSettingValue<bool>("disableNameplate")) {
             std::string url = fmt::format(
-                "https://gdrate.arcticwoof.xyz/nameplates/banner/nameplate_{}.png",
+                "{}/nameplates/banner/nameplate_{}.png",
+                std::string(rl::BASE_API_URL),
                 nameplateId);
             auto lazy = LazySprite::create({bgSprite->getScaledContentSize() + CCSize(25, 25)}, false);
             lazy->loadFromUrl(url, CCImage::kFmtPng, true);

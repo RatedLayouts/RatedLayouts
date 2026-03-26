@@ -101,7 +101,7 @@ void RLRubiesCodePopup::fetchCodes() {
     body["argonToken"] = token;
 
     Ref<RLRubiesCodePopup> self = this;
-    m_fetchTask.spawn(web::WebRequest().bodyJSON(body).post("https://gdrate.arcticwoof.xyz/getRubiesCode"),
+    m_fetchTask.spawn(web::WebRequest().bodyJSON(body).post(std::string(rl::BASE_API_URL) + "/getRubiesCode"),
         [self, loadingSpinner](web::WebResponse response) {
             if (!self)
                 return;
@@ -295,7 +295,7 @@ void RLRubiesCodePopup::onDeleteCode(CCObject* sender) {
             body["id"] = item.id;
 
             self->m_deleteTask.spawn(
-                web::WebRequest().bodyJSON(body).post("https://gdrate.arcticwoof.xyz/deleteRubiesCode"),
+                web::WebRequest().bodyJSON(body).post(std::string(rl::BASE_API_URL) + "/deleteRubiesCode"),
                 [self, upopup](web::WebResponse response) {
                     if (!self || !upopup)
                         return;

@@ -21,6 +21,7 @@ namespace rl {
                Mod::get()->getSavedValue<bool>("isPlatAdmin");
     }
 
+    // global admin/mod
     inline bool isUserAdmin() {
         return Mod::get()->getSavedValue<bool>("isClassicAdmin") ||
                Mod::get()->getSavedValue<bool>("isLeaderboardAdmin") ||
@@ -33,6 +34,20 @@ namespace rl {
                Mod::get()->getSavedValue<bool>("isPlatMod");
     }
 
+    // specific admin/mod
+    inline bool isUserClassicRole() {
+        return Mod::get()->getSavedValue<bool>("isClassicAdmin") || Mod::get()->getSavedValue<bool>("isClassicMod");
+    }
+
+    inline bool isUserPlatformerRole() {
+        return Mod::get()->getSavedValue<bool>("isPlatAdmin") || Mod::get()->getSavedValue<bool>("isPlatMod");
+    }
+
+    inline bool isUserLeaderboardRole() {
+        return Mod::get()->getSavedValue<bool>("isLeaderboardAdmin") || Mod::get()->getSavedValue<bool>("isLeaderboardMod");
+    }
+
+    // supporter roles
     inline bool isUserSupporter() {
         return Mod::get()->getSavedValue<bool>("isSupporter") ||
                Mod::get()->getSavedValue<bool>("isBooster");

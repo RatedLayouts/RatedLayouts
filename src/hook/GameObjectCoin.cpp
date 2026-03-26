@@ -2,6 +2,7 @@
 #include <Geode/modify/CCSprite.hpp>
 #include <Geode/modify/EffectGameObject.hpp>
 #include <Geode/modify/GameObject.hpp>
+#include "../include/RLConstants.hpp"
 #include <algorithm>
 #include <vector>
 
@@ -17,7 +18,7 @@ static void fetchCoinVerified(int levelId, std::function<void(bool)> cb) {
     g_verifiedCoins = false;
     s_task.cancel();
     auto url =
-        fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}", levelId);
+        fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId);
     s_task.spawn(web::WebRequest().get(url), [cb](web::WebResponse res) {
         if (!res.ok()) {
             cb(false);

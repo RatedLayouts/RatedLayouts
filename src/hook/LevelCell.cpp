@@ -1,5 +1,6 @@
 #include "../layer/RLLevelBrowserLayer.hpp"
 #include "../level/RLLegacyPopup.hpp"
+#include "../include/RLConstants.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelCell.hpp>
 #include <Geode/utils/async.hpp>
@@ -737,8 +738,7 @@ class $modify(RLLevelCell, LevelCell) {
         auto req = web::WebRequest();
         log::debug("Fetching rating data for level cell ID: {}", levelId);
         async::spawn(
-            req.get(fmt::format("https://gdrate.arcticwoof.xyz/fetch?levelId={}",
-                levelId)),
+            req.get(fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId)),
             [cellRef, levelId, this](web::WebResponse const& response) {
                 log::debug("Received rating response from server for level ID: {}",
                     levelId);
@@ -863,7 +863,7 @@ class $modify(RLLevelCell, LevelCell) {
         jsonBody["levelId"] = levelId;
         req.bodyJSON(jsonBody);
 
-        async::spawn(req.post("https://gdrate.arcticwoof.xyz/checkRated"),
+        async::spawn(req.post(std::string(rl::BASE_API_URL) + "/checkRated"),
             [levelId](web::WebResponse response) {
                 if (!response.ok()) {
                     log::debug("Level ID {} is not rated (server returned {})",

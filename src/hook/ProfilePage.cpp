@@ -266,7 +266,7 @@ class $modify(RLProfilePage, ProfilePage) {
                     modUserBtnItem->setID("rl-manage-btn");
                     m_fields->m_rlButtonsMenu->addChild(modUserBtnItem);
                 }
-                if (rl::isUserLeaderboardMod() || rl::isUserLeaderboardAdmin() || rl::isUserOwner()) {
+                if (rl::isUserLeaderboardRole() || rl::isUserOwner()) {
                     auto manageLevelSpr =
                         CCSprite::createWithSpriteFrameName("RL_userHammer.png"_spr);
                     auto manageLevelButton = EditorButtonSprite::create(
@@ -528,7 +528,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
         Ref<RLProfilePage> pageRef = this;
         m_fields->m_profileTask.spawn(
-            postReq.post("https://gdrate.arcticwoof.xyz/profile"),
+            postReq.post(std::string(rl::BASE_API_URL) + "/profile"),
             [pageRef, accountId](web::WebResponse response) {
                 if (pageRef) {
                     pageRef->m_fields->m_profileInFlight = false;

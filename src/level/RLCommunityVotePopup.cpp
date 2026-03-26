@@ -96,7 +96,7 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                 req.bodyJSON(body);
                 Ref<RLCommunityVotePopup> self = this;
                 self->m_submitVoteTask.spawn(
-                    req.post("https://gdrate.arcticwoof.xyz/submitScore"),
+                    req.post(std::string(rl::BASE_API_URL) + "/submitScore"),
                     [self, upopup, gameplayVote, originalityVote, difficultyVote](web::WebResponse res) {
                         if (!self)
                             return;
@@ -309,7 +309,7 @@ bool RLCommunityVotePopup::init() {
     m_buttonMenu->addChild(leaderboardBtn, 3);
 
     // single toggle for moderators to show/hide all scores at once
-    if (rl::isUserClassicAdmin() || rl::isUserPlatformerAdmin() || rl::isUserClassicMod() || rl::isUserPlatformerMod() || rl::isUserOwner()) {
+    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
         auto allSpr = CCSprite::createWithSpriteFrameName("hideBtn_001.png");
         allSpr->setOpacity(120);
         m_toggleAllBtn = CCMenuItemSpriteExtra::create(
@@ -365,7 +365,7 @@ void RLCommunityVotePopup::refreshFromServer() {
     web::WebRequest voteReq;
     voteReq.bodyJSON(voteBody);
     self->m_getVoteTask.spawn(
-        voteReq.post("https://gdrate.arcticwoof.xyz/getVote"),
+        voteReq.post(std::string(rl::BASE_API_URL) + "/getVote"),
         [self](web::WebResponse vres) {
             if (!self)
                 return;
@@ -522,8 +522,7 @@ void RLCommunityVotePopup::refreshFromServer() {
             }
 
             // Ensure toggle buttons reflect current visibility state for moderators
-            bool hasPerms = checkPerms();
-            if (hasPerms) {
+            if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
                 if (self->m_toggleAllBtn)
                     self->m_toggleAllBtn->setVisible(true);
             } else {
