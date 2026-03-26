@@ -24,6 +24,16 @@ RLUserLevelControl* RLUserLevelControl::create(int accountId) {
     return nullptr;
 };
 
+RLUserLevelControl::~RLUserLevelControl() {
+    auto glm = GameLevelManager::sharedState();
+    if (glm && glm->m_levelManagerDelegate == this) {
+        glm->m_levelManagerDelegate = nullptr;
+    }
+    m_removeLevelTask.cancel();
+    m_getCompletionTask.cancel();
+}
+
+
 bool RLUserLevelControl::init() {
     if (!Popup::init(440.f, 280.f, "GJ_square02.png"))
         return false;
@@ -245,6 +255,9 @@ void RLUserLevelControl::fetchCompletionList(int page) {
                 }
                 auto glm = GameLevelManager::get();
                 if (glm) {
+                    if (glm->m_levelManagerDelegate == self) {
+                        glm->m_levelManagerDelegate = nullptr;
+                    }
                     glm->m_levelManagerDelegate = self;
                     auto searchObj = GJSearchObject::create(SearchType::Type19, levelIds.c_str());
                     glm->getOnlineLevels(searchObj);
@@ -258,6 +271,11 @@ void RLUserLevelControl::fetchCompletionList(int page) {
 }
 
 void RLUserLevelControl::populateCompletionLevels(cocos2d::CCArray* levels) {
+    auto glm = GameLevelManager::sharedState();
+    if (glm && glm->m_levelManagerDelegate == this) {
+        glm->m_levelManagerDelegate = nullptr;
+    }
+
     if (!m_listNode)
         return;
 
@@ -334,6 +352,14 @@ void RLUserLevelControl::updateCompletionPaging(int resultCount) {
         m_prevPageButton->setVisible(m_page > 0);
     if (m_nextPageButton)
         m_nextPageButton->setVisible(resultCount >= m_perPage);
+}
+
+void RLUserLevelControl::onExit() {
+    auto glm = GameLevelManager::sharedState();
+    if (glm && glm->m_levelManagerDelegate == this) {
+        glm->m_levelManagerDelegate = nullptr;
+    }
+    Popup::onExit();
 }
 
 void RLUserLevelControl::loadLevelsFinished(cocos2d::CCArray* levels, char const* key) {

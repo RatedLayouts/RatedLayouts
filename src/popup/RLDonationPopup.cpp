@@ -100,7 +100,7 @@ bool RLDonationPopup::init() {
 
     // desc1
     auto desc1 = CCLabelBMFont::create("Get a special badge shown to\nall players and a colored comment within Rated Layouts!", "bigFont.fnt");
-    desc1->limitLabelWidth(mainLayerWidthSpacing, 0.5f, 0.4f);
+    desc1->limitLabelWidth(mainLayerWidthSpacing, 0.5f, 0.3f);
     desc1->setPosition({m_mainLayer->getScaledContentSize().width / 2.f, m_mainLayer->getScaledContentSize().height - 90.f});
     desc1->setAlignment(kCCTextAlignmentCenter);
     m_mainLayer->addChild(desc1);
@@ -112,7 +112,7 @@ bool RLDonationPopup::init() {
     m_mainLayer->addChild(heading2);
     // desc2
     auto desc2 = CCLabelBMFont::create("Access exclusive and up-coming features added in Rated Layouts.\nAnd get early access to these new features!", "bigFont.fnt");
-    desc2->limitLabelWidth(mainLayerWidthSpacing, 0.5f, 0.4f);
+    desc2->limitLabelWidth(mainLayerWidthSpacing, 0.5f, 0.3f);
     desc2->setPosition({m_mainLayer->getScaledContentSize().width / 2.f, m_mainLayer->getScaledContentSize().height - 155.f});
     desc2->setAlignment(kCCTextAlignmentCenter);
     m_mainLayer->addChild(desc2);
@@ -125,7 +125,7 @@ bool RLDonationPopup::init() {
 
     // desc3
     auto desc3 = CCLabelBMFont::create("Request priority consideration for your layout\nsubmissions and get faster review from the team.", "bigFont.fnt");
-    desc3->limitLabelWidth(mainLayerWidthSpacing, 0.5f, 0.4f);
+    desc3->limitLabelWidth(mainLayerWidthSpacing, 0.5f, 0.3f);
     desc3->setPosition({m_mainLayer->getScaledContentSize().width / 2.f, m_mainLayer->getScaledContentSize().height - 220.f});
     desc3->setAlignment(kCCTextAlignmentCenter);
     m_mainLayer->addChild(desc3);

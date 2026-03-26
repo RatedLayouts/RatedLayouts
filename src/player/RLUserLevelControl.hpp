@@ -9,10 +9,7 @@ class RLUserLevelControl : public geode::Popup, public LevelManagerDelegate {
 public:
     static RLUserLevelControl* create(int accountId);
 
-    ~RLUserLevelControl() {
-        m_removeLevelTask.cancel();
-        m_getCompletionTask.cancel();
-    }
+    ~RLUserLevelControl();
 
 private:
     int m_targetId = 0;
@@ -46,4 +43,6 @@ private:
     void loadLevelsFailed(char const* key) override;
     void loadLevelsFinished(cocos2d::CCArray* levels, char const* key, int type) override;
     void loadLevelsFailed(char const* key, int type) override;
+
+    void onExit() override;
 };
