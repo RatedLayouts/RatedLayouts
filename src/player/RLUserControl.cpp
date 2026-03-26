@@ -259,7 +259,7 @@ RLUserControl* RLUserControl::create(int accountId) {
 };
 
 bool RLUserControl::init() {
-    if (!Popup::init(440.f, 280.f, "GJ_square04.png"))
+    if (!Popup::init(440.f, 280.f, "GJ_square02.png"))
         return false;
     setTitle("Rated Layouts User Mod Panel");
     addSideArt(m_mainLayer, SideArt::All, SideArtStyle::PopupGold, false);
