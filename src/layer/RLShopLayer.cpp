@@ -1,16 +1,13 @@
 #include "RLShopLayer.hpp"
 #include "../include/RLDialogIcons.hpp"
 #include "../utils/RLNameplateItem.hpp"
-#include "Geode/ui/General.hpp"
-#include "Geode/ui/Layout.hpp"
-#include "Geode/ui/Popup.hpp"
-#include "Geode/utils/async.hpp"
-#include "Geode/utils/random.hpp"
+#include "../popup/RLNameplateTestPopup.hpp"
 #include "RLBuyItemPopup.hpp"
 #include "RLSecretLayer1.hpp"
 #include <Geode/Enums.hpp>
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
+#include <cue/DropdownNode.hpp>
 #include <fmt/format.h>
 #include "../include/RLConstants.hpp"
 
@@ -60,6 +57,8 @@ bool RLShopLayer::init() {
     auto menu = CCMenu::create();
     menu->setPosition({0, 0});
     this->addChild(menu, -1);
+
+    this->initDropdownMenu();
 
     // layout creator (clickable)
     auto gm = GameManager::sharedState();
@@ -118,30 +117,6 @@ bool RLShopLayer::init() {
         signSpr->setRotation(-10);
         plushiesSpr->addChild(signSpr, 1);
     }
-    // button to reset
-    auto resetBtnSpr = ButtonSprite::create(
-        "Reset Rubies", 80, true, "goldFont.fnt", "GJ_button_06.png", 25.f, .7f);
-    auto resetBtn = CCMenuItemSpriteExtra::create(
-        resetBtnSpr, this, menu_selector(RLShopLayer::onResetRubies));
-    resetBtn->setPosition(
-        {rubyLabel->getPositionX() - 30, rubyLabel->getPositionY() - 30});
-    menu->addChild(resetBtn);
-
-    // button to unequip nameplate
-    auto unequipSpr = ButtonSprite::create("Unequip", 80, true, "goldFont.fnt", "GJ_button_06.png", 25.f, .7f);
-    auto unequipBtn = CCMenuItemSpriteExtra::create(
-        unequipSpr, this, menu_selector(RLShopLayer::onUnequipNameplate));
-    unequipBtn->setPosition(
-        {rubyLabel->getPositionX() - 30, rubyLabel->getPositionY() - 60});
-    menu->addChild(unequipBtn);
-
-    // open submission form
-    auto submitSpr = ButtonSprite::create("Submission", 80, true, "goldFont.fnt", "GJ_button_01.png", 25.f, .7f);
-    auto submitBtn = CCMenuItemSpriteExtra::create(
-        submitSpr, this, menu_selector(RLShopLayer::onForm));
-    submitBtn->setPosition(
-        {rubyLabel->getPositionX() - 30, rubyLabel->getPositionY() - 90});
-    menu->addChild(submitBtn);
 
     // bottom left redeem button
     auto orcaleSpr = CCSprite::createWithSpriteFrameName("RL_observatoryDoor.png"_spr);
@@ -167,17 +142,17 @@ bool RLShopLayer::init() {
 
     // two horizontal row menus
     auto rowH = [&](void) {
-        auto m = CCMenu::create();
-        m->setPosition(
-            {m->getContentSize().width / 2.f, m->getContentSize().height / 2.f});
-        m->setContentSize({shopMenu->getContentSize().width,
+        auto menuWithinAMenu = CCMenu::create();
+        menuWithinAMenu->setPosition(
+            {menuWithinAMenu->getContentSize().width / 2.f, menuWithinAMenu->getContentSize().height / 2.f});
+        menuWithinAMenu->setContentSize({shopMenu->getContentSize().width,
             (shopMenu->getContentSize().height - 8.f) / 2.f});
-        m->setLayout(RowLayout::create()
+        menuWithinAMenu->setLayout(RowLayout::create()
                 ->setGap(40.f)
                 ->setAxisAlignment(AxisAlignment::Center)
                 ->setAxisReverse(false));
-        m->updateLayout();
-        return m;
+        menuWithinAMenu->updateLayout();
+        return menuWithinAMenu;
     };
 
     m_shopRow1 = rowH();
@@ -246,7 +221,80 @@ bool RLShopLayer::init() {
     return true;
 }
 
-void RLShopLayer::onForm(CCObject* sender) {
+void RLShopLayer::performDropdownAction() {
+    m_pendingDropdownAction = 0;
+    this->initDropdownMenu();
+}
+
+void RLShopLayer::initDropdownMenu() {
+    if (m_dropdownMenu) {
+        m_dropdownMenu->removeFromParent();
+        m_dropdownMenu = nullptr;
+    }
+
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    m_dropdownMenu = cue::DropdownNode::create({0, 0, 0, 150}, 130.f, 25.f, 120.f);
+    m_dropdownMenu->setPosition({60, winSize.height - 15});
+    m_dropdownMenu->setAnchorPoint({0.f, 1.f});
+    this->addChild(m_dropdownMenu, 2);
+
+    // dropdown menu options (reset rubies, unequip nameplate, submission form)
+    auto dropdownLabel = CCLabelBMFont::create("Shop Options", "goldFont.fnt");
+    dropdownLabel->limitLabelWidth(100, .7, .3);
+    m_dropdownMenu->addCell(dropdownLabel);
+    dropdownLabel->setPositionX(5.f);
+
+    auto resetBtn = CCLabelBMFont::create("Reset Rubies", "bigFont.fnt");
+    resetBtn->limitLabelWidth(100, .7, .3);
+    m_dropdownMenu->addCell(resetBtn);
+    resetBtn->setPositionX(15.f);
+
+    auto unequipBtn = CCLabelBMFont::create("Unequip Nameplate", "bigFont.fnt");
+    unequipBtn->limitLabelWidth(100, .7, .3);
+    m_dropdownMenu->addCell(unequipBtn);
+    unequipBtn->setPositionX(15.f);
+
+    auto nameplateTestBtn = CCLabelBMFont::create("Nameplate Test", "bigFont.fnt");
+    nameplateTestBtn->limitLabelWidth(100, .7, .3);
+    m_dropdownMenu->addCell(nameplateTestBtn);
+    nameplateTestBtn->setPositionX(15.f);
+
+    auto submitBtn = CCLabelBMFont::create("Submission Form", "bigFont.fnt");
+    submitBtn->limitLabelWidth(100, .7, .3);
+    m_dropdownMenu->addCell(submitBtn);
+    submitBtn->setPositionX(15.f);
+
+    m_dropdownMenu->setCallback([this](size_t index, CCNode*) {
+        switch (index) {
+            case 1:
+                this->onResetRubies();
+                break;
+            case 2:
+                this->onUnequipNameplate();
+                break;
+            case 3:
+                this->onTestNameplate();
+                break;
+            case 4:
+                this->onForm();
+                break;
+        }
+
+        // the most hacky way to create a dropdown menu
+        // honestly i could just copy the cue::DropdownNode code and modify it
+        // but... thats just lots of overhead and i could just use the existing dropdown node
+        // and add hacky functions to make it work the way i wanted :)
+        if (index > 0) {
+            this->m_dropdownMenu->setExpanded(false);
+            this->runAction(CCSequence::create(
+                CCDelayTime::create(0.01f),
+                CCCallFunc::create(this, callfunc_selector(RLShopLayer::performDropdownAction)),
+                nullptr));
+        }
+    });
+}
+
+void RLShopLayer::onForm() {
     createQuickPopup("Nameplate Submission Form",
         "You will be redirected to the <cl>Nameplate Submission "
         "Form</c> in your web browser.\n<cy>Continue?</c>",
@@ -273,6 +321,11 @@ void RLShopLayer::onEnterTransitionDidFinish() {
 void RLShopLayer::onExitTransitionDidStart() {
     CCLayer::onExitTransitionDidStart();
     GameManager::sharedState()->playMenuMusic();
+}
+
+void RLShopLayer::onTestNameplate() {
+    auto popup = RLNameplateTestPopup::create();
+    popup->show();
 }
 
 void RLShopLayer::onLayoutCreator(CCObject* sender) {
@@ -391,7 +444,7 @@ void RLShopLayer::onBuyItem(CCObject* sender) {
         ->show();
 }
 
-void RLShopLayer::onUnequipNameplate(CCObject* sender) {
+void RLShopLayer::onUnequipNameplate() {
     createQuickPopup(
         "Unequip Nameplate",
         "Are you sure you want to <cr>unequip your current "
@@ -588,7 +641,7 @@ void RLShopLayer::loadShopPage(int page) {
         });
 }
 
-void RLShopLayer::onResetRubies(CCObject* sender) {
+void RLShopLayer::onResetRubies() {
     if (Mod::get()->getSavedValue<int>("rubies") <= 0) {
         Notification::create("You don't have any rubies to reset!",
             NotificationIcon::Warning)

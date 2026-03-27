@@ -584,7 +584,8 @@ void RLCommunityVotePopup::onInfo(CCObject*) {
         "A score of _**8 = >**_ will _potentially increase the layouts rating tier_, however a score of _**<= 5**_ will _guarantee a rating tier decrease_. We track reports if a layout has recurring issues and is required to have a rating tier change.\n\n"
         "\r\n\r\n---\r\n\r\n"
         "### Extra note\n\n"
-        "It is **highly recommended** to beat a layout before submitting a community vote for it for a much more <cy>precise average</c>.",
+        "It is <cl>**highly recommended**</c> to <cg>beat a layout</c> before submitting a community vote for it for a much more <cy>precise average</c>.\n"
+        "**3 or more votes** are <cg>required</c> for community votes to be <cc>accounted into changing a layout's rating</c>.",
         "OK")
         ->show();
 }

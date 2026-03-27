@@ -4,6 +4,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/binding/CCCounterLabel.hpp>
 #include <vector>
+#include <cue/DropdownNode.hpp>
 
 using namespace geode::prelude;
 
@@ -27,13 +28,17 @@ private:
         std::string creatorUsername;
         std::string iconUrl;
     };
+    void onResetRubies();
+    void onUnequipNameplate();
+    void onTestNameplate();
+    void onForm();
 
     void onLayoutCreator(CCObject* sender);
-    void onResetRubies(CCObject* sender);
-    void onUnequipNameplate(CCObject* sender);
     void onBuyItem(CCObject* sender);
-    void onForm(CCObject* sender);
     void onRedeemLayer(CCObject* sender);
+
+    void initDropdownMenu();
+    void performDropdownAction();
 
     // pagination
     void onPrevPage(CCObject* sender);
@@ -46,6 +51,8 @@ private:
     CCMenuItemSpriteExtra* m_prevPageBtn = nullptr;
     CCMenuItemSpriteExtra* m_nextPageBtn = nullptr;
     CCLabelBMFont* m_pageLabel = nullptr;
+    cue::DropdownNode* m_dropdownMenu = nullptr;
+    int m_pendingDropdownAction = 0;
 
     // data
     std::vector<ShopItem> m_shopItems;

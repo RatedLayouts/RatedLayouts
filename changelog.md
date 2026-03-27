@@ -17,12 +17,13 @@
 - Adjusted the comment colors to be more visible on bright nameplates
 - Added Comment Text Background for better visibility of comments on bright nameplates
 - Added Leaderboard Whitelist for Leaderboard Moderators
+- Added Nameplate Test to test your nameplate images in-game
 - Stats Info Button at the Profile Page will now show their Rated Layouts stats when the stats menu is toggled to Rated Layouts stats
 - Updated the **Community Votes** information
-- Added new **Leaderboard Layout Admin** role. This user can whitelist users and promote/demote leaderboard moderators.
 - Improved the UI especially for the User Level Panel and the Moderator/Admin Panel
 - Replace the use of GJListLayer to use Cue's ListNode
-- Layout Admins can now promote/demote Layout Moderators.
+- Replaced the Buttons into a Dropdown Menu in the Shop Layer
+- Layout Admins can now promote/demote Layout Moderators
 - Internal Code Refactor and optimizations
 
 # v0.4.3-beta.1
