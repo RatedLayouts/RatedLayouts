@@ -1,17 +1,52 @@
 #include "RLGauntletLevelsLayer.hpp"
+#include "../include/RLAchievements.hpp"
 #include "../include/RLConstants.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <filesystem>
 #include <cue/RepeatingBackground.hpp>
 #include <vector>
 
 using namespace geode::prelude;
 
-RLGauntletLevelsLayer*
-RLGauntletLevelsLayer::create(matjson::Value const& gauntletData) {
+static std::filesystem::path gauntletCompletedPath() {
+    return dirs::getModsSaveDir() / Mod::get()->getID() / "gauntlet_completed.json";
+}
+
+static matjson::Value loadGauntletCompletedJson() {
+    auto path = gauntletCompletedPath();
+    if (!std::filesystem::exists(path)) {
+        return matjson::Value::object();
+    }
+
+    auto existing = utils::file::readString(utils::string::pathToString(path));
+    if (!existing) {
+        return matjson::Value::object();
+    }
+
+    auto parsed = matjson::parse(existing.unwrap());
+    if (!parsed || !parsed.unwrap().isObject()) {
+        return matjson::Value::object();
+    }
+
+    return parsed.unwrap();
+}
+
+static void saveGauntletCompletedJson(matjson::Value const& root) {
+    auto path = gauntletCompletedPath();
+    std::filesystem::create_directories(path.parent_path());
+
+    auto jsonString = root.dump();
+    auto writeRes = utils::file::writeString(utils::string::pathToString(path), jsonString);
+    if (!writeRes) {
+        log::warn("Failed to write gauntlet completed data to {}", path.string());
+    }
+}
+
+RLGauntletLevelsLayer* RLGauntletLevelsLayer::create(matjson::Value const& gauntletData) {
     auto ret = new RLGauntletLevelsLayer();
     if (ret && ret->init(gauntletData)) {
         ret->autorelease();
@@ -627,13 +662,13 @@ void RLGauntletLevelsLayer::update(float dt) {
                 auto children = m_levelsMenu->getChildren();
                 for (unsigned int i = 0; i < children->count(); ++i) {
                     auto child = static_cast<CCNode*>(children->objectAtIndex(i));
-                    auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(child);
+                        auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(child);
                     if (btn && btn->getTag() == m_pendingLevelId) {
                         btn->setEnabled(true);
                         break;
                     }
                 }
-            }
+                }
             Notification::create("Level not found", NotificationIcon::Warning)
                 ->show();
             m_pendingKey.clear();
@@ -679,6 +714,7 @@ void RLGauntletLevelsLayer::update(float dt) {
     // stop the corresponding velocity component
     if (newPos.x < minX) {
         newPos.x = minX;
+        newPos.y = maxY;
         m_velocity.x = 0;
     }
     if (newPos.x > maxX) {
@@ -690,15 +726,14 @@ void RLGauntletLevelsLayer::update(float dt) {
         m_velocity.y = 0;
     }
     if (newPos.y > maxY) {
-        newPos.y = maxY;
         m_velocity.y = 0;
     }
 
     m_levelsMenu->setPosition(newPos);
+    if (std::hypotf(m_velocity.x, m_velocity.y) < 5.0f) {
     this->updateBackgroundParallax(newPos);
 
     // stop if velocities are nearly zero
-    if (std::hypotf(m_velocity.x, m_velocity.y) < 5.0f) {
         m_velocity = ccp(0, 0);
         m_flinging = false;
     }
@@ -708,7 +743,7 @@ void RLGauntletLevelsLayer::updateBackgroundParallax(CCPoint const& menuPos) {
     if (!m_bgSprite)
         return;
     CCPoint menuDelta = ccpSub(menuPos, m_menuOriginPos);
-    CCPoint bgOffset = ccpMult(menuDelta, m_bgParallax);
+    CCPoint bgOffset = ccpMult(menuDelta,   m_bgParallax);
     CCPoint target = ccpAdd(m_bgOriginPos, bgOffset);
     m_bgSprite->setPosition(target);
     if (m_bgSprite2) {
@@ -727,8 +762,34 @@ void RLGauntletLevelsLayer::refreshCompletionCache() {
     if (!storedAll || storedAll->count() == 0)
         return;  // nothing cached yet
 
+    // Load stored JSON override for completion
+    std::unordered_set<int> completedFromJson;
+    auto data = loadGauntletCompletedJson();
+    if (data.isObject()) {
+        auto gauntletLevels = data["gauntlet_levels"];
+        if (gauntletLevels.isObject()) {
+            auto levelArr = gauntletLevels[std::to_string(m_gauntletId)];
+            if (levelArr.isArray()) {
+                for (auto& v : levelArr.asArray().unwrap()) {
+                    int lid = v.asInt().unwrapOr(-1);
+                    if (lid > 0) {
+                        completedFromJson.insert(lid);
+                    }
+                }
+            }
+        }
+    }
+
+    bool allCompleted = true;
+    std::vector<int> completedLevelIds;
+
     for (int levelId : m_levelsSearchIds) {
         bool isCompleted = false;
+
+        if (completedFromJson.count(levelId) > 0) {
+            isCompleted = true;
+        }
+
         GJGameLevel* found = nullptr;
         for (unsigned int i = 0; i < storedAll->count(); ++i) {
             auto g = static_cast<GJGameLevel*>(storedAll->objectAtIndex(i));
@@ -737,8 +798,16 @@ void RLGauntletLevelsLayer::refreshCompletionCache() {
                 break;
             }
         }
-        if (found && GameStatsManager::sharedState()) {
+
+        // If it doesn't explicitly mark this level complete
+        if (!isCompleted && found && GameStatsManager::sharedState()) {
             isCompleted = GameStatsManager::sharedState()->hasCompletedLevel(found);
+        }
+
+        if (isCompleted) {
+            completedLevelIds.push_back(levelId);
+        } else {
+            allCompleted = false;
         }
 
         // find UI button for this level and update visuals
@@ -787,6 +856,53 @@ void RLGauntletLevelsLayer::refreshCompletionCache() {
                 break;  // found button for this level
             }
         }
+    }
+
+    // save completed levels for this gauntlet
+    {
+        auto data = loadGauntletCompletedJson();
+
+        // guard again in case load returned invalid object
+        if (!data.isObject()) {
+            data = matjson::Value::object();
+        }
+
+        // ensure general object for gauntlet-level mapping
+        matjson::Value levelsObj = data["gauntlet_levels"];
+        if (!levelsObj.isObject()) {
+            levelsObj = matjson::Value::object();
+        }
+
+        matjson::Value thisGauntletArray = matjson::Value::array();
+        for (int completedId : completedLevelIds) {
+            thisGauntletArray.asArray().unwrap().push_back(matjson::Value(completedId));
+        }
+
+        levelsObj[std::to_string(m_gauntletId)] = thisGauntletArray;
+        data["gauntlet_levels"] = levelsObj;
+
+        // maintain the list of fully completed gauntlets
+        matjson::Value fullyCompleted = data["completed_gauntlets"];
+        if (!fullyCompleted.isArray()) {
+            fullyCompleted = matjson::Value::array();
+        }
+
+        if (allCompleted) {
+            bool found = false;
+            for (auto& v : fullyCompleted.asArray().unwrap()) {
+                if (v.asInt().unwrapOr(-1) == m_gauntletId) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                fullyCompleted.asArray().unwrap().push_back(matjson::Value(m_gauntletId));
+            }
+            RLAchievements::onReward("misc_gauntlet");
+        }
+
+        data["completed_gauntlets"] = fullyCompleted;
+        saveGauntletCompletedJson(data);
     }
 }
 

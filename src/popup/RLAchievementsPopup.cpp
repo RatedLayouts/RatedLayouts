@@ -88,15 +88,6 @@ void RLAchievementsPopup::populate(int tabIndex) {
         auto cell = RLAchievementCell(ach, unlocked);
         if (!cell) continue;
 
-        if (displayIndex % 2 != 1) {
-            auto bg = CCLayerColor::create({161, 88, 44, 255}, cell->getContentSize().width, cell->getContentSize().height);
-            if (bg) {
-                bg->setPosition({0.f, 0.f});
-                bg->setAnchorPoint({0.f, 0.f});
-                cell->addChild(bg, -1);
-            }
-        }
-
         if (m_listNode) {
             m_listNode->addCell(cell);
         }

@@ -3,6 +3,44 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
+#include <filesystem>
+#include <unordered_set>
+
+static std::filesystem::path gauntletCompletedPath() {
+    return dirs::getModsSaveDir() / Mod::get()->getID() / "gauntlet_completed.json";
+}
+
+static std::unordered_set<int> getCompletedGauntletsSet() {
+    std::unordered_set<int> out;
+    auto path = gauntletCompletedPath();
+    if (!std::filesystem::exists(path)) {
+        return out;
+    }
+
+    auto existing = utils::file::readString(utils::string::pathToString(path));
+    if (!existing) {
+        return out;
+    }
+
+    auto parsed = matjson::parse(existing.unwrap());
+    if (!parsed || !parsed.unwrap().isObject()) {
+        return out;
+    }
+
+    auto root = parsed.unwrap();
+    auto completed = root["completed_gauntlets"];
+    if (!completed.isArray()) {
+        return out;
+    }
+
+    for (auto& v : completed.asArray().unwrap()) {
+        int id = v.asInt().unwrapOr(-1);
+        if (id > 0) {
+            out.insert(id);
+        }
+    }
+    return out;
+}
 
 #include "RLAnnouncementPopup.hpp"
 #include "RLGauntletLevelsLayer.hpp"
@@ -128,6 +166,7 @@ void RLGauntletSelectLayer::createGauntletButtons(
     }
 
     auto gauntletsArray = gauntlets.asArray().unwrap();
+    auto completedGauntlets = getCompletedGauntletsSet();
 
     // Store gauntlets for later reference
     m_gauntletsArray.clear();
@@ -183,7 +222,28 @@ void RLGauntletSelectLayer::createGauntletButtons(
         // difficulty range label (min-max) with star icon to the right
         int minDiff = gauntlet["min_difficulty"].asInt().unwrapOr(0);
         int maxDiff = gauntlet["max_difficulty"].asInt().unwrapOr(0);
-        if (minDiff > 0 || maxDiff > 0) {
+        bool gauntletComplete = completedGauntlets.count(gauntletId) > 0;
+
+        if (gauntletComplete) {
+            // show completed icon instead of diff label
+            auto completeIconShadow = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
+            if (completeIconShadow) {
+                completeIconShadow->setColor({0, 0, 0});
+                completeIconShadow->setOpacity(120);
+                completeIconShadow->setScale(1.1f);
+                completeIconShadow->setPosition({gauntletBg->getContentSize().width / 2 + 2, 48});
+                completeIconShadow->setAnchorPoint({0.5f, 0.5f});
+                gauntletBg->addChild(completeIconShadow, 2);
+            }
+
+            auto completeIcon = CCSprite::createWithSpriteFrameName("GJ_completesIcon_001.png");
+            if (completeIcon) {
+                completeIcon->setScale(1.1f);
+                completeIcon->setPosition({gauntletBg->getContentSize().width / 2, 50});
+                completeIcon->setAnchorPoint({0.5f, 0.5f});
+                gauntletBg->addChild(completeIcon, 3);
+            }
+        } else if (minDiff > 0 || maxDiff > 0) {
             std::string diffText = fmt::format("{}-{}", minDiff, maxDiff);
 
             auto diffLabel = CCLabelBMFont::create(diffText.c_str(), "bigFont.fnt");

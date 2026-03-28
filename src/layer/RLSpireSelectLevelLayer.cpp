@@ -1,10 +1,7 @@
 #include <Geode/Geode.hpp>
 #include "../include/RLDialogIcons.hpp"
+#include "../include/RLAchievements.hpp"
 #include <cue/RepeatingBackground.hpp>
-#include "Geode/cocos/cocoa/CCArray.h"
-#include "Geode/cocos/script_support/CCScriptSupport.h"
-#include "Geode/ui/MDPopup.hpp"
-#include "Geode/utils/general.hpp"
 #include "RLSpireSelectLevelLayer.hpp"
 #include "../include/RLConstants.hpp"
 #include <unordered_set>
@@ -309,6 +306,7 @@ void RLSpireSelectLevelLayer::rewardRoomTransition() {
 
         this->addChild(rewardLayer, 100);
         FMODAudioEngine::sharedEngine()->playEffect("gold02.ogg");
+        RLAchievements::onReward("misc_room");
     }
 
     Notification::create(
@@ -570,7 +568,12 @@ void RLSpireSelectLevelLayer::createSpireDoors() {
         bool unlocked = levelId >= 0 && (previouslyCompleted || thisCompleted);
 
         const char* spriteFrame = unlocked ? "RL_spireDoor_unlocked.png"_spr : "RL_spireDoor_locked.png"_spr;
-        auto doorSprite = CCSprite::createWithSpriteFrameName(spriteFrame);
+        CCSprite* doorSprite = nullptr;
+        if (thisCompleted && levelId > 0) {
+            doorSprite = CCSpriteGrayscale::createWithSpriteFrameName(spriteFrame);
+        } else {
+            doorSprite = CCSprite::createWithSpriteFrameName(spriteFrame);
+        }
         if (!doorSprite)
             continue;
 
@@ -584,15 +587,16 @@ void RLSpireSelectLevelLayer::createSpireDoors() {
         m_levelsMenu->addChild(doorItem, 5);
 
         if (unlocked) {
-            // add particle effect for unlocked doors
-            ParticleStruct doorParticle;
-            GameToolbox::particleStringToStruct(doorOpenParticle, doorParticle);
-            auto particleNode = GameToolbox::particleFromStruct(doorParticle, nullptr, false);
-            if (particleNode) {
-                doorItem->addChild(particleNode, 3);
-                particleNode->setScale(1.5f);
-                particleNode->setPosition({doorSprite->getContentSize().width / 2, doorSprite->getContentSize().height / 2 - 12});
-                particleNode->update(0.15f);
+            if (!thisCompleted) {
+                ParticleStruct doorParticle;
+                GameToolbox::particleStringToStruct(doorOpenParticle, doorParticle);
+                auto particleNode = GameToolbox::particleFromStruct(doorParticle, nullptr, false);
+                if (particleNode) {
+                    doorItem->addChild(particleNode, 3);
+                    particleNode->setScale(1.5f);
+                    particleNode->setPosition({doorSprite->getContentSize().width / 2, doorSprite->getContentSize().height / 2 - 12});
+                    particleNode->update(0.15f);
+                }
             }
 
             // door number label
@@ -652,14 +656,18 @@ void RLSpireSelectLevelLayer::refreshDoorStates() {
         }
 
         const char* spriteFrame = unlocked ? "RL_spireDoor_unlocked.png"_spr : "RL_spireDoor_locked.png"_spr;
-        auto doorSprite = CCSprite::createWithSpriteFrameName(spriteFrame);
+        CCSprite* doorSprite = nullptr;
+        if (thisCompleted && levelId > 0) {
+            doorSprite = CCSpriteGrayscale::createWithSpriteFrameName(spriteFrame);
+        } else {
+            doorSprite = CCSprite::createWithSpriteFrameName(spriteFrame);
+        }
         if (doorSprite) {
             menuItem->setNormalImage(doorSprite);
         }
         menuItem->setEnabled(unlocked);
 
-        if (unlocked) {
-            // add particle effect for unlocked doors
+        if (unlocked && !thisCompleted) {
             ParticleStruct doorParticle;
             GameToolbox::particleStringToStruct(doorOpenParticle, doorParticle);
             auto particleNode = GameToolbox::particleFromStruct(doorParticle, nullptr, false);

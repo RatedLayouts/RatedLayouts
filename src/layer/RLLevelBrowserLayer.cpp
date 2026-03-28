@@ -280,8 +280,8 @@ bool RLLevelBrowserLayer::init(GJSearchObject* object) {
     m_titleLabel = CCLabelBMFont::create(m_title.c_str(), "bigFont.fnt");
     if (m_titleLabel) {
         m_titleLabel->setAnchorPoint({0.5f, 0.5f});
-        m_titleLabel->setPosition({LIST_SIZE.width / 2.f, LIST_SIZE.height + 18.f});
-        m_titleLabel->limitLabelWidth(LIST_SIZE.width - 30.f, .8f, 0.5f);
+        m_titleLabel->setPosition({LIST_SIZE.width / 2.f, LIST_SIZE.height + 19.f});
+        m_titleLabel->limitLabelWidth(LIST_SIZE.width - 40.f, .8f, 0.5f);
         m_listNode->addChild(m_titleLabel, 1);
     }
 
