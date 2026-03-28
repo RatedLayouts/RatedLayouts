@@ -99,7 +99,7 @@ void RLAchievements::init() {
             {"misc_gauntlet", "Gauntlet Conqueror", "Complete a Layout Gauntlet", RLAchievements::Collectable::Misc, 1, "RL_bob.png"_spr},
             {"misc_spire", "Something has aligned...", "You now know about it, be careful about where you go…", RLAchievements::Collectable::Misc, 1, "RL_rubiesIcon.png"_spr},
             {"misc_code", "Cosmos has accepted you", "Redeem a code to the Cosmos", RLAchievements::Collectable::Misc, 1, "RL_rubiesIcon.png"_spr},
-            {"misc_room", "Trespasser", "Completed a Shire Room.", RLAchievements::Collectable::Misc, 1, "RL_rubiesIcon.png"_spr},
+            {"misc_room", "Trespasser", "Completed a Spire Room.", RLAchievements::Collectable::Misc, 1, "RL_rubiesIcon.png"_spr},
             {"misc_extreme", "TOP ONE LAYOUT LIST!", "Complete an Extreme Demon Rated Layout", RLAchievements::Collectable::Misc, 1, "diffIcon_10_btn_001.png"},
 
             // community vote achievements
