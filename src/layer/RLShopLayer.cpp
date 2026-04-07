@@ -627,9 +627,10 @@ void RLShopLayer::loadShopPage(int page) {
                         ShopItem si;
                         si.idx = it["index"].asInt().unwrapOrDefault();
                         si.price = it["price"].asInt().unwrapOrDefault();
-                        si.creatorId = it["accountId"].asInt().unwrapOrDefault();
+                        auto author = it.contains("author") ? it["author"] : it;
+                        si.creatorId = author["accountId"].asInt().unwrapOrDefault();
                         si.creatorUsername =
-                            it["username"].asString().unwrapOrDefault();
+                            author["username"].asString().unwrapOrDefault();
                         si.iconUrl = std::string(rl::BASE_API_URL) + it["url"].asString().unwrapOrDefault();
 
                         self->m_shopItems.push_back(si);

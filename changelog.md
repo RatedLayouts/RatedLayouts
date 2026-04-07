@@ -1,3 +1,11 @@
+## v1.0.4
+
+- Updated the about mod page
+- Fixed issue where **Laying Out!** achievement isn't unlocking after completing a rated layout.
+- Fixed issue where user with **Disabled Reward Animation** enabled still getting the reward notification even when it's already completed.
+- Fixed the Author's name in the Shop Item list not showing. _(Due to the backend changes)_
+- Notification are off on levels by default. _(You can enable it in the mod settings)_
+
 ## v1.0.3
 
 - Reverted April Fools related changes

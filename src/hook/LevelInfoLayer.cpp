@@ -640,7 +640,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         }
                     }
 
-                    if (!animationEnabled) {
+                    if (!animationEnabled && rewardValue > 0) {
                         log::info("Reward animation disabled");
                         Notification::create(
                             "Received " + numToString(difficulty) + " " + reward + "!",
@@ -656,14 +656,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         int newTotal = rubies + remainingRubies;
                         Mod::get()->setSavedValue<int>("rubies", newTotal);
 
-                        if (!animationEnabled) {
-                            Notification::create(
-                                std::string("Received ") + numToString(remainingRubies) +
-                                    " rubies!",
-                                CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr))
-                                ->show();
-                        }
-
                         int oldCollected = rubyInfo.collected;
                         int newCollected = oldCollected + remainingRubies;
                         if (newCollected > rubyInfo.total)
@@ -678,6 +670,14 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                 levelId,
                                 newCollected);
                         }
+                    }
+
+                    if (!animationEnabled && hasAnyReward) {
+                        Notification::create(
+                            std::string("Received ") + numToString(remainingRubies) +
+                                " rubies!",
+                            CCSprite::createWithSpriteFrameName("RL_bigRuby.png"_spr))
+                            ->show();
                     }
 
                     if (animationEnabled && hasAnyReward) {
