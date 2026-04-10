@@ -1,5 +1,5 @@
 #include "RLDonationPopup.hpp"
-#include <argon/Argon.hpp>
+#include <argon/argon.hpp>
 #include <Geode/Geode.hpp>
 #include <Geode/ui/NineSlice.hpp>
 #include "RLBadgeRequestPopup.hpp"
