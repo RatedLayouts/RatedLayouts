@@ -744,9 +744,9 @@ class $modify(RLLevelCell, LevelCell) {
                     levelId);
 
                 if (!response.ok()) {
-                    log::warn("Server returned non-ok status: {} for level ID: {}",
-                        response.code(),
-                        levelId);
+                    // log::warn("Server returned non-ok status: {} for level ID: {}",
+                    //     response.code(),
+                    //     levelId);
                     return;
                 }
 

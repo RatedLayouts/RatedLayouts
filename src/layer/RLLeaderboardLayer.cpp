@@ -207,35 +207,31 @@ void RLLeaderboardLayer::onLeaderboardTypeButton(CCObject* sender) {
         m_starsTab->toggle(true);
         m_planetsTab->toggle(false);
         m_creatorTab->toggle(false);
-        if (m_coinsTab)
-            m_coinsTab->toggle(false);
+        m_coinsTab->toggle(false);
+        m_votesTab->toggle(false);
     } else if (type == 3 && !m_planetsTab->isToggled()) {
         m_starsTab->toggle(false);
         m_planetsTab->toggle(true);
         m_creatorTab->toggle(false);
-        if (m_coinsTab)
-            m_coinsTab->toggle(false);
+        m_coinsTab->toggle(false);
+        m_votesTab->toggle(false);
     } else if (type == 2 && !m_creatorTab->isToggled()) {
         m_starsTab->toggle(false);
         m_planetsTab->toggle(false);
         m_creatorTab->toggle(true);
-        if (m_coinsTab)
-            m_coinsTab->toggle(false);
-        if (m_votesTab)
-            m_votesTab->toggle(false);
+        m_coinsTab->toggle(false);
+        m_votesTab->toggle(false);
     } else if (type == 4 && m_coinsTab && !m_coinsTab->isToggled()) {
         m_starsTab->toggle(false);
         m_planetsTab->toggle(false);
         m_creatorTab->toggle(false);
         m_coinsTab->toggle(true);
-        if (m_votesTab)
-            m_votesTab->toggle(false);
+        m_votesTab->toggle(false);
     } else if (type == 5 && m_votesTab && !m_votesTab->isToggled()) {
         m_starsTab->toggle(false);
         m_planetsTab->toggle(false);
         m_creatorTab->toggle(false);
-        if (m_coinsTab)
-            m_coinsTab->toggle(false);
+        m_coinsTab->toggle(false);
         m_votesTab->toggle(true);
     }
 

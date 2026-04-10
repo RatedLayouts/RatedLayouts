@@ -148,7 +148,7 @@ class $modify(RLCommentCell, CommentCell) {
             }
 
             if (!response.ok()) {
-                log::warn("Server returned non-ok status: {}", response.code());
+                // log::warn("Server returned non-ok status: {}", response.code());
                 if (response.code() == 404) {
                     log::debug("Profile not found on server for {}", accountId);
                     if (!cellRef)
