@@ -44,6 +44,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         float m_originalCoin1Y = 0.0f;
         float m_originalCoin2Y = 0.0f;
         float m_originalCoin3Y = 0.0f;
+        int m_difficulty = 0;
         bool m_orbsShiftApplied =
             false;  // true when orbs-icon/label were shifted for ruby UI
         async::TaskHolder<web::WebResponse> m_submitTask;
@@ -203,7 +204,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         int featured = json["featured"].asInt().unwrapOrDefault();
         bool isRated = json["rated"].asBool().unwrapOrDefault();
 
-        (void)isRated;
+        layerRef->m_fields->m_difficulty = difficulty;
         CCNode* difficultySprite = nullptr;
         if (layerRef) {
             difficultySprite = layerRef->getChildByID("difficulty-sprite");
@@ -238,8 +239,9 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 normalPct = layerRef->m_level->m_normalPercent;
                 practicePct = layerRef->m_level->m_practicePercent;
             }
+            bool isDemon = this->isDemonDifficulty(layerRef->m_fields->m_difficulty);
 
-            bool shouldDisable = shouldDisableCommunityVote(layerRef, hasPctFields, normalPct, practicePct);
+            bool shouldDisable = shouldDisableCommunityVote(layerRef, hasPctFields, normalPct, practicePct, isDemon);
 
             if (!exists) {
                 createCommunityVoteButton(layerRef, shouldDisable);
@@ -1143,10 +1145,15 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     bool shouldDisableCommunityVote(Ref<RLLevelInfoLayer> layerRef,
         bool hasPctFields,
         int normalPct,
-        int practicePct) {
+        int practicePct,
+        bool isDemon) {
         bool shouldDisable = true;
         if (hasPctFields) {
-            shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+            if (isDemon) {
+                shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+            } else {
+                shouldDisable = !(normalPct >= 50 || practicePct >= 100);
+            }
         }
 
         if (rl::isUserHasPerms() || rl::isUserOwner()) {
@@ -1155,8 +1162,18 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         }
 
         if (layerRef && layerRef->m_level && layerRef->m_level->isPlatformer()) {
-            shouldDisable = false;
-            log::debug("Community vote enabled due to platformer level");
+            if (!GameStatsManager::sharedState()->hasCompletedOnlineLevel(
+                    layerRef->m_level->m_levelID)) {
+                shouldDisable = true;
+                log::debug(
+                    "Community vote disabled for platformer level because it is not completed");
+            } else if (!shouldDisable) {
+                log::debug(
+                    "Community vote enabled for completed platformer level");
+            } else {
+                log::debug(
+                    "Community vote remains disabled for completed platformer level due to percentage requirements");
+            }
         }
 
         return shouldDisable;
@@ -1306,7 +1323,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
                 bool shouldDisable = true;
                 if (hasPctFields) {
-                    shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+                    bool isDemon = this->isDemonDifficulty(layerRef->m_fields->m_difficulty);
+                    if (isDemon) {
+                        shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+                    } else {
+                        shouldDisable = !(normalPct >= 50 || practicePct >= 100);
+                    }
                 }
 
                 // Mods/Admins can always vote regardless of percentages
@@ -1360,7 +1382,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
                 bool shouldDisable = true;
                 if (hasPctFields) {
-                    shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+                    bool isDemon = this->isDemonDifficulty(layerRef->m_fields->m_difficulty);
+                    if (isDemon) {
+                        shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+                    } else {
+                        shouldDisable = !(normalPct >= 50 || practicePct >= 100);
+                    }
                 }
 
                 if (rl::isUserClassicRole() || rl::isUserPlatformerRole()) {
@@ -1373,10 +1400,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                         ->getChildByID("rl-community-vote");
                     if (existing) {
                         auto menuItem = static_cast<CCMenuItemSpriteExtra*>(existing);
-                        if (menuItem) {
-                            menuItem->setEnabled(!shouldDisable);
-                            menuItem->setOpacity(shouldDisable ? 100 : 255);
-                        }
                     }
                 }
             }
@@ -1677,7 +1700,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         int normalPct = this->m_level->m_normalPercent;
         int practicePct = this->m_level->m_practicePercent;
         bool shouldDisable = true;
-        shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+        bool isDemon = this->m_level && this->isDemonDifficulty(this->m_fields->m_difficulty);
+        if (isDemon) {
+            shouldDisable = !(normalPct >= 20 || practicePct >= 80);
+        } else {
+            shouldDisable = !(normalPct >= 50 || practicePct >= 100);
+        }
 
         if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
             shouldDisable = false;
@@ -1685,19 +1713,33 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         }
 
         if (this->m_level->isPlatformer()) {
-            shouldDisable = false;
-            log::debug("Community vote enabled due to level being a Platformer");
+            if (!GameStatsManager::sharedState()->hasCompletedOnlineLevel(
+                    this->m_level->m_levelID)) {
+                shouldDisable = true;
+                FLAlertLayer::create(
+                    "Insufficient Completion",
+                    "You need to <cy>complete</c> this <co>platformer level</c> to access the <cb>Community Vote.</c>",
+                    "OK")
+                    ->show();
+                    return;
+            }
         }
 
         if (shouldDisable) {
-            log::info("Community vote button clicked!");
-            FLAlertLayer::create(
-                "Insufficient Completion",
-                "You need to have <co>completed</c> at least <cg>20% in </c>"
-                "<cg>normal mode</c> or <cf>80% in practice mode</c> to access "
-                "the <cb>Community Vote.</c>",
-                "OK")
-                ->show();
+            // log::info("Community vote button clicked!");
+            if (isDemon) {
+                FLAlertLayer::create(
+                    "Insufficient Completion",
+                    "You need to have <cy>completed</c> at least <cg>20% in normal mode</c> or <cf>80% in practice mode</c> to access the <cb>Community Vote.</c>",
+                    "OK")
+                    ->show();
+            } else {
+                FLAlertLayer::create(
+                    "Insufficient Completion",
+                    "You need to have <cy>completed</c> at least <cg>50% in normal mode</c> or <cf>100% in practice mode</c> to access the <cb>Community Vote.</c>",
+                    "OK")
+                    ->show();
+            }
             return;
         }
         int levelId = 0;

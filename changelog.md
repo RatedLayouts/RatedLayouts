@@ -1,3 +1,11 @@
+## v1.0.6
+
+- Changed the Community Votes requirements to the following:
+  - <cr>Demon Layouts</c>: 20% Normal Mode and 80% Practice Mode
+  - <cg>Non-Demon Layouts</cg>: 50% Normal Mode and 100% Practice Mode
+  - <co>Platformer Layouts</co>: Must have completed the level (regardless of the completion percentage)
+- Fixed Typos... again
+
 ## v1.0.5
 
 - Removed **Legacy Rate** feature entirely.
