@@ -1,6 +1,7 @@
 #include "RLLeaderboardLayer.hpp"
 #include "../include/RLAchievements.hpp"
 #include "../include/RLLayerBackground.hpp"
+#include <Geode/binding/CCSpriteGrayscale.hpp>
 #include <cue/RepeatingBackground.hpp>
 #include "../include/RLConstants.hpp"
 
@@ -134,6 +135,23 @@ bool RLLeaderboardLayer::init() {
     m_refreshBtn->setPosition({winSize.width - 35, 35});
     infoMenu->addChild(m_refreshBtn);
 
+    auto creatorTypeIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr);
+    if (creatorTypeIcon) {
+        auto creatorTypeOff = EditorButtonSprite::create(
+            CCSpriteGrayscale::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr),
+            EditorBaseColor::Gray,
+            EditorBaseSize::Normal);
+        auto creatorTypeOn = EditorButtonSprite::create(
+            creatorTypeIcon, EditorBaseColor::LightBlue, EditorBaseSize::Normal);
+        auto creatorTypeBtn = CCMenuItemSpriteExtra::create(
+            creatorTypeOff, this, menu_selector(RLLeaderboardLayer::onCreatorTypeToggle));
+        creatorTypeBtn->setPosition({infoButton->getPosition().x, infoButton->getPosition().y + 40});
+        creatorTypeBtn->setVisible(false);
+        creatorTypeBtn->setEnabled(false);
+        infoMenu->addChild(creatorTypeBtn);
+        m_creatorTypeToggleBtn = creatorTypeBtn;
+    }
+
     this->scheduleUpdate();
     this->setKeypadEnabled(true);
 
@@ -150,6 +168,7 @@ void RLLeaderboardLayer::onInfoButton(CCObject* sender) {
         "- <cb>Blue Coins</c> are earned by collecting them while playing in Rated Layouts levels.\n"
         "- <cf>Blueprint Points</c> are earned based on how many rated layout levels you have in your account, and users who are excluded "
         "won't be affected by this leaderboard.\n\n"
+        "You can toggle between those who interacted with the <cl>Rated Layouts Mod</c> and those who never use the mod in the <cb>Top Creator</c> tab.\n\n"
         "Getting a <cs>Rated</c> layout earns you 1 point, <cg>Featured</c> levels earn you 2 points, <cp>Epic</c> "
         "levels earn you 3 points, and <cd>Legendary</c> levels earn you 4 points.\n\n"
         "- <cg>Votes</c> are earned by voting in the <cb>Community Votes</c>. Each vote is earned per level.\n\n"
@@ -172,7 +191,7 @@ void RLLeaderboardLayer::onRefreshButton(CCObject* sender) {
     } else if (m_planetsTab && m_planetsTab->isToggled()) {
         type = 3;
     } else if (m_creatorTab && m_creatorTab->isToggled()) {
-        type = 2;
+        type = m_creatorType6 ? 6 : 2;
     } else if (m_coinsTab && m_coinsTab->isToggled()) {
         type = 4;
     } else if (m_votesTab && m_votesTab->isToggled()) {
@@ -235,6 +254,28 @@ void RLLeaderboardLayer::onLeaderboardTypeButton(CCObject* sender) {
         m_votesTab->toggle(true);
     }
 
+    if (type == 2 && m_creatorTab && m_creatorTab->isToggled() && m_creatorType6) {
+        type = 6;
+    }
+
+    if (m_creatorTypeToggleBtn) {
+        bool creatorVisible = m_creatorTab && m_creatorTab->isToggled();
+        m_creatorTypeToggleBtn->setVisible(creatorVisible);
+        m_creatorTypeToggleBtn->setEnabled(creatorVisible);
+        if (creatorVisible) {
+            CCSprite* icon = m_creatorType6
+                ? CCSprite::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr)
+                : CCSpriteGrayscale::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr);
+            if (icon) {
+                auto creatorTypeSpr = EditorButtonSprite::create(
+                    icon,
+                    m_creatorType6 ? EditorBaseColor::LightBlue : EditorBaseColor::Gray,
+                    EditorBaseSize::Normal);
+                m_creatorTypeToggleBtn->setNormalImage(creatorTypeSpr);
+            }
+        }
+    }
+
     auto contentLayer = m_scrollLayer->m_contentLayer;
     if (contentLayer) {
         contentLayer->removeAllChildrenWithCleanup(true);
@@ -248,7 +289,46 @@ void RLLeaderboardLayer::onLeaderboardTypeButton(CCObject* sender) {
         m_spinner = spinner;
     }
 
+    if (type == 2 && m_creatorTab && m_creatorTab->isToggled() && m_creatorType6) {
+        type = 6;
+    }
+
+    if (m_creatorTypeToggleBtn) {
+        bool creatorVisible = m_creatorTab && m_creatorTab->isToggled();
+        m_creatorTypeToggleBtn->setVisible(creatorVisible);
+        m_creatorTypeToggleBtn->setEnabled(creatorVisible);
+        if (creatorVisible) {
+            CCSprite* icon = m_creatorType6
+                ? CCSprite::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr)
+                : CCSpriteGrayscale::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr);
+            if (icon) {
+                auto creatorTypeSpr = EditorButtonSprite::create(
+                    icon,
+                    m_creatorType6 ? EditorBaseColor::LightBlue : EditorBaseColor::Gray,
+                    EditorBaseSize::Normal);
+                m_creatorTypeToggleBtn->setNormalImage(creatorTypeSpr);
+            }
+        }
+    }
+
     this->fetchLeaderboard(type, 100);
+}
+
+void RLLeaderboardLayer::onCreatorTypeToggle(CCObject* sender) {
+    m_creatorType6 = !m_creatorType6;
+    if (m_creatorTypeToggleBtn) {
+        CCSprite* icon = m_creatorType6
+            ? CCSprite::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr)
+            : CCSpriteGrayscale::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr);
+        if (icon) {
+            auto creatorTypeSpr = EditorButtonSprite::create(
+                icon,
+                m_creatorType6 ? EditorBaseColor::LightBlue : EditorBaseColor::Gray,
+                EditorBaseSize::Normal);
+            m_creatorTypeToggleBtn->setNormalImage(creatorTypeSpr);
+        }
+    }
+    this->onRefreshButton(sender);
 }
 
 void RLLeaderboardLayer::fetchLeaderboard(int type, int amount) {

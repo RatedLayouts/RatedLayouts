@@ -1,6 +1,8 @@
 ## v1.0.5
 
+- Removed **Legacy Rate** feature entirely.
 - Added GDPS check, it will give a warning when trying to access Rated Layouts features on GDPS.
+- Added a toggle for "Top Creators" in the leaderboard layer to show creators who interacted with the mod
 - Fixed more typos
 - Fixed a small bug with the leaderboard tab not deselecting properly
 - _A mod developer was annoyed with the amount of warn logs filling up the console and got really annoyed at me for it, so yea I just commented out the warn logs for non-ok status on the web requests._
