@@ -748,6 +748,9 @@ void RLSpireSelectLevelLayer::onSpireDoorClick(CCObject* sender) {
     m_pendingLevelId = levelId;
     m_pendingTimeout = 10.0;
 
+    if (glm->m_levelManagerDelegate) {
+        glm->m_levelManagerDelegate = nullptr;
+    }
     glm->getOnlineLevels(searchObj);
 }
 

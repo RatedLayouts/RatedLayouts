@@ -46,7 +46,7 @@ This gives <cy>layout and gameplay creators</c> a platform to get their levels r
 
 ### Developers
 
-<cf>[Rated Layouts Documentation](https://rldocs.arcticwoof.xyz/)</c> is available for anyone who wants to integrate their projects with Rated Layouts
+<cf>[Rated Layouts Documentation](https://gdrate.arcticwoof.xyz/docs)</c> is available for anyone who wants to integrate their projects with Rated Layouts
 
 ---
 

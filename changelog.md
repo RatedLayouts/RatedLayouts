@@ -5,6 +5,8 @@
   - <cg>Non-Demon Layouts</cg>: 50% Normal Mode and 100% Practice Mode
   - <co>Platformer Layouts</co>: Must have completed the level (regardless of the completion percentage)
 - Fixed Typos... again
+- Fixed crash when entering The Spire after completing a level
+- Added new Gauntlet Sprite
 
 ## v1.0.5
 
