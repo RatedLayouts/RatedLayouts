@@ -254,6 +254,43 @@
 			"type": "bool",
 			"default": false,
 			"description": "Disables the mod info shown in the Rated Layouts Creator Layer."
-		}
+        },
+		"titleCache": {
+			"type": "title",
+			"name": "Cache Settings"
+		},
+        "requestCacheLifetime": {
+            "type": "int",
+            "name": "Request Cache Lifetime (Seconds)",
+            "default": 300,
+            "description": "Keep comment role and level rating fetch results cached for this many seconds. <cy>Lower values refresh more often.</c>",
+            "min": 0,
+            "max": 86400,
+            "control": {
+                "arrows": true,
+                "slider": false,
+                "input": true,
+                "arrow-step": 10
+            }
+        },
+        "requestCacheMaxItems": {
+            "type": "int",
+            "name": "Request Cache Max Items",
+            "default": 100,
+            "description": "Limit how many comment role and level rating cache entries are stored in memory. <cy>Set to 0 for unlimited.</c>",
+            "min": 0,
+            "max": 1000,
+            "control": {
+                "arrows": true,
+                "slider": false,
+                "input": true,
+                "arrow-step": 10
+            }
+        },
+        "clearRequestCache": {
+            "type": "custom:rl-clear-cache-button",
+            "name": "Clear Request Cache",
+            "description": "Immediately clear comment role and level rating cache stored by Rated Layouts."
+        }
 	}
 }

@@ -1,5 +1,6 @@
 ## v1.0.6
 
+- Added Caching on Levels and Comments, this reduces the amount of server requests and improves performance.
 - Changed the Community Votes requirements to the following:
   - <cr>Demon Layouts</c>: 20% Normal Mode and 80% Practice Mode
   - <cg>Non-Demon Layouts</cg>: 50% Normal Mode and 100% Practice Mode
@@ -7,6 +8,7 @@
 - Fixed Typos... again
 - Fixed crash when entering The Spire after completing a level
 - Added new Gauntlet Sprite
+- Updated Mod About Page
 
 ## v1.0.5
 

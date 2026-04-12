@@ -1,5 +1,6 @@
 #include "../layer/RLLevelBrowserLayer.hpp"
 #include "../include/RLConstants.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelCell.hpp>
 #include <Geode/utils/async.hpp>
@@ -16,6 +17,8 @@ class $modify(RLLevelCell, LevelCell) {
         int m_pendingLevelId = 0;
         async::TaskHolder<web::WebResponse> m_fetchTask;
         int m_waitRetries = 0;  // used for waiting for level data to arrive
+        bool m_coinOffsetApplied = false;
+        bool m_iconOffsetApplied = false;
         ~Fields() { m_fetchTask.cancel(); }
     };
 
@@ -158,22 +161,32 @@ class $modify(RLLevelCell, LevelCell) {
             sprite->setOpacity(255);
         }
 
-        // move the download, likes icon and label
+        // move the download, likes icon and label once
         auto downloadIcon = m_mainLayer->getChildByID("downloads-icon");
         auto downloadLabel = m_mainLayer->getChildByID("downloads-label");
         auto likesIcon = m_mainLayer->getChildByID("likes-icon");
         auto likesLabel = m_mainLayer->getChildByID("likes-label");
-        if (downloadIcon) {
-            downloadIcon->setPositionX(downloadIcon->getPositionX() - 7.f);
-        }
-        if (downloadLabel) {
-            downloadLabel->setPositionX(downloadLabel->getPositionX() - 7.f);
-        }
-        if (likesIcon) {
-            likesIcon->setPositionX(likesIcon->getPositionX() - 14.f);
-        }
-        if (likesLabel) {
-            likesLabel->setPositionX(likesLabel->getPositionX() - 14.f);
+        if (!m_fields->m_iconOffsetApplied) {
+            bool didOffset = false;
+            if (downloadIcon) {
+                downloadIcon->setPositionX(downloadIcon->getPositionX() - 7.f);
+                didOffset = true;
+            }
+            if (downloadLabel) {
+                downloadLabel->setPositionX(downloadLabel->getPositionX() - 7.f);
+                didOffset = true;
+            }
+            if (likesIcon) {
+                likesIcon->setPositionX(likesIcon->getPositionX() - 14.f);
+                didOffset = true;
+            }
+            if (likesLabel) {
+                likesLabel->setPositionX(likesLabel->getPositionX() - 14.f);
+                didOffset = true;
+            }
+            if (didOffset) {
+                m_fields->m_iconOffsetApplied = true;
+            }
         }
 
         // remove any existing ruby nodes to avoid duplicates
@@ -619,7 +632,7 @@ class $modify(RLLevelCell, LevelCell) {
                     }
 
                     // doing the dumb coin move
-                    if (!m_compactView) {
+                    if (!m_compactView && !m_fields->m_coinOffsetApplied) {
                         if (coinIcon1) {
                             coinIcon1->setPositionY(coinIcon1->getPositionY() - 5);
                         }
@@ -629,6 +642,7 @@ class $modify(RLLevelCell, LevelCell) {
                         if (coinIcon3) {
                             coinIcon3->setPositionY(coinIcon3->getPositionY() - 5);
                         }
+                        m_fields->m_coinOffsetApplied = true;
                     }
 
                     // Handle pulsing level name for legendary/mythic featured
@@ -702,6 +716,18 @@ class $modify(RLLevelCell, LevelCell) {
 
         int levelId = static_cast<int>(level->m_levelID);
 
+        // try to reuse cached rating data first
+        if (auto cachedJson = rl::getCachedLevelRating(levelId)) {
+            log::debug("Using cached rating for level cell ID: {}", levelId);
+            this->applyRatingToCell(cachedJson.value(), levelId);
+            return;
+        }
+
+        if (auto staleJson = rl::getStaleLevelRating(levelId)) {
+            log::debug("Using stale cached rating while refreshing level cell ID: {}", levelId);
+            this->applyRatingToCell(staleJson.value(), levelId);
+        }
+
         // fetch directly here and apply or store on callback
         Ref<LevelCell> cellRef = this;
         auto req = web::WebRequest();
@@ -713,9 +739,6 @@ class $modify(RLLevelCell, LevelCell) {
                     levelId);
 
                 if (!response.ok()) {
-                    // log::warn("Server returned non-ok status: {} for level ID: {}",
-                    //     response.code(),
-                    //     levelId);
                     return;
                 }
 
@@ -730,6 +753,8 @@ class $modify(RLLevelCell, LevelCell) {
 
                 if (!cellRef)
                     return;
+
+                rl::setCachedLevelRating(levelId, json);
 
                 // if level is rated, check via checkRated endpoint
                 if (this->m_level->m_stars > 0 && difficulty > 0) {

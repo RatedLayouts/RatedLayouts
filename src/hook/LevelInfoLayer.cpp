@@ -12,6 +12,7 @@
 #include "../level/RLCommunityVotePopup.hpp"
 #include "../level/RLModRatePopup.hpp"
 #include "../include/RLRubyUtils.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include "Geode/cocos/textures/CCTexture2D.h"
 
 using namespace geode::prelude;
@@ -47,6 +48,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         int m_difficulty = 0;
         bool m_orbsShiftApplied =
             false;  // true when orbs-icon/label were shifted for ruby UI
+        bool m_isDeletingLevel = false;
         async::TaskHolder<web::WebResponse> m_submitTask;
         async::TaskHolder<web::WebResponse> m_accessTask;
         async::TaskHolder<Result<std::string>> m_authTask;
@@ -147,11 +149,42 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
         log::info("Level download finished, fetching rating data...");
 
-        // Fetch rating data from server
         int levelId = this->m_level ? this->m_level->m_levelID : 0;
         log::info("Fetching rating data for level ID: {}", levelId);
 
         Ref<RLLevelInfoLayer> layerRef = this;
+
+        if (auto cachedJson = rl::getCachedLevelRating(levelId)) {
+            log::info("Using cached rating data for level ID: {}", levelId);
+            auto json = *cachedJson;
+            bool isSuggested = json["isSuggested"].asBool().unwrapOrDefault();
+            layerRef->processLevelRating(json, layerRef);
+            if (!isSuggested) {
+                layerRef->repositionRubyUI();
+                layerRef->addOrUpdateRubyUI(
+                    layerRef, json["difficulty"].asInt().unwrapOrDefault());
+                layerRef->m_fields->m_orbsShiftApplied = true;
+                layerRef->m_fields->m_hasAppliedRubiesOffset = true;
+            }
+            if (layerRef->m_level && layerRef->m_level->m_stars > 0) {
+                layerRef->checkRated(layerRef->m_level->m_levelID);
+            }
+            return;
+        }
+
+        if (auto staleJson = rl::getStaleLevelRating(levelId)) {
+            log::info("Using stale cached rating for level ID: {} while refreshing", levelId);
+            auto json = *staleJson;
+            bool isSuggested = json["isSuggested"].asBool().unwrapOrDefault();
+            layerRef->processLevelRating(json, layerRef);
+            if (!isSuggested) {
+                layerRef->repositionRubyUI();
+                layerRef->addOrUpdateRubyUI(
+                    layerRef, json["difficulty"].asInt().unwrapOrDefault());
+                layerRef->m_fields->m_orbsShiftApplied = true;
+                layerRef->m_fields->m_hasAppliedRubiesOffset = true;
+            }
+        }
 
         auto url =
             fmt::format("{}/fetch?levelId={}", std::string(rl::BASE_API_URL), levelId);
@@ -176,9 +209,9 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             }
 
             auto json = jsonRes.unwrap();
+            rl::setCachedLevelRating(layerRef->m_level ? layerRef->m_level->m_levelID : 0, json);
             bool isSuggested = json["isSuggested"].asBool().unwrapOrDefault();
 
-            // Process the response immediately
             if (layerRef) {
                 layerRef->processLevelRating(json, layerRef);
                 if (!isSuggested) {
@@ -190,7 +223,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 }
             }
 
-            // if level is rated, check via checkRated endpoint
             if (layerRef->m_level && layerRef->m_level->m_stars > 0) {
                 layerRef->checkRated(layerRef->m_level->m_levelID);
             }
@@ -983,10 +1015,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         titleLabel->runAction(repeat);
 
                         if (!Mod::get()->getSettingValue<bool>("disableParticles")) {
-                            if (layerRef) {
-                                if (auto existing = layerRef->getChildByID("title-particles")) {
-                                    existing->removeFromParent();
-                                }
+                            if (layerRef && !layerRef->getChildByID("title-particles")) {
                                 const std::string& legendaryTitlePString =
                                     fmt::format(
                                         "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
@@ -1561,11 +1590,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
                         if (!Mod::get()->getSettingValue<bool>("disableParticles")) {
                             // particle effect to the title label position
-                            if (layerRef) {
-                                if (auto existing = layerRef->getChildByID("title-particles")) {
-                                    existing->removeFromParent();
-                                }
-
+                            if (layerRef && !layerRef->getChildByID("title-particles")) {
                                 const std::string& legendaryTitlePString =
                                     fmt::format(
                                         "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
@@ -2020,6 +2045,23 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         this->updateRLLevelInfo();
     }
 
+    void confirmDelete(CCObject* sender) {
+        m_fields->m_isDeletingLevel = true;
+        log::debug("is deleting level??? {}", m_fields->m_isDeletingLevel);
+        LevelInfoLayer::confirmDelete(sender);
+    }
+
+    void levelDeleteFinished(int levelId) override {
+        LevelInfoLayer::levelDeleteFinished(levelId);
+        rl::removeCachedLevelRating(levelId);
+        m_fields->m_isDeletingLevel = false;
+    }
+
+    void levelDeleteFailed(int errorCode) override {
+        LevelInfoLayer::levelDeleteFailed(errorCode);
+        m_fields->m_isDeletingLevel = false;
+    }
+
     void updateRLLevelInfo() {
         auto difficultySpriteNode = this->getChildByID("difficulty-sprite");
         if (difficultySpriteNode) {
@@ -2103,6 +2145,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     }
 
     void fetchRLLevelInfo() {
+        if (m_fields->m_isDeletingLevel) {
+            log::info("Skipping level info refresh while delete is pending for level ID: {}",
+                this->m_level ? this->m_level->m_levelID : 0);
+            return;
+        }
+
         if (this->m_level && this->m_level->m_levelID != 0) {
             log::debug("Refreshing level info for level ID: {}",
                 this->m_level->m_levelID);
@@ -2112,6 +2160,26 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
             auto getReq = web::WebRequest();
             Ref<RLLevelInfoLayer> layerRef = this;
+
+            if (auto cachedJson = rl::getCachedLevelRating(levelId)) {
+                log::info("Using cached rating data for level ID: {}", levelId);
+                auto json = *cachedJson;
+                bool isSuggested = json["isSuggested"].asBool().unwrapOrDefault();
+                int difficulty = json["difficulty"].asInt().unwrapOrDefault();
+                if (!isSuggested && difficulty > 0) {
+                    layerRef->addOrUpdateRubyUI(layerRef, difficulty);
+                }
+                layerRef->processLevelRating(json, layerRef);
+            } else if (auto staleJson = rl::getStaleLevelRating(levelId)) {
+                log::info("Using stale cached rating data for level ID: {} while refreshing", levelId);
+                auto json = *staleJson;
+                bool isSuggested = json["isSuggested"].asBool().unwrapOrDefault();
+                int difficulty = json["difficulty"].asInt().unwrapOrDefault();
+                if (!isSuggested && difficulty > 0) {
+                    layerRef->addOrUpdateRubyUI(layerRef, difficulty);
+                }
+                layerRef->processLevelRating(json, layerRef);
+            }
 
             async::spawn(
                 getReq.get(fmt::format(
@@ -2151,6 +2219,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     }
 
                     auto json = response.json().unwrap();
+                    rl::setCachedLevelRating(levelId, json);
 
                     bool isSuggested = json["isSuggested"].asBool().unwrapOrDefault();
                     int difficulty = json["difficulty"].asInt().unwrapOrDefault();
@@ -2257,6 +2326,14 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 m_orbsLabel->setPositionY(m_orbsIcon->getPositionY());
             }
             m_fields->m_hasAppliedRubiesOffset = true;
+        }
+    }
+
+    void onUpdate(CCObject* sender) {
+        LevelInfoLayer::onUpdate(sender);
+        if (this->m_level && this->m_level->m_levelID != 0) {
+            log::debug("refreshing level info for level ID: {}", this->m_level->m_levelID);
+            this->fetchRLLevelInfo();
         }
     }
 
