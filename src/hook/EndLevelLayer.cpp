@@ -77,6 +77,10 @@ class $modify(EndLevelLayer) {
         int levelId = level->m_levelID;
         log::info("Fetching difficulty value for completed level ID: {}", levelId);
 
+        if (levelId == 103853867) {
+            RLAchievements::onReward("misc_gem");  // get gem to win experience
+        }
+
         auto getReq = web::WebRequest();
 
         // capture EndLevelLayer as Ref
@@ -663,7 +667,8 @@ class $modify(EndLevelLayer) {
 
                                     // only show notification when animation disabled
                                     if (Mod::get()->getSettingValue<bool>(
-                                            "disableRewardAnimation") && remainingRubies > 0) {
+                                            "disableRewardAnimation") &&
+                                        remainingRubies > 0) {
                                         Notification::create(
                                             std::string("Received ") +
                                                 numToString(remainingRubies) + " rubies!",

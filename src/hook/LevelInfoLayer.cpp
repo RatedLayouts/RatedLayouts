@@ -1015,28 +1015,41 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         titleLabel->runAction(repeat);
 
                         if (!Mod::get()->getSettingValue<bool>("disableParticles")) {
-                            if (layerRef && !layerRef->getChildByID("title-particles")) {
-                                const std::string& legendaryTitlePString =
-                                    fmt::format(
-                                        "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
-                                        "1a90a180a8a0a{}a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
-                                        "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
-                                        "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1",
-                                        titleLabel->getContentSize().width / 2);
-                                if (!legendaryTitlePString.empty()) {
-                                    ParticleStruct pStruct;
-                                    GameToolbox::particleStringToStruct(legendaryTitlePString, pStruct);
-                                    CCParticleSystemQuad* particle =
-                                        GameToolbox::particleFromStruct(pStruct, nullptr, false);
-                                    if (particle) {
-                                        particle->setID("title-particles"_spr);
-                                        particle->setPosition(titleLabel->getPosition());
-                                        layerRef->addChild(particle, 10);
-                                        particle->resetSystem();
-                                        particle->update(0.15f);
-                                        particle->update(0.15f);
-                                        particle->update(0.15f);
-                                    }
+                            if (layerRef) {
+                                if (auto existing = layerRef->getChildByID("title-particles")) {
+                                    existing->removeFromParent();
+                                }
+                            }
+                            if (difficultySprite2) {
+                                if (auto existing = difficultySprite2->getChildByID("title-particles")) {
+                                    existing->removeFromParent();
+                                }
+                            }
+                            if (titleLabel) {
+                                if (auto existing = titleLabel->getChildByID("title-particles")) {
+                                    existing->removeFromParent();
+                                }
+                            }
+                            const std::string& legendaryTitlePString =
+                                fmt::format(
+                                    "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
+                                    "1a90a180a8a0a{}a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
+                                    "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
+                                    "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1",
+                                    titleLabel->getContentSize().width / 2);
+                            if (!legendaryTitlePString.empty()) {
+                                ParticleStruct pStruct;
+                                GameToolbox::particleStringToStruct(legendaryTitlePString, pStruct);
+                                CCParticleSystemQuad* particle =
+                                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
+                                if (particle) {
+                                    particle->setID("title-particles"_spr);
+                                    particle->setPosition(titleLabel->getPosition());
+                                    layerRef->addChild(particle, 10);
+                                    particle->resetSystem();
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
                                 }
                             }
                         }
@@ -1589,29 +1602,41 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         titleLabel->runAction(repeat);
 
                         if (!Mod::get()->getSettingValue<bool>("disableParticles")) {
-                            // particle effect to the title label position
-                            if (layerRef && !layerRef->getChildByID("title-particles")) {
-                                const std::string& legendaryTitlePString =
-                                    fmt::format(
-                                        "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
-                                        "1a90a180a8a0a{}a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
-                                        "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
-                                        "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1",
-                                        titleLabel->getContentSize().width / 2);
-                                if (!legendaryTitlePString.empty()) {
-                                    ParticleStruct pStruct;
-                                    GameToolbox::particleStringToStruct(legendaryTitlePString, pStruct);
-                                    CCParticleSystemQuad* particle =
-                                        GameToolbox::particleFromStruct(pStruct, nullptr, false);
-                                    if (particle) {
-                                        particle->setID("title-particles"_spr);
-                                        particle->setPosition(titleLabel->getPosition());
-                                        layerRef->addChild(particle, 10);
-                                        particle->resetSystem();
-                                        particle->update(0.15f);
-                                        particle->update(0.15f);
-                                        particle->update(0.15f);
-                                    }
+                            if (layerRef) {
+                                if (auto existing = layerRef->getChildByID("title-particles")) {
+                                    existing->removeFromParent();
+                                }
+                            }
+                            if (difficultySprite) {
+                                if (auto existing = difficultySprite->getChildByID("title-particles")) {
+                                    existing->removeFromParent();
+                                }
+                            }
+                            if (titleLabel) {
+                                if (auto existing = titleLabel->getChildByID("title-particles")) {
+                                    existing->removeFromParent();
+                                }
+                            }
+                            const std::string& legendaryTitlePString =
+                                fmt::format(
+                                    "15,2065,2,345,3,75,155,1,156,2,145,40a-1a1a0.3a-"
+                                    "1a90a180a8a0a{}a10a0a0a0a0a0a0a20a10a0a0a0.313726a0a0."
+                                    "615686a0a1a0a1a0a10a5a0a0a0.882353a0a0.878431a0a1a0a1a0a0.3a0a0."
+                                    "2a0a0a0a0a0a0a0a0a2a1a0a0a1a25a0a0a0a0a0a0a0a0a0a0a0a0a0a0,211,1",
+                                    titleLabel->getContentSize().width / 2);
+                            if (!legendaryTitlePString.empty()) {
+                                ParticleStruct pStruct;
+                                GameToolbox::particleStringToStruct(legendaryTitlePString, pStruct);
+                                CCParticleSystemQuad* particle =
+                                    GameToolbox::particleFromStruct(pStruct, nullptr, false);
+                                if (particle) {
+                                    particle->setID("title-particles"_spr);
+                                    particle->setPosition(titleLabel->getPosition());
+                                    layerRef->addChild(particle, 10);
+                                    particle->resetSystem();
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
+                                    particle->update(0.15f);
                                 }
                             }
                         }
@@ -1746,7 +1771,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     "You need to <cy>complete</c> this <co>platformer level</c> to access the <cb>Community Vote.</c>",
                     "OK")
                     ->show();
-                    return;
+                return;
             }
         }
 
@@ -2063,6 +2088,9 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     }
 
     void updateRLLevelInfo() {
+        if (auto existingParticles = this->getChildByID("title-particles")) {
+            existingParticles->removeFromParent();
+        }
         auto difficultySpriteNode = this->getChildByID("difficulty-sprite");
         if (difficultySpriteNode) {
             // remove star icon and label if present

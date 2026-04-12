@@ -9,6 +9,8 @@
 - Fixed crash when entering The Spire after completing a level
 - Added new Gauntlet Sprite
 - Updated Mod About Page
+- Removed **Vigilant Citizen** achievement.
+- Added back **Get Gem To Win Experience** achievement.
 
 ## v1.0.5
 
