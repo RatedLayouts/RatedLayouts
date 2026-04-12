@@ -8,6 +8,7 @@
 - Fixed Typos... again
 - Fixed crash when entering The Spire after completing a level
 - Added new Gauntlet Sprite
+- The Blue Spark Button on the Vanilla Search Layer will now go directly to the Rated Layouts Search Layer
 - Updated Mod About Page
 - Removed **Vigilant Citizen** achievement.
 - Added back **Get Gem To Win Experience** achievement.

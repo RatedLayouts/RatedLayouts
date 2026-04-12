@@ -192,7 +192,8 @@ namespace rl {
             return std::nullopt;
         }
 
-        return RequestCacheEntry{dataValue, timestampValue.unwrap()};
+        return RequestCacheEntry{dataValue,
+            static_cast<std::time_t>(timestampValue.unwrap())};
     }
 
     inline void storeRequestCacheEntry(std::string const& section, int id, matjson::Value const& data) {

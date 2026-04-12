@@ -1,7 +1,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelSearchLayer.hpp>
 
-#include "../layer/RLMenuLayer.hpp"
+#include "../layer/RLSearchLayer.hpp"
 #include "../include/RLNetworkUtils.hpp"
 
 using namespace geode::prelude;
@@ -41,7 +41,7 @@ class $modify(RLLevelSearchLayer, LevelSearchLayer) {
                 ->show();
             return;
         }
-        auto layer = RLMenuLayer::create();
+        auto layer = RLSearchLayer::create();
         auto scene = CCScene::create();
         scene->addChild(layer);
         auto transitionFade = CCTransitionFade::create(0.5f, scene);
