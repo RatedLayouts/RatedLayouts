@@ -1,6 +1,8 @@
 ## v1.0.7
 
 - Remove Top Creator toggler.
+- Tweaked the **Event Layouts** animation to be similar to Vanilla Daily Level animation.
+- Improved the **News Annoucements** to include past announcements and a better layout.
 
 ## v1.0.6
 

@@ -20,7 +20,7 @@
 #include "Geode/ui/Popup.hpp"
 #include "RLAchievementsPopup.hpp"
 #include "RLAddDialogue.hpp"
-#include "RLAnnouncementPopup.hpp"
+#include "RLNewsAnnouncementPopup.hpp"
 #include "RLCreditsPopup.hpp"
 #include "RLDonationPopup.hpp"
 #include "RLGauntletSelectLayer.hpp"
@@ -644,71 +644,8 @@ void RLMenuLayer::onShopButton(CCObject* sender) {
 }
 
 void RLMenuLayer::onAnnoucementButton(CCObject* sender) {
-    // disable the button if provided to avoid spamming
-    auto menuItem = static_cast<CCMenuItemSpriteExtra*>(sender);
-    if (menuItem)
-        menuItem->setEnabled(false);
-
-    Ref<RLMenuLayer> self = this;
-    m_announcementTask.spawn(
-        web::WebRequest().get(std::string(rl::BASE_API_URL) + "/getAnnoucement"),
-        [self, menuItem](web::WebResponse const& res) {
-            if (!self)
-                return;
-            if (!res.ok()) {
-                Notification::create("Failed to fetch announcement",
-                    NotificationIcon::Error)
-                    ->show();
-                if (menuItem)
-                    menuItem->setEnabled(true);
-                return;
-            }
-
-            auto jsonRes = res.json();
-            if (!jsonRes) {
-                Notification::create("Invalid announcement response",
-                    NotificationIcon::Error)
-                    ->show();
-                if (menuItem)
-                    menuItem->setEnabled(true);
-                return;
-            }
-
-            auto json = jsonRes.unwrap();
-            std::string body = "";
-            int id = 0;
-            if (json.contains("body")) {
-                if (auto s = json["body"].asString(); s)
-                    body = s.unwrap();
-            }
-            if (json.contains("id")) {
-                if (auto i = json["id"].as<int>(); i)
-                    id = i.unwrap();
-            }
-
-            if (!body.empty()) {
-                MDPopup::create("Rated Layouts Annoucement", body.c_str(), "OK")
-                    ->show();
-                RLAchievements::onReward("misc_news");
-                if (id) {
-                    Mod::get()->setSavedValue<int>("annoucementId", id);
-                    // hide badge since the user just viewed the announcement
-                    if (self->m_newsBadge)
-                        self->m_newsBadge->setVisible(false);
-                }
-            } else {
-                Notification::create("No announcement available",
-                    NotificationIcon::Warning)
-                    ->show();
-            }
-
-            if (self->m_newsBadge) {
-                self->m_newsBadge->setVisible(false);
-            }
-
-            if (menuItem)
-                menuItem->setEnabled(true);
-        });
+    auto popup = RLNewsAnnouncementPopup::create();
+    popup->show();
 }
 
 void RLMenuLayer::onUnknownButton(CCObject* sender) {

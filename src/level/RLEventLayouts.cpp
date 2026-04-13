@@ -37,8 +37,10 @@ bool RLEventLayouts::init() {
         return false;
     // register instance
     addSideArt(m_mainLayer, SideArt::All, SideArtStyle::PopupGold, false);
+    m_noElasticity = true;
 
     auto contentSize = m_mainLayer->getContentSize();
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
 
     m_eventMenu = CCLayer::create();
     m_eventMenu->setPosition({contentSize.width / 2, contentSize.height / 2});
@@ -454,6 +456,15 @@ bool RLEventLayouts::init() {
                                 .c_str());
                 };
             });
+
+        // funny animation
+        m_mainLayer->setPositionX(winSize.width * -0.15f);
+        auto sequence = CCSequence::create(
+            CCEaseElasticOut::create(CCMoveTo::create(0.4f, {winSize.width * 0.5f, winSize.height / 2}), 0.85),
+            nullptr);
+
+        m_mainLayer->runAction(sequence);
+
         return true;
     }
 }
@@ -634,5 +645,3 @@ void RLEventLayouts::onSafeButton(CCObject* sender) {
     auto transitionFade = CCTransitionFade::create(0.5f, scene);
     CCDirector::sharedDirector()->pushScene(transitionFade);
 }
-
-
