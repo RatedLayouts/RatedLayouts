@@ -1,3 +1,7 @@
+## v1.0.7
+
+- Remove Top Creator toggler.
+
 ## v1.0.6
 
 - Added Caching on Levels and Comments, this reduces the amount of server requests and improves performance.
