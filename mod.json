@@ -253,6 +253,7 @@
 			"name": "Disable Blueprint Points Toggle",
 			"type": "bool",
 			"default": true,
+			"enable-if": "!disableCreatorPoints",
 			"description": "Disable the toggler to show/hide blueprint points of creators who has interacted with the mod. <cy>By default it will always show the top creators regardless if that creator has used this mod or not.</c>"
 		},
 		"disableModInfo": {
@@ -296,7 +297,7 @@
         "clearRequestCache": {
             "type": "custom:rl-clear-cache-button",
             "name": "Clear Request Cache",
-            "description": "Immediately clear comment role and level rating cache stored by Rated Layouts."
+            "description": "Clears the comment role and level rating cache stored by Rated Layouts."
         }
 	}
 }

@@ -50,7 +50,7 @@ namespace rl {
             return false;
 
         m_buttonSprite = ButtonSprite::create(
-            "Clear Cache",
+            "Clear",
             100.f,
             80.f,
             0.5f,
