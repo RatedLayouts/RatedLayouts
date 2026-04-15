@@ -109,6 +109,8 @@ class $modify(RLCommentCell, CommentCell) {
         // choose highest-priority role for color
         if (accountId == rl::DEV_ACCOUNT_ID) {
             color = {150, 255, 255};  // ArcticWoof cyan
+        } else if (accountId == rl::BACKEND_DEV_ACCOUNT_ID) {
+            color = {0x11, 0x99, 0xee};  // developer blue
         } else if (m_fields->isClassicAdmin) {
             color = {255, 170, 170};  // bright red
         } else if (m_fields->isPlatAdmin) {
@@ -638,6 +640,11 @@ class $modify(RLCommentCell, CommentCell) {
                 10,
                 "rl-comment-owner-badge:1");
         }
+        if (accountId == rl::BACKEND_DEV_ACCOUNT_ID) {
+            addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeDeveloper.png"_spr),
+                12,
+                "rl-comment-developer-badge:1");
+        }
         userNameMenu->updateLayout();
         applyCommentTextColor(accountId);
     }
@@ -675,6 +682,9 @@ class $modify(RLCommentCell, CommentCell) {
                 break;
             case 10:  // Owner
                 rl::showOwnerInfo();
+                break;
+            case 12:  // Developer
+                rl::showDevInfo();
                 break;
             default:
                 break;
