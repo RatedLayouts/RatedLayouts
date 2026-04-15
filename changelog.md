@@ -1,4 +1,4 @@
-## v1.1.0
+## v1.0.8
 
 - Fixed bug where the announcement didn't show the alert at all.
 - Added New Rated Layouts Owner

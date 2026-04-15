@@ -35,6 +35,9 @@ class $modify(GJGarageLayer) {
         if (!GJGarageLayer::init())
             return false;
 
+        if (Mod::get()->getSettingValue<bool>("disableGarageStats"))
+            return true;
+
         m_fields->statMenu =
             this->getChildByID("capeling.garage-stats-menu/stats-menu");
         fetchProfile(GJAccountManager::get()->m_accountID);
@@ -98,7 +101,7 @@ class $modify(GJGarageLayer) {
                 planetsValue->setID("rl-planets-value");
                 m_fields->statMenu->addChild(planetsValue);
 
-                // coints
+                // coins
                 auto coinsSprite =
                     CCSprite::createWithSpriteFrameName("RL_BlueCoinSmall.png"_spr);
                 auto coinsValue = StatsDisplayAPI::getNewItem(

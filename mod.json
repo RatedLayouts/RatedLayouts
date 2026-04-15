@@ -8,7 +8,7 @@
 	},
 	"id": "arcticwoof.rated_layouts",
 	"name": "Rated Layouts",
-	"version": "v1.0.7",
+	"version": "v1.0.8",
 	"developer": "ArcticWoof",
 	"description": "Play layout rated levels",
 	"resources": {
@@ -262,6 +262,12 @@
 			"default": false,
 			"description": "Disables the mod info shown in the Rated Layouts Creator Layer."
         },
+		"disableGarageStats": {
+			"name": "Disable Garage Stats",
+			"type": "bool",
+			"default": false,
+			"description": "Disables the garage stats shown in the Rated Layouts Creator Layer."
+		},
 		"titleCache": {
 			"type": "title",
 			"name": "Cache Settings"
