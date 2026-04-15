@@ -1665,17 +1665,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
     }
 
     void onDevButton(CCObject* sender) {
-        if (!rl::isUserOwner()) {
-            log::warn("nope");
-            return;
-        } else {
-            log::info("Dev button clicked!");
             auto popup = RLModRatePopup::create(RLModRatePopup::PopupRole::Dev,
-                "Dev: Modify Layout",
-                this->m_level);
+                "Dev: Modify Layout", this->m_level);
             if (popup)
                 popup->show();
-        }
     }
     void onRoleButton(CCObject* sender) {
         int starRatings = this->m_level->m_stars;
