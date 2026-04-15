@@ -58,8 +58,7 @@ namespace rl {
 
     // check individual roles
     inline bool isUserOwner() {
-        return GJAccountManager::sharedState()->m_accountID == DEV_ACCOUNT_ID ||
-               GJAccountManager::sharedState()->m_accountID == NOVA_ACCOUNT_ID || Mod::get()->getSavedValue<bool>("isOwner");
+        return Mod::get()->getSavedValue<bool>("isOwner");
     }
 
     inline bool isUserClassicAdmin() {

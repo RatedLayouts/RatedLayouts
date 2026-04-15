@@ -455,58 +455,58 @@ class $modify(RLProfilePage, ProfilePage) {
     void fetchProfileData(int accountId) {
         log::info("Fetching profile data for account ID: {}", accountId);
         m_fields->accountId = accountId;
-        if (m_fields->accountId == rl::DEV_ACCOUNT_ID || m_fields->accountId == rl::NOVA_ACCOUNT_ID) {
+        if (m_fields->accountId == rl::DEV_ACCOUNT_ID) {
             RLAchievements::onReward("misc_arcticwoof");
-
-            auto accountData = argon::getGameAccountData();
-
-            m_fields->m_authTask.spawn(
-                argon::startAuth(std::move(accountData)),
-                [this, accountId](Result<std::string> res) {
-                    if (res.isOk()) {
-                        auto token = std::move(res).unwrap();
-                        log::debug("token obtained: {}", token);
-                        Mod::get()->setSavedValue("argon_token", token);
-                        this->continueProfileFetch(accountId);
-                        return;
-                    }
-
-                    auto err = res.unwrapErr();
-                    log::warn("Auth failed: {}", err);
-
-                    // If account data invalid, interactive auth fallback
-                    if (err.find("Invalid account data") != std::string::npos) {
-                        log::info(
-                            "Falling back to interactive auth due to invalid account data");
-                        argon::AuthOptions options;
-                        options.progress = [](argon::AuthProgress progress) {
-                            log::debug("auth progress: {}",
-                                argon::authProgressToString(progress));
-                        };
-
-                        m_fields->m_authTask.spawn(
-                            argon::startAuth(std::move(options)),
-                            [this, accountId](Result<std::string> res2) {
-                                if (res2.isOk()) {
-                                    auto token = std::move(res2).unwrap();
-                                    log::debug("token obtained (fallback): {}", token);
-                                    Mod::get()->setSavedValue("argon_token", token);
-                                    this->continueProfileFetch(accountId);
-                                } else {
-                                    log::warn("Interactive auth also failed: {}",
-                                        res2.unwrapErr());
-                                    Notification::create(res2.unwrapErr(),
-                                        NotificationIcon::Error)
-                                        ->show();
-                                    argon::clearToken();
-                                }
-                            });
-                    } else {
-                        Notification::create(err, NotificationIcon::Error)->show();
-                        argon::clearToken();
-                    }
-                });
         }
+
+        auto accountData = argon::getGameAccountData();
+
+        m_fields->m_authTask.spawn(
+            argon::startAuth(std::move(accountData)),
+            [this, accountId](Result<std::string> res) {
+                if (res.isOk()) {
+                    auto token = std::move(res).unwrap();
+                    log::debug("token obtained: {}", token);
+                    Mod::get()->setSavedValue("argon_token", token);
+                    this->continueProfileFetch(accountId);
+                    return;
+                }
+
+                auto err = res.unwrapErr();
+                log::warn("Auth failed: {}", err);
+
+                // If account data invalid, interactive auth fallback
+                if (err.find("Invalid account data") != std::string::npos) {
+                    log::info(
+                        "Falling back to interactive auth due to invalid account data");
+                    argon::AuthOptions options;
+                    options.progress = [](argon::AuthProgress progress) {
+                        log::debug("auth progress: {}",
+                            argon::authProgressToString(progress));
+                    };
+
+                    m_fields->m_authTask.spawn(
+                        argon::startAuth(std::move(options)),
+                        [this, accountId](Result<std::string> res2) {
+                            if (res2.isOk()) {
+                                auto token = std::move(res2).unwrap();
+                                log::debug("token obtained (fallback): {}", token);
+                                Mod::get()->setSavedValue("argon_token", token);
+                                this->continueProfileFetch(accountId);
+                            } else {
+                                log::warn("Interactive auth also failed: {}",
+                                    res2.unwrapErr());
+                                Notification::create(res2.unwrapErr(),
+                                    NotificationIcon::Error)
+                                    ->show();
+                                argon::clearToken();
+                            }
+                        });
+                } else {
+                    Notification::create(err, NotificationIcon::Error)->show();
+                    argon::clearToken();
+                }
+            });
     }
 
     void continueProfileFetch(int accountId) {
