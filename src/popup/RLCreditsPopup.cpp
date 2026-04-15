@@ -153,6 +153,9 @@ bool RLCreditsPopup::init() {
                 else if (text == "Rated Layouts Owner")
                     headerBadge =
                         CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr);
+                else if (text == "Rated Layouts Developer")
+                    headerBadge =
+                        CCSprite::createWithSpriteFrameName("RL_badgeDeveloper.png"_spr);
                 else if (text.find("Admin") != std::string::npos)
                     headerBadge =
                         CCSprite::createWithSpriteFrameName("RL_badgeAdmin01.png"_spr);
@@ -203,6 +206,8 @@ bool RLCreditsPopup::init() {
                     infoTag = 9;
                 else if (text == "Rated Layouts Owner")
                     infoTag = 10;
+                else if (text == "Rated Layouts Developer")
+                    infoTag = 12;
                 infoBtn->setTag(infoTag);
                 // place next to label
                 float infoWidth =
@@ -296,6 +301,13 @@ bool RLCreditsPopup::init() {
                     addPlayer(val, true, false, false, false, false, false, true);
                 }
             }
+            if (json.contains("developer") && json["developer"].isArray()) {
+                addHeader("Rated Layouts Developer");
+                auto arr = json["developer"].asArray().unwrap();
+                for (auto& val : arr) {
+                    addPlayer(val, false, false, false, false, false, false, false);
+                }
+            }
             if (json.contains("classicAdmins") && json["classicAdmins"].isArray()) {
                 addHeader("Classic Layout Admins");
                 auto arr = json["classicAdmins"].asArray().unwrap();
@@ -369,24 +381,24 @@ void RLCreditsPopup::onAccountClicked(CCObject* sender) {
 
 void RLCreditsPopup::onInfo(CCObject* sender) {
     MDPopup::create(
-        "Becoming a Layout Moderator",
-        "To become a **<cl>Classic</c>/<co>Platformer</c>/<cb>Leaderboard</c> "
-        "Layout "
-        "Moderator</c>**, you are required to join the <cl>Rated Layouts Discord Server</c> and be <cg>active in the community</c>.\n"
-        "There's an <cl>application form</c> in the server that you can fill out and the Admins usually review these applications.\n"
-        "### <cr>Begging for Layout Mod to ArcticWoof or any of the Layout "
-        "Admins will be ignored and lower your chances of becoming a mod.</c>\n"
-        "If you have any questions about the application process or the role, feel free to ask in the <cl>Rated Layouts Discord Server</c>.\n"
-        "All promotion will be decided by <cf>ArcticWoof</c> and usually announced in the server."
-        "\r\n\r\n---\r\n\r\n"
-        "### Moderator Responsibilities\n"
-        "- Moderators are expected to be <cg>active in the community</c> and help maintain the quality of the <cl>Rated Layouts</c>.\n"
-        "- This includes <co>suggesting levels, rating levels</c> and <cy>providing feedback</c> to level creators.\n"
-        "- Moderators may also be asked to help with <cg>managing the community</c>, such as moderating the leaderboard section or assisting with events.\n"
-        "\r\n\r\n---\r\n\r\n"
-        "If you are <cg>interested in becoming a layout moderator</c>, make sure to join the <cl>Rated Layouts Discord Server</c> and apply in the <cl>application form</c>!",
-        "OK")
-        ->show();
+            "Becoming a Layout Moderator",
+            "To become a **<cl>Classic</c>/<co>Platformer</c>/<cb>Leaderboard</c> "
+            "Layout "
+            "Moderator</c>**, you are required to join the <cl>Rated Layouts Discord Server</c> and be <cg>active in the community</c>.\n"
+            "There's an <cl>application form</c> in the server that you can fill out and the Admins usually review these applications.\n"
+            "### <cr>Begging for Layout Mod to ArcticWoof or any of the Layout "
+            "Admins will be ignored and lower your chances of becoming a mod.</c>\n"
+            "If you have any questions about the application process or the role, feel free to ask in the <cl>Rated Layouts Discord Server</c>.\n"
+            "All promotion will be decided by <cf>ArcticWoof</c> and usually announced in the server."
+            "\r\n\r\n---\r\n\r\n"
+            "### Moderator Responsibilities\n"
+            "- Moderators are expected to be <cg>active in the community</c> and help maintain the quality of the <cl>Rated Layouts</c>.\n"
+            "- This includes <co>suggesting levels, rating levels</c> and <cy>providing feedback</c> to level creators.\n"
+            "- Moderators may also be asked to help with <cg>managing the community</c>, such as moderating the leaderboard section or assisting with events.\n"
+            "\r\n\r\n---\r\n\r\n"
+            "If you are <cg>interested in becoming a layout moderator</c>, make sure to join the <cl>Rated Layouts Discord Server</c> and apply in the <cl>application form</c>!",
+            "OK")
+            ->show();
 }
 
 void RLCreditsPopup::onHeaderInfo(CCObject* sender) {
@@ -421,6 +433,9 @@ void RLCreditsPopup::onHeaderInfo(CCObject* sender) {
             break;
         case 10:  // Owner
             rl::showOwnerInfo();
+            break;
+        case 12:  // Developer
+            rl::showDevInfo();
             break;
         default:
             break;
