@@ -772,10 +772,10 @@ void RLGauntletLevelsLayer::update(float dt) {
     }
 
     m_levelsMenu->setPosition(newPos);
-    if (std::hypotf(m_velocity.x, m_velocity.y) < 5.0f) {
     this->updateBackgroundParallax(newPos);
 
-    // stop if velocities are nearly zero
+    if (std::hypotf(m_velocity.x, m_velocity.y) < 5.0f) {
+        // stop if velocities are nearly zero
         m_velocity = ccp(0, 0);
         m_flinging = false;
     }

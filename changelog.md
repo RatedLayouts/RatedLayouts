@@ -1,3 +1,7 @@
+# v1.0.9
+
+- Fix the issue with the Gauntlet Level Selection background not moving correctly when dragging.
+
 ## v1.0.8
 
 - Fixed bug where the announcement didn't show the alert at all.
