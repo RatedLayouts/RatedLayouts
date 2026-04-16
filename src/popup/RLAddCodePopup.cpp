@@ -85,10 +85,6 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
     }
 
     auto accountId = GJAccountManager::get()->m_accountID;
-    if (rl::isUserOwner()) {
-        upopup->showFailMessage("Not Authorized");
-        return;
-    }
 
     matjson::Value body = matjson::Value::object();
     body["accountId"] = accountId;
