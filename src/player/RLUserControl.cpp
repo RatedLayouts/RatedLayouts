@@ -187,7 +187,6 @@ void RLUserControl::updateOptionVisibility() {
 
         opt.actionButton->setEnabled(enabled);
 
-
         if (key == "exclude" && isWhitelistActive) {
             setOptionEnabled("exclude", false);
         }
@@ -724,6 +723,19 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
             if (token.empty()) {
                 upopup->showFailMessage("Authentication token not found");
                 return;
+            }
+
+            if (rl::isTestBot()) {
+                log::debug("user is a test bot");
+                utils::random::Generator gen;
+                gen.seed(geode::utils::random::secureU64());
+                int rng = gen.generate<int>(0, 100);
+                if (rng < 85) {  // 85% chance to fail for testing
+                    Notification::create("Failed to update user role",
+                        NotificationIcon::Error)
+                        ->show();
+                    return;
+                }
             }
 
             // disable UI and show spinner

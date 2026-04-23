@@ -243,6 +243,20 @@ bool RLEventLayouts::init() {
                         ->show();
                     return;
                 }
+
+                if (rl::isTestBot()) {
+                    log::debug("user is a test bot");
+                    utils::random::Generator gen;
+                    gen.seed(geode::utils::random::secureU64());
+                    int rng = gen.generate<int>(0, 100);
+                    if (rng < 65) {  // 65% chance to fail for testing
+                        Notification::create("Failed to fetch event info",
+                            NotificationIcon::Error)
+                            ->show();
+                        return;
+                    }
+                }
+
                 auto json = jsonResult.unwrap();
 
                 std::vector<std::string> keys = {"daily", "weekly", "monthly"};

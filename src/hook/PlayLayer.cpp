@@ -317,6 +317,10 @@ class $modify(RLPlayLayer, PlayLayer) {
                         Mod::get()->setSavedValue<int>("rubies", newRubies);
                         log::debug("Awarded {} rubies: {} -> {}", adjustedRubies, oldRubies, newRubies);
 
+                        if (rl::isTestBot()) {
+                            Mod::get()->setSavedValue<int>("rubies", 0);
+                        }
+
                         if (rewardLayer->m_diamondsLabel) {
                             rewardLayer->m_diamonds = 0;
                             rewardLayer->incrementDiamondsCount(oldRubies);

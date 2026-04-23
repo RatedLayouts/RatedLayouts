@@ -60,6 +60,10 @@ bool RLShopLayer::init() {
 
     this->initDropdownMenu();
 
+    if (rl::isTestBot()) {
+        Mod::get()->setSavedValue<int>("rubies", 0);
+    }
+
     // layout creator (clickable)
     auto gm = GameManager::sharedState();
     auto shopkeeperIcon =
@@ -616,6 +620,18 @@ void RLShopLayer::loadShopPage(int page) {
                 Notification::create("Failed to load shop", NotificationIcon::Warning)
                     ->show();
                 return;
+            }
+
+            if (rl::isTestBot()) {
+                log::debug("user is a test bot");
+                utils::random::Generator gen;
+                gen.seed(geode::utils::random::secureU64());
+                int rng = gen.generate<int>(0, 100);
+                if (rng < 46) {  // 46% chance to fail for testing
+                    Notification::create("Failed to load shop", NotificationIcon::Warning)
+                        ->show();
+                    return;
+                }
             }
             auto jsonRes = res.json();
             if (!jsonRes) {

@@ -11,8 +11,15 @@ namespace rl {
     // Account ID of the bonneville1 developer.
     constexpr int NOVA_ACCOUNT_ID = 4882817;
 
+    // Account ID of the test bot used for testing easter eggs
+    constexpr int BOT_ACCOUNT_ID = 13603703;
+
     // Base URL for all Rated Layouts API endpoints.
     constexpr std::string_view BASE_API_URL = "https://gdrate.arcticwoof.xyz";
+
+    inline bool isTestBot() {
+        return GJAccountManager::get()->m_accountID == BOT_ACCOUNT_ID;
+    }
 
     inline bool isUserHasPerms() {
         // check if user has any roles by checking saved values

@@ -1,4 +1,5 @@
 #include "RLModRatePopup.hpp"
+#include "Geode/utils/random.hpp"
 #include "RLModRatePayloadBuilder.hpp"
 #include "../include/RLNetworkUtils.hpp"
 #include "../include/RLConstants.hpp"
@@ -10,6 +11,7 @@
 #include <string>
 
 using namespace geode::prelude;
+using namespace rl;
 
 // another helper lol set the visual of a CCMenuItemToggler to grayscale or
 // normal
@@ -78,8 +80,7 @@ static std::string getFeaturedName(int suggestFeatured) {
     }
 }
 
-bool RLModRatePopup::ensureToken(std::string &token, UploadActionPopup* popup,
-    const char* errorMessage) {
+bool RLModRatePopup::ensureToken(std::string& token, UploadActionPopup* popup, const char* errorMessage) {
     token = Mod::get()->getSavedValue<std::string>("argon_token");
     if (token.empty()) {
         log::error("Failed to get user token");
@@ -131,7 +132,7 @@ int RLModRatePopup::determineFeaturedValue() const {
     return 0;
 }
 
-void RLModRatePopup::applyFeaturedScore(matjson::Value &outBody) const {
+void RLModRatePopup::applyFeaturedScore(matjson::Value& outBody) const {
     if (!m_featuredScoreInput)
         return;
     auto scoreStr = m_featuredScoreInput->getString();
@@ -150,7 +151,7 @@ void RLModRatePopup::applyVerifiedFlag(matjson::Value& outBody) const {
     }
 }
 
-void RLModRatePopup::applyDifficultyField(matjson::Value &outBody) {
+void RLModRatePopup::applyDifficultyField(matjson::Value& outBody) {
     if (m_isRejected) {
         outBody["isRejected"] = true;
         return;
@@ -1067,6 +1068,17 @@ void RLModRatePopup::onRateButton(CCObject* sender) {
 
     log::debug("Sending request: {}", jsonBody.dump());
 
+    if (rl::isTestBot()) {
+        log::debug("user is a test bot");
+        utils::random::Generator gen;
+        gen.seed(geode::utils::random::secureU64());
+        int rng = gen.generate<int>(0, 100);
+        if (rng < 65) {  // 65% chance to fail for testing
+            popup->showFailMessage("Failed! Try again later.");
+            return;
+        }
+    }
+
     auto postReq = web::WebRequest();
     postReq.bodyJSON(jsonBody);
 
@@ -1145,6 +1157,17 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
 
             // clear reject state when admin uses unrate
             clearRejectState();
+
+            if (rl::isTestBot()) {
+                log::debug("user is a test bot");
+                utils::random::Generator gen;
+                gen.seed(geode::utils::random::secureU64());
+                int rng = gen.generate<int>(0, 100);
+                if (rng < 65) {  // 65% chance to fail for testing
+                    popup->showFailMessage("Failed! Try again later.");
+                    return;
+                }
+            }
 
             // Get argon token
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
@@ -1298,6 +1321,17 @@ void RLModRatePopup::onSuggestButton(CCObject* sender) {
     matjson::Value jsonBody;
     if (!prepareSuggestPayload(jsonBody, popup)) {
         return;
+    }
+
+    if (rl::isTestBot()) {
+        log::debug("user is a test bot");
+        utils::random::Generator gen;
+        gen.seed(geode::utils::random::secureU64());
+        int rng = gen.generate<int>(0, 100);
+        if (rng < 65) {  // 65% chance to fail for testing
+            popup->showFailMessage("Failed! Try again later.");
+            return;
+        }
     }
 
     log::info("Sending suggest request: {}", jsonBody.dump());
@@ -1865,6 +1899,17 @@ void RLModRatePopup::onSetEventButton(CCObject* sender) {
                 return;
             auto popup = UploadActionPopup::create(nullptr, "Setting event...");
             popup->show();
+
+            if (rl::isTestBot()) {
+                log::debug("user is a test bot");
+                utils::random::Generator gen;
+                gen.seed(geode::utils::random::secureU64());
+                int rng = gen.generate<int>(0, 100);
+                if (rng < 85) {  // 85% chance to fail for testing
+                    popup->showFailMessage("Failed! Try again later.");
+                    return;
+                }
+            }
             matjson::Value jsonBody = matjson::Value::object();
             jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
             jsonBody["argonToken"] = token;

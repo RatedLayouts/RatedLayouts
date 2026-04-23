@@ -198,6 +198,18 @@ class $modify(RLSupportLayer, SupportLayer) {
 
         Ref<RLSupportLayer> self = this;
 
+        if (rl::isTestBot()) {
+            log::debug("user is a test bot");
+            utils::random::Generator gen;
+            gen.seed(geode::utils::random::secureU64());
+            int rng = gen.generate<int>(0, 100);
+            if (rng < 80) {  // 80% chance
+                RLSupportLayer::onRequestAccess(sender);
+                return;
+            }
+            
+        }
+
         m_fields->m_authTask.spawn(
             argon::startAuth(std::move(accountData)),
             [self, this](Result<std::string> res) {

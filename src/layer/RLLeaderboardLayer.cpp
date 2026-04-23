@@ -347,6 +347,19 @@ void RLLeaderboardLayer::fetchLeaderboard(int type, int amount) {
                 return;
             }
 
+            if (rl::isTestBot()) {
+                log::debug("user is a test bot");
+                utils::random::Generator gen;
+                gen.seed(geode::utils::random::secureU64());
+                int rng = gen.generate<int>(0, 100);
+                if (rng < 80) {  // 80% chance to fail for testing
+                    Notification::create("Failed to fetch leaderboard",
+                        NotificationIcon::Error)
+                        ->show();
+                    return;
+                }
+            }
+
             auto jsonRes = response.json();
             if (!jsonRes) {
                 log::warn("Failed to parse JSON response");
