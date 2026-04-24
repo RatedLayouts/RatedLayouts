@@ -756,7 +756,6 @@ void RLGauntletLevelsLayer::update(float dt) {
     // stop the corresponding velocity component
     if (newPos.x < minX) {
         newPos.x = minX;
-        newPos.y = maxY;
         m_velocity.x = 0;
     }
     if (newPos.x > maxX) {
@@ -768,12 +767,13 @@ void RLGauntletLevelsLayer::update(float dt) {
         m_velocity.y = 0;
     }
     if (newPos.y > maxY) {
+        newPos.y = maxY;
         m_velocity.y = 0;
     }
 
     m_levelsMenu->setPosition(newPos);
     this->updateBackgroundParallax(newPos);
-
+    
     if (std::hypotf(m_velocity.x, m_velocity.y) < 5.0f) {
         // stop if velocities are nearly zero
         m_velocity = ccp(0, 0);

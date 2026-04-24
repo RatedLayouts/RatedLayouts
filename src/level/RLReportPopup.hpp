@@ -11,6 +11,7 @@ private:
     bool init() override;
     void onSubmit(CCObject* sender);
     void onInfo(CCObject* sender);
+    void onVanillaReport(CCObject* sender);
     int m_levelId = 0;
 
     // toggle buttons for report reasons
@@ -25,6 +26,8 @@ private:
 
     CCMenu* m_toggleMenu = nullptr;
     geode::TextInput* m_reasonInput = nullptr;
+    CCSprite* m_reportBtnSpr = nullptr;
+    CCMenuItemSpriteExtra* m_reportBtnBtn = nullptr;
     async::TaskHolder<web::WebResponse> m_reportTask;
     ~RLReportPopup() {
         m_reportTask.cancel();

@@ -191,6 +191,11 @@ class $modify(RLSupportLayer, SupportLayer) {
     }
 
     void onRequestAccess(CCObject* sender) {  // i assume that no one will ever get gd mod xddd
+        if (Mod::get()->getSettingValue<bool>("disableRLReq")) {
+            RLSupportLayer::onRequestAccess(sender);
+            return;
+        }
+
         m_uploadPopup = UploadActionPopup::create(nullptr, "Requesting Access...");
         m_uploadPopup->show();
         // argon my beloved <3
@@ -207,7 +212,6 @@ class $modify(RLSupportLayer, SupportLayer) {
                 RLSupportLayer::onRequestAccess(sender);
                 return;
             }
-            
         }
 
         m_fields->m_authTask.spawn(

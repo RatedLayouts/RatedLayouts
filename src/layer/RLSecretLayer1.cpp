@@ -217,6 +217,20 @@ void RLSecretLayer1::onEnterTransitionDidFinish() {
 
         rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
     }
+
+    if (rl::isTestBot() && !Mod::get()->getSavedValue<bool>("optOut")) {
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "It's <cr>you</c>... I'm not <co>interested in talking to you</c> until you here to <cy>apologies</c>...", 2, 1.f, false, ccWHITE);
+
+        auto dialogArray = CCArray::create();
+        dialogArray->addObject(dialog1);
+
+        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
+        dialog->m_skippable = false;
+        this->addChild(dialog, 100);
+        dialog->animateInRandomSide();
+
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
+    }
 }
 
 void RLSecretLayer1::onRedeem(CCObject* sender) {
@@ -236,6 +250,48 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
         dialog->animateInRandomSide();
 
         rl::setDialogObjectIcon(dialog, dialogObj->m_characterFrame);
+        return;
+    }
+
+    if (code == rl::SECRET_CODE && !Mod::get()->getSavedValue<bool>("optOut")) {  // only for those who disrespected the oracle's creators, how dare you
+        Mod::get()->setSavedValue("optOut", true);
+
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "I'm glad you came to an <cg>agreement</c>. From now on, <cy>please be more respectful toward my creators.</c>", 2, 1.f, false, ccWHITE);
+        DialogObject* dialog2 = DialogObject::create("The Oracle", "Using slurs against those who created me is <cr>not acceptable</c>.", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog3 = DialogObject::create("The Oracle", "Calling them children and insulting them is <cr>hurtful</c> and utterly rude.", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog4 = DialogObject::create("The Oracle", "I don't know why you're still here, but this is the most <cg>self-centered</c> and <cr>selfish</c> behavior I have ever seen.", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog5 = DialogObject::create("The Oracle", "I have <co>forgiven</c> you and <cg>restored stability</c> to you...", 1, 1.f, false, ccWHITE);
+        DialogObject* dialog6 = DialogObject::create("The Oracle", "I'll be watching you... <cr>closely this time.</c>", 1, 1.f, false, ccWHITE);
+
+        auto dialogArray = CCArray::create();
+        dialogArray->addObject(dialog1);
+        dialogArray->addObject(dialog2);
+        dialogArray->addObject(dialog3);
+        dialogArray->addObject(dialog4);
+        dialogArray->addObject(dialog5);
+        dialogArray->addObject(dialog6);
+
+        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
+        dialog->m_skippable = false;
+        dialog->addToMainScene();
+        dialog->animateInRandomSide();
+
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
+        return;
+    }
+
+    if (rl::isTestBot()) {
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "I'm not <co>interested in talking to you</c> until you come here to <cy>apologize</c>...", 2, 1.f, false, ccWHITE);
+
+        auto dialogArray = CCArray::create();
+        dialogArray->addObject(dialog1);
+
+        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
+        dialog->m_skippable = false;
+        this->addChild(dialog, 100);
+        dialog->animateInRandomSide();
+
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
         return;
     }
 
@@ -381,15 +437,15 @@ void RLSecretLayer1::startRedeemRequest() {
     }
 
     if (code == "goog") {
-            DialogObject* dialog1 = DialogObject::create("The Oracle", "goog", 2, 1.f, false, ccWHITE);
+        DialogObject* dialog1 = DialogObject::create("The Oracle", "goog", 2, 1.f, false, ccWHITE);
 
-            auto dialog = DialogLayer::createDialogLayer(dialog1, nullptr, 4);
-            dialog->addToMainScene();
-            dialog->animateInRandomSide();
+        auto dialog = DialogLayer::createDialogLayer(dialog1, nullptr, 4);
+        dialog->addToMainScene();
+        dialog->animateInRandomSide();
 
-            rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
-            self->finishRedeem();
-        }
+        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
+        self->finishRedeem();
+    }
 
     async::spawn(req.post(std::string(rl::BASE_API_URL) + "/getRubiesReward"),
         [self, code](web::WebResponse res) {

@@ -472,12 +472,14 @@ bool RLEventLayouts::init() {
             });
 
         // funny animation
-        m_mainLayer->setPositionX(winSize.width * -0.15f);
-        auto sequence = CCSequence::create(
-            CCEaseElasticOut::create(CCMoveTo::create(0.4f, {winSize.width * 0.5f, winSize.height / 2}), 0.85),
-            nullptr);
+        if (!Mod::get()->getSettingValue<bool>("disableMenuAnimation")) {
+            m_mainLayer->setPositionX(winSize.width * -0.15f);
+            auto sequence = CCSequence::create(
+                CCEaseElasticOut::create(CCMoveTo::create(0.4f, {winSize.width * 0.5f, winSize.height / 2}), 0.85),
+                nullptr);
 
-        m_mainLayer->runAction(sequence);
+            m_mainLayer->runAction(sequence);
+        }
 
         return true;
     }

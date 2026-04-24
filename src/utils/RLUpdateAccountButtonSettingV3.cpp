@@ -50,7 +50,7 @@ namespace rl {
 
         m_buttonSprite = ButtonSprite::create(
             "Update",
-            120.f,
+            100.f,
             80.f,
             0.5f,
             true,

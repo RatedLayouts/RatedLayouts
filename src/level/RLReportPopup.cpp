@@ -1,13 +1,12 @@
 #include "RLReportPopup.hpp"
-#include "../include/RLAchievements.hpp"
 #include "../include/RLConstants.hpp"
 #include "../include/RLNetworkUtils.hpp"
 
 RLReportPopup* RLReportPopup::create(int levelId) {
     RLReportPopup* popup = new RLReportPopup();
+    popup->m_levelId = levelId;
     // @geode-ignore(unknown-resource)
     if (popup && popup->init()) {
-        popup->m_levelId = levelId;
         popup->autorelease();
         return popup;
     }
@@ -34,6 +33,11 @@ bool RLReportPopup::init() {
 
     m_buttonMenu->addChild(reportButton);
     reportButton->setPosition({m_mainLayer->getScaledContentSize().width / 2.f, 25.f});
+
+    m_reportBtnSpr = CCSprite::createWithSpriteFrameName("GJ_reportBtn_001.png");
+    m_reportBtnBtn = CCMenuItemSpriteExtra::create(m_reportBtnSpr, this, menu_selector(RLReportPopup::onVanillaReport));
+    m_reportBtnBtn->setPosition({10, 5});
+    m_buttonMenu->addChild(m_reportBtnBtn);
 
     // info button
     auto infoSpr = CCSprite::createWithSpriteFrameName("RL_info01.png"_spr);
@@ -90,7 +94,34 @@ bool RLReportPopup::init() {
     m_reasonInput->setID("report-reason-input");
     m_mainLayer->addChild(m_reasonInput);
 
+    // if already reported, disable the report button and gray it out
+    if (GameLevelManager::get()->hasReportedLevel(m_levelId)) {
+        m_reportBtnSpr->setColor({75, 75, 75});
+        m_reportBtnBtn->setEnabled(false);
+    }
+
     return true;
+}
+
+void RLReportPopup::onVanillaReport(CCObject* sender) {
+    auto glm = GameLevelManager::get();
+    Ref<RLReportPopup> self = this;
+    if (!glm->hasReportedLevel(self->m_levelId)) {
+        createQuickPopup(
+            "Report Level",
+            "Do you want to <cr>report</c> this level for breaking the <cg>upload guidelines</c> found in the editor? Vaild reasons include hateful, abusive, or otherwise inappropriate content as well as hacks, cheats or exploits.",
+            "No",
+            "Yes",
+            [self](auto, bool yes) {
+                if (!yes) return;
+                GameLevelManager::get()->reportLevel(self->m_levelId);
+                log::debug("vanilla report: {}", self->m_levelId);
+                self->m_reportBtnSpr->setColor({75, 75, 75});
+                self->m_reportBtnBtn->setEnabled(false);
+            });
+    } else {
+        Notification::create("You have already reported this level to RobTop.", NotificationIcon::Warning)->show();
+    }
 }
 
 void RLReportPopup::onSubmit(CCObject* sender) {

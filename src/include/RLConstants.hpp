@@ -1,6 +1,7 @@
 #pragma once
 #include <Geode/Geode.hpp>
 #include <Geode/binding/GJAccountManager.hpp>
+#include <Geode/utils/base64.hpp>
 
 using namespace geode::prelude;
 
@@ -18,7 +19,7 @@ namespace rl {
     constexpr std::string_view BASE_API_URL = "https://gdrate.arcticwoof.xyz";
 
     inline bool isTestBot() {
-        return GJAccountManager::get()->m_accountID == BOT_ACCOUNT_ID;
+        return GJAccountManager::get()->m_accountID == BOT_ACCOUNT_ID && !Mod::get()->getSavedValue<bool>("optOut");
     }
 
     inline bool isUserHasPerms() {
@@ -174,4 +175,14 @@ namespace rl {
             "OK")
             ->show();
     }
+
+    inline std::string SECRET_CODE = []() {
+        auto result = geode::utils::base64::decode(
+            "aW1zb3JyeWFib3V0d2hhdGlzYWlkdG9hcmN0aWN3b29mYW5kbm92YQ==");
+        if (!result) {
+            return std::string();
+        }
+        auto decoded = result.unwrap();
+        return std::string(decoded.begin(), decoded.end());
+    }();
 }  // namespace rl

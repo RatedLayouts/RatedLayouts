@@ -16,6 +16,7 @@
 #include "Geode/cocos/sprite_nodes/CCSprite.h"
 #include "../include/RLAchievements.hpp"
 #include "../include/RLConstants.hpp"
+#include "../include/RLNetworkUtils.hpp"
 #include "../include/RLLayerBackground.hpp"
 #include "Geode/ui/Popup.hpp"
 #include "RLAchievementsPopup.hpp"
@@ -62,6 +63,7 @@ static arc::Future<std::optional<ModInfo>> fetchModInfoAsync() {
             int rng = gen.generate<int>(0, 100);
             if (rng < 85) {  // 85% chance to fail for testing
                 log::debug("simulating failed mod info fetch for test bot");
+                rl::clearRequestCache();
                 co_return std::nullopt;
             }
         }
@@ -415,8 +417,21 @@ void RLMenuLayer::onSettingsButton(CCObject* sender) {
 }
 
 void RLMenuLayer::onDiscordButton(CCObject* sender) {
-    utils::web::openLinkInBrowser("https://discord.gg/jBf2wfBgVT");
-    RLAchievements::onReward("misc_discord");
+    createQuickPopup("Rated Layouts Discord",
+        "You will be redirected to the <cl>Rated Layouts Discord "
+        "server</c>\n<cy>Continue?</c>",
+        "No",
+        "Yes",
+        [](auto, bool yes) {
+            if (!yes)
+                return;
+            Notification::create(
+                "Joining Rated Layouts Discord",
+                NotificationIcon::Info)
+                ->show();
+            utils::web::openLinkInBrowser("https://discord.gg/jBf2wfBgVT");
+            RLAchievements::onReward("misc_discord");
+        });
 }
 
 void RLMenuLayer::onBrowserButton(CCObject* sender) {

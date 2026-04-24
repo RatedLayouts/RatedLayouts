@@ -49,6 +49,9 @@ public:
     bool m_coinsVerifiedActive = false;
     bool m_coinsUnverifiedActive = false;
 
+    // random spinner
+    LoadingSpinner* m_randomSpinner = nullptr;
+
     // difficulty filter buttons
     CCMenu* m_difficultyFilterMenu = nullptr;
     std::vector<GJDifficultySprite*> m_difficultySprites;

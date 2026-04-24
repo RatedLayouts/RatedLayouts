@@ -4,6 +4,7 @@
 #include <Geode/binding/CCSpriteGrayscale.hpp>
 #include <cue/RepeatingBackground.hpp>
 #include "../include/RLConstants.hpp"
+#include "../include/RLNetworkUtils.hpp"
 
 bool RLLeaderboardLayer::init() {
     if (!CCLayer::init())
@@ -135,6 +136,14 @@ bool RLLeaderboardLayer::init() {
     m_refreshBtn->setPosition({winSize.width - 35, 35});
     infoMenu->addChild(m_refreshBtn);
 
+    // account info refresh button above the refresh button
+    auto accountInfoSpr = CCSprite::createWithSpriteFrameName("RL_refresh02.png"_spr);
+    accountInfoSpr->setScale(0.7f);
+    m_accountRefreshBtn = CCMenuItemSpriteExtra::create(
+        accountInfoSpr, this, menu_selector(RLLeaderboardLayer::onAccountRefreshButton));
+    m_accountRefreshBtn->setPosition({winSize.width - 35, 85});
+    infoMenu->addChild(m_accountRefreshBtn);
+
     auto creatorTypeIcon = CCSpriteGrayscale::createWithSpriteFrameName("RL_blueprintPoint01.png"_spr);
     if (creatorTypeIcon && !Mod::get()->getSettingValue<bool>("disableCreatorPointsToggle")) {
         auto creatorTypeOff = EditorButtonSprite::create(
@@ -181,6 +190,64 @@ void RLLeaderboardLayer::onAccountClicked(CCObject* sender) {
     auto button = static_cast<CCMenuItem*>(sender);
     int accountId = button->getTag();
     ProfilePage::create(accountId, false)->show();
+}
+
+void RLLeaderboardLayer::onAccountRefreshButton(CCObject* sender) {
+    createQuickPopup("Update Account Info",
+        "Are you sure you want to <cg>update your account information</c> to <cl>Rated Layouts</c>?\n<cy>Only use this if you changed your username or icons recently and need to show the updated information.</c>",
+        "No",
+        "Yes",
+        [](auto, bool yes) {
+            if (!yes)
+                return;
+
+            auto popup = UploadActionPopup::create(nullptr, "Updating Account...");
+            popup->show();
+
+            if (GJAccountManager::get()->m_accountID == 0) {
+                popup->showFailMessage("You are not logged in.");
+                return;
+            }
+
+            auto token = Mod::get()->getSavedValue<std::string>("argon_token");
+            if (token.empty()) {
+                popup->showFailMessage("Argon token missing.");
+                return;
+            }
+
+            matjson::Value jsonBody = matjson::Value::object();
+            jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
+            jsonBody["argonToken"] = token;
+
+            auto req = web::WebRequest();
+            req.bodyJSON(jsonBody);
+
+            Ref<UploadActionPopup> popupRef = popup;
+            async::spawn(req.post(std::string(rl::BASE_API_URL) + "/resetAccountInfo"),
+                [popupRef](web::WebResponse res) {
+                    if (!popupRef)
+                        return;
+                    if (!res.ok()) {
+                        std::string err = rl::getResponseFailMessage(res, "Failed to update account.");
+                        popupRef->showFailMessage(err);
+                        return;
+                    }
+                    auto jsonRes = res.json();
+                    if (!jsonRes) {
+                        std::string err = rl::getResponseFailMessage(res, "Failed to update account.");
+                        popupRef->showFailMessage(err);
+                        return;
+                    }
+                    auto json = jsonRes.unwrap();
+                    bool success = json["success"].asBool().unwrapOr(false);
+                    if (success) {
+                        popupRef->showSuccessMessage("Account updated successfully.");
+                    } else {
+                        std::string message = rl::getResponseFailMessage(res, "Failed to update account.");
+                        popupRef->showFailMessage(message);
+                    }
+                });
+        });
 }
 
 void RLLeaderboardLayer::onRefreshButton(CCObject* sender) {

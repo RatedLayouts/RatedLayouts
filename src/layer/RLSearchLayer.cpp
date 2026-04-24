@@ -71,6 +71,7 @@ bool RLSearchLayer::init() {
 
     m_searchInput = TextInput::create(245.f, "Search Layouts...");
     m_searchInput->setID("search-input");
+    m_searchInput->setTextAlign(TextInputAlign::Left);
     m_searchInput->setCommonFilter(CommonFilter::Name);
     m_searchInputMenu->addChild(m_searchInput);
     m_searchInput->setPosition({-50.f, 0});
@@ -447,6 +448,16 @@ void RLSearchLayer::onRandomButton(CCObject* sender) {
         return;
     // prevent spamming
     item->setEnabled(false);
+    item->setOpacity(128);
+
+    // loading spinner
+    if (!m_randomSpinner) {
+        m_randomSpinner = LoadingSpinner::create(35.f);
+        m_randomSpinner->setPosition(item->getContentSize() / 2);
+        item->addChild(m_randomSpinner);
+    } else {
+        m_randomSpinner->setVisible(true);
+    }
 
     Ref<RLSearchLayer> self = this;
 
@@ -524,8 +535,13 @@ void RLSearchLayer::onRandomButton(CCObject* sender) {
         [self, item](web::WebResponse const& res) {
             if (!self)
                 return;
-            if (item)
+            if (item) {
                 item->setEnabled(true);
+                item->setOpacity(255);
+            }
+
+            if (self->m_randomSpinner)
+                self->m_randomSpinner->setVisible(false);
 
             if (!res.ok()) {
                 Notification::create("Failed to fetch random level",
@@ -1003,6 +1019,127 @@ void RLSearchLayer::onClearButton(CCObject* sender) {
     // clear the text input
     if (m_searchInput) {
         m_searchInput->setString("");
+    }
+
+    // clear difficulty selections
+    for (size_t i = 0; i < m_difficultySelected.size(); ++i) {
+        m_difficultySelected[i] = false;
+    }
+    for (auto sprite : m_difficultySprites) {
+        if (sprite) {
+            sprite->setColor({125, 125, 125});
+        }
+    }
+
+    // clear demon selections
+    for (size_t i = 0; i < m_demonSelected.size(); ++i) {
+        m_demonSelected[i] = false;
+    }
+    for (auto sprite : m_demonSprites) {
+        if (sprite) {
+            sprite->setColor({125, 125, 125});
+        }
+    }
+
+    // reset demon filters
+    if (m_demonModeActive) {
+        for (int gi = 0; gi < static_cast<int>(m_difficultySprites.size()); ++gi) {
+            auto sprite = m_difficultySprites[gi];
+            if (!sprite)
+                continue;
+            auto& group = m_difficultyGroups[gi];
+            if (group.empty())
+                continue;
+            int rep = group[0];
+            int difficultyLevel = mapRatingToLevel(rep);
+            sprite->updateDifficultyFrame(difficultyLevel, GJDifficultyName::Long);
+            sprite->setColor({125, 125, 125});
+        }
+    }
+
+    // clear other selection filters
+    m_platformerActive = false;
+    if (m_platformerItem) {
+        auto btn = static_cast<ButtonSprite*>(m_platformerItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_classicActive = false;
+    if (m_classicItem) {
+        auto btn = static_cast<ButtonSprite*>(m_classicItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_usernameActive = false;
+    if (m_usernameItem) {
+        auto btn = static_cast<ButtonSprite*>(m_usernameItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_oldestActive = false;
+    if (m_oldestItem) {
+        auto btn = static_cast<ButtonSprite*>(m_oldestItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_completedActive = false;
+    if (m_completedItem) {
+        auto btn = static_cast<ButtonSprite*>(m_completedItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_uncompletedActive = false;
+    if (m_uncompletedItem) {
+        auto btn = static_cast<ButtonSprite*>(m_uncompletedItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_featuredActive = false;
+    if (m_featuredItem) {
+        auto btn = static_cast<ButtonSprite*>(m_featuredItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_awardedActive = false;
+    if (m_awardedItem) {
+        auto btn = static_cast<ButtonSprite*>(m_awardedItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_epicActive = false;
+    if (m_epicItem) {
+        auto btn = static_cast<ButtonSprite*>(m_epicItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_legendaryActive = false;
+    if (m_legendaryItem) {
+        auto btn = static_cast<ButtonSprite*>(m_legendaryItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_coinsVerifiedActive = false;
+    if (m_coinsVerifiedItem) {
+        auto btn = static_cast<ButtonSprite*>(m_coinsVerifiedItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
+    }
+
+    m_coinsUnverifiedActive = false;
+    if (m_coinsUnverifiedItem) {
+        auto btn = static_cast<ButtonSprite*>(m_coinsUnverifiedItem->getNormalImage());
+        if (btn)
+            btn->updateBGImage("GJ_button_01.png");
     }
 }
 

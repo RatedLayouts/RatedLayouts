@@ -185,6 +185,12 @@
 			"type": "title",
 			"name": "Accessibility Settings"
 		},
+		"disableRLReq": {
+			"name": "Disable Rated Layouts Mod Requests",
+			"type": "bool",
+			"default": false,
+			"description": "Disable the RL mod requests. <cy>Enable this if you want to use the REQ button normally, this is purely for Vanilla GD Mods only.</cy>"
+		},
 		"disableRLMenu": {
 			"name": "Disable Stats Menu Button",
 			"type": "bool",
@@ -192,10 +198,10 @@
 			"description": "Disable the Rated Layouts stats menu button in the Profile Page."
 		},
 		"disableMenuAnimation": {
-			"name": "Disable Stats Menu Animation",
+			"name": "Disable Menu Animation",
 			"type": "bool",
 			"default": false,
-			"description": "Disable the animation when you open the Rated Layouts Stats Menu.",
+			"description": "Disable the animation when you open the Rated Layouts related Menu.",
 			"enable-if": "!disableRLMenu"
 		},
 		"disableRewardAnimation": {
@@ -270,7 +276,7 @@
 		},
 		"updateAccount": {
             "type": "custom:rl-update-account-button",
-            "name": "Update Account",
+            "name": "Update Account Info",
             "description": "Updates your Rated Layouts account information."
         },
 		"titleCache": {

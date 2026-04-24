@@ -3,7 +3,12 @@
 - Fixed the issue with the Gauntlet Level Selection background not moving correctly when dragging.
 - Fixed the issue where the third coin is showing the brozen coin texture instead of the blue coin texture.
 - Added **Update Account Info** button in the mod settings to update your account information within Rated Layouts.
+- Added **Disable Rated Layouts Mod Requests** in the mod settings to disable the RL mod requests and use the REQ button normally for Vanilla GD Mods.
 - Fixed the issue where the news announcement badge doesn't disappear after viewing the announcement.
+- Fixed the issue where it shows a non-existent achievements.
+- Added popup when clicking the Discord Server button to confirm before joining
+- Added Vanilla Report Button in the RL Report Popup.
+- Clearing the search will clear the selected filters
 
 ## v1.0.8
 

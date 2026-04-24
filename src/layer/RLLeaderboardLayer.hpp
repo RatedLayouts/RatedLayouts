@@ -19,12 +19,14 @@ protected:
     CCMenuItemSpriteExtra* m_creatorTypeToggleBtn = nullptr;
     bool m_creatorType6 = false;
     CCMenuItemSpriteExtra* m_refreshBtn;
+    CCMenuItemSpriteExtra* m_accountRefreshBtn;
 
     bool init() override;
     void keyBackClicked() override;
     void onLeaderboardTypeButton(CCObject* sender);
     void onCreatorTypeToggle(CCObject* sender);
     void onAccountClicked(CCObject* sender);
+    void onAccountRefreshButton(CCObject* sender);
     void fetchLeaderboard(int type, int amount);
     void populateLeaderboard(const std::vector<matjson::Value>& users);
     void onInfoButton(CCObject* sender);
