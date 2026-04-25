@@ -56,18 +56,6 @@ static arc::Future<std::optional<ModInfo>> fetchModInfoAsync() {
             co_return std::nullopt;
         }
 
-        if (rl::isTestBot()) {
-            log::debug("user is a test bot");
-            utils::random::Generator gen;
-            gen.seed(geode::utils::random::secureU64());
-            int rng = gen.generate<int>(0, 100);
-            if (rng < 85) {  // 85% chance to fail for testing
-                log::debug("simulating failed mod info fetch for test bot");
-                rl::clearRequestCache();
-                co_return std::nullopt;
-            }
-        }
-
         auto json = jsonRes.unwrap();
         ModInfo info;
 

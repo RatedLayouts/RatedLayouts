@@ -725,19 +725,6 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
                 return;
             }
 
-            if (rl::isTestBot()) {
-                log::debug("user is a test bot");
-                utils::random::Generator gen;
-                gen.seed(geode::utils::random::secureU64());
-                int rng = gen.generate<int>(0, 100);
-                if (rng < 85) {  // 85% chance to fail for testing
-                    Notification::create("Failed to update user role",
-                        NotificationIcon::Error)
-                        ->show();
-                    return;
-                }
-            }
-
             // disable UI and show spinner
             this->setAllOptionsEnabled(false);
             setPromoBtnState(this->m_promoteLeaderboardModButton,

@@ -817,17 +817,6 @@ void RLLevelBrowserLayer::loadLevelsFinished(CCArray* levels, char const* key, i
         m_levelCache[lvlObj->m_levelID] = lvlObj;
     }
 
-    if (rl::isTestBot()) {
-        log::debug("user is a test bot");
-        utils::random::Generator gen;
-        gen.seed(geode::utils::random::secureU64());
-        int rng = gen.generate<int>(0, 100);
-        if (rng < 80) {  // 80% chance to fail for testing
-            loadLevelsFailed(key, p2);
-            return;
-        }
-    }
-
     populateFromArray(levels);
     stopLoading();
 }

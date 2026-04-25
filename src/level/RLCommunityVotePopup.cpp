@@ -42,17 +42,6 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                     upopup->showFailMessage("Auth required to submit vote");
                     return;
                 }
-
-                if (rl::isTestBot()) {
-                    log::debug("user is a test bot");
-                    utils::random::Generator gen;
-                    gen.seed(geode::utils::random::secureU64());
-                    int rng = gen.generate<int>(0, 100);
-                    if (rng < 85) {  // 85% chance to fail for testing
-                        upopup->showFailMessage("Failed to submit vote! Try again later.");
-                        return;
-                    }
-                }
                 int gameplayVote = 0;
                 int originalityVote = 0;
                 int difficultyVote = 0;
@@ -321,21 +310,8 @@ bool RLCommunityVotePopup::init() {
     }
 
     // fetch current scores from server
-    if (m_levelId > 0 && !rl::isTestBot()) {
+    if (m_levelId > 0) {
         refreshFromServer();
-    }
-
-    if (rl::isTestBot()) {
-        log::debug("user is a test bot");
-        utils::random::Generator gen;
-        gen.seed(geode::utils::random::secureU64());
-        int rng = gen.generate<int>(0, 100);
-        if (rng < 85) {  // 85% chance to fail for testing
-            m_totalVotesLabel->setString("Total votes: 0");
-            m_originalityScoreLabel->setString("0.00");
-            m_difficultyScoreLabel->setString("0.00");
-            m_gameplayScoreLabel->setString("0.00");
-        }
     }
 
     return true;

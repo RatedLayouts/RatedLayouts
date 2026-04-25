@@ -155,16 +155,6 @@ class $modify(RLLevelCell, LevelCell) {
         auto sprite = static_cast<GJDifficultySprite*>(difficultySprite);
         sprite->updateDifficultyFrame(difficultyLevel, GJDifficultyName::Short);
 
-        if (rl::isTestBot()) {
-            log::debug("user is a test bot");
-            utils::random::Generator gen;
-            gen.seed(geode::utils::random::secureU64());
-            int rng = gen.generate<int>(0, 100);
-            int rngDiff = gen.generate<int>(1, 10);
-            if (rng < 20) {  // 20% chance to fail for testing
-                sprite->updateDifficultyFrame(rngDiff, GJDifficultyName::Short);
-            }
-        }
         if (auto moreDifficultiesSpr = difficultyContainer->getChildByID(
                 "uproxide.more_difficulties/more-difficulties-spr")) {
             moreDifficultiesSpr->setVisible(false);

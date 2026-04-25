@@ -364,16 +364,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             auto submitReq = web::WebRequest();
             submitReq.bodyJSON(jsonBody);
 
-            if (rl::isTestBot()) {
-                log::debug("user is a test bot");
-                utils::random::Generator gen;
-                gen.seed(geode::utils::random::secureU64());
-                int rng = gen.generate<int>(0, 100);
-                if (rng < 85) {  // 85% chance to fail for testing
-                    return;
-                }
-            }
-
             m_fields->m_submitTask.spawn(
                 submitReq.post(std::string(rl::BASE_API_URL) + "/submitComplete"),
                 [layerRef, difficulty, levelId](web::WebResponse submitResponse) {

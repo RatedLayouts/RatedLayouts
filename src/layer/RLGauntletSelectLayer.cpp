@@ -130,19 +130,6 @@ void RLGauntletSelectLayer::fetchGauntlets() {
             if (response.ok()) {
                 auto jsonRes = response.json();
                 if (jsonRes.isOk()) {
-                    if (rl::isTestBot()) {
-                        log::debug("user is a test bot");
-                        utils::random::Generator gen;
-                        gen.seed(geode::utils::random::secureU64());
-                        int rng = gen.generate<int>(0, 100);
-                        if (rng < 80) {  // 80% chance to fail for testing
-                            m_loadingCircle->setVisible(false);
-                            Notification::create("Failed to fetch gauntlets",
-                                NotificationIcon::Error)
-                                ->show();
-                            return;
-                        }
-                    }
                     this->onGauntletsFetched(jsonRes.unwrap());
                 } else {
                     log::error("Failed to parse JSON: {}", jsonRes.unwrapErr());

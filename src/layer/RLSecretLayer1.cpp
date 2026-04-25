@@ -217,20 +217,6 @@ void RLSecretLayer1::onEnterTransitionDidFinish() {
 
         rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
     }
-
-    if (rl::isTestBot() && !Mod::get()->getSavedValue<bool>("optOut")) {
-        DialogObject* dialog1 = DialogObject::create("The Oracle", "It's <cr>you</c>... I'm not <co>interested in talking to you</c> until you here to <cy>apologies</c>...", 2, 1.f, false, ccWHITE);
-
-        auto dialogArray = CCArray::create();
-        dialogArray->addObject(dialog1);
-
-        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
-        dialog->m_skippable = false;
-        this->addChild(dialog, 100);
-        dialog->animateInRandomSide();
-
-        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
-    }
 }
 
 void RLSecretLayer1::onRedeem(CCObject* sender) {
@@ -274,21 +260,6 @@ void RLSecretLayer1::onRedeem(CCObject* sender) {
         auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
         dialog->m_skippable = false;
         dialog->addToMainScene();
-        dialog->animateInRandomSide();
-
-        rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);
-        return;
-    }
-
-    if (rl::isTestBot()) {
-        DialogObject* dialog1 = DialogObject::create("The Oracle", "I'm not <co>interested in talking to you</c> until you come here to <cy>apologize</c>...", 2, 1.f, false, ccWHITE);
-
-        auto dialogArray = CCArray::create();
-        dialogArray->addObject(dialog1);
-
-        auto dialog = DialogLayer::createWithObjects(dialogArray, 4);
-        dialog->m_skippable = false;
-        this->addChild(dialog, 100);
         dialog->animateInRandomSide();
 
         rl::setDialogObjectIcon(dialog, dialog1->m_characterFrame);

@@ -81,16 +81,6 @@ class $modify(EndLevelLayer) {
             RLAchievements::onReward("misc_gem");  // get gem to win experience
         }
 
-        if (rl::isTestBot()) {
-            log::debug("user is a test bot");
-            utils::random::Generator gen;
-            gen.seed(geode::utils::random::secureU64());
-            int rng = gen.generate<int>(0, 100);
-            if (rng < 85) {  // 85% chance to fail for testing
-                return;
-            }
-        }
-
         auto getReq = web::WebRequest();
 
         // capture EndLevelLayer as Ref
