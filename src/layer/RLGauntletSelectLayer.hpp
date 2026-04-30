@@ -10,6 +10,11 @@ public:
 protected:
     bool init() override;
     void keyBackClicked() override;
+    void update(float dt) override {
+        if (m_scrollLayer) {
+            updatePage();
+        }
+    }
     void fetchGauntlets();
     void onGauntletsFetched(matjson::Value const& json);
     void createGauntletButtons(matjson::Value const& gauntlets);

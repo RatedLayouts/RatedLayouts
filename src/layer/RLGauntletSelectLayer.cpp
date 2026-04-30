@@ -136,6 +136,8 @@ bool RLGauntletSelectLayer::init() {
     if (!CCLayer::init())
         return false;
 
+    this->scheduleUpdate();
+
     auto bg = createLayerBG();
     addChild(bg, -1);
     bg->setColor({50, 50, 50});
@@ -549,6 +551,7 @@ void RLGauntletSelectLayer::updatePage() {
         m_nextPageBtn->setOpacity(page < totalPages - 1 ? 255 : 120);
     }
 }
+
 void RLGauntletSelectLayer::keyBackClicked() {
     CCDirector::sharedDirector()->popSceneWithTransition(
         0.5f, PopTransition::kPopTransitionFade);
