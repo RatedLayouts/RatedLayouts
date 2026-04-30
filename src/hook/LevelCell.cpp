@@ -32,18 +32,40 @@ class $modify(RLLevelCell, LevelCell) {
             if (auto existingRejectedLabel = m_backgroundLayer->getChildByID("rl-rejected-label")) {
                 existingRejectedLabel->removeFromParent();
             }
+            if (auto existingRejectedIcon = m_backgroundLayer->getChildByID("rl-rejected-icon")) {
+                existingRejectedIcon->removeFromParent();
+            }
+            if (auto existingRejectedGlow = m_backgroundLayer->getChildByID("rl-rejected-glow-outer")) {
+                existingRejectedGlow->removeFromParent();
+            }
+            if (auto existingRejectedGlow = m_backgroundLayer->getChildByID("rl-rejected-glow-inner")) {
+                existingRejectedGlow->removeFromParent();
+            }
+
             auto rejectedLabel = CCLabelBMFont::create("RL Rejected", "bigFont.fnt");
             auto icon = CCSprite::createWithSpriteFrameName("RL_cross_no_box.png"_spr);
-            auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            if (!Mod::get()->getSettingValue<bool>("disableRejectedLayoutsGlow") && glow) {
-                glow->setPosition({100.f, 90.f});
-                glow->setRotation(90);
-                glow->setAnchorPoint({0.f, 0.5f});
-                glow->setScaleX(1.775f);
-                glow->setScaleY(5.f);
-                glow->setID("rl-rejected-glow");
-                glow->setColor({255, 0, 0});
-                m_backgroundLayer->addChild(glow, 1);
+            auto glowOuter = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
+            auto glowInner = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
+            if (!Mod::get()->getSettingValue<bool>("disableRejectedLayoutsGlow") && glowOuter && glowInner) {
+                glowOuter->setPosition({150.f, 90.f});
+                glowOuter->setRotation(90);
+                glowOuter->setAnchorPoint({0.f, 0.5f});
+                glowOuter->setScaleX(1.775f);
+                glowOuter->setScaleY(6.f);
+                glowOuter->setID("rl-rejected-glow-outer");
+                glowOuter->setColor({255, 120, 120});
+                glowOuter->setOpacity(100);
+                m_backgroundLayer->addChild(glowOuter, 2);
+
+                glowInner->setPosition({100.f, 90.f});
+                glowInner->setRotation(90);
+                glowInner->setAnchorPoint({0.f, 0.5f});
+                glowInner->setScaleX(1.775f);
+                glowInner->setScaleY(5.f);
+                glowInner->setID("rl-rejected-glow-inner");
+                glowInner->setColor({220, 40, 40});
+                glowInner->setOpacity(180);
+                m_backgroundLayer->addChild(glowInner, 2);
             }
             if (rejectedLabel) {
                 rejectedLabel->setPosition(
@@ -69,22 +91,21 @@ class $modify(RLLevelCell, LevelCell) {
                 if (m_compactView) {
                     rejectedLabel->setPosition(
                         {m_backgroundLayer->getContentSize().width - 5.f, 2.f});
+                    rejectedLabel->setScale(0.2f);
+                    icon->setScale(0.28f);
 
                     icon->setPosition({rejectedLabel->getPositionX() - rejectedLabel->getContentSize().width * rejectedLabel->getScale() - 3.f,
                         rejectedLabel->getPositionY() + rejectedLabel->getContentSize().height * rejectedLabel->getScale() / 2.f});
-                    glow->setPosition({100.f, 50.f});
-                    glow->setScaleX(1.f);
-                    glow->setScaleY(5.f);
-                }
-            } else {
-                if (auto existingRejectedLabel = m_backgroundLayer->getChildByID("rl-rejected-label")) {
-                    existingRejectedLabel->removeFromParent();
-                }
-                if (auto existingRejectedIcon = m_backgroundLayer->getChildByID("rl-rejected-icon")) {
-                    existingRejectedIcon->removeFromParent();
-                }
-                if (auto existingRejectedGlow = m_backgroundLayer->getChildByID("rl-rejected-glow")) {
-                    existingRejectedGlow->removeFromParent();
+                    if (glowOuter) {
+                        glowOuter->setPosition({150.f, 50.f});
+                        glowOuter->setScaleX(1.f);
+                        glowOuter->setScaleY(6.f);
+                    }
+                    if (glowInner) {
+                        glowInner->setPosition({100.f, 50.f});
+                        glowInner->setScaleX(1.f);
+                        glowInner->setScaleY(5.f);
+                    }
                 }
             }
         }
@@ -365,6 +386,7 @@ class $modify(RLLevelCell, LevelCell) {
             if (m_compactView) {
                 scoreLabel->setPosition(
                     {m_backgroundLayer->getContentSize().width - 5.f, 2.f});
+                scoreLabel->setScale(0.2f);
             }
         }
 

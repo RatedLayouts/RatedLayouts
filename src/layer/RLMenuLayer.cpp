@@ -432,12 +432,9 @@ bool RLMenuLayer::isGDServerOnline() {
     }
 
     m_gdServerTask.cancel();
-    matjson::Value jsonBody;
-    jsonBody["type"] = 2;
-    jsonBody["secret"] = "Wmfd2893gb7";
     m_gdServerTask.spawn(
         web::WebRequest()
-            .bodyJSON(jsonBody)
+            .bodyString("type=2&secret=Wmfd2893gb7")
             .post("http://www.boomlings.com/database/getGJLevels21.php"),
         [this](web::WebResponse response) {
             if (!response.ok() || response.code() != 200) {
@@ -470,7 +467,7 @@ void RLMenuLayer::onCollapseInfoButton(CCObject* sender) {
 
     auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
     auto icon = static_cast<CCNode*>(btn->getNormalImage());
-    
+
     if (Mod::get()->getSettingValue<bool>("disableMenuAnimation")) {
         // if animation is disabled, just move it without animation
         m_modInfoBg->setPosition({currentPos.x, targetY});

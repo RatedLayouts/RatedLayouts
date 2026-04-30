@@ -197,7 +197,7 @@ void RLLeaderboardLayer::onAccountRefreshButton(CCObject* sender) {
         "Are you sure you want to <cg>update your account information</c> to <cl>Rated Layouts</c>?\n<cy>Only use this if you changed your username or icons recently and need to show the updated information.</c>",
         "No",
         "Yes",
-        [](auto, bool yes) {
+        [this](auto, bool yes) {
             if (!yes)
                 return;
 
@@ -224,7 +224,7 @@ void RLLeaderboardLayer::onAccountRefreshButton(CCObject* sender) {
 
             Ref<UploadActionPopup> popupRef = popup;
             async::spawn(req.post(std::string(rl::BASE_API_URL) + "/resetAccountInfo"),
-                [popupRef](web::WebResponse res) {
+                [this, popupRef](web::WebResponse res) {
                     if (!popupRef)
                         return;
                     if (!res.ok()) {
@@ -242,6 +242,7 @@ void RLLeaderboardLayer::onAccountRefreshButton(CCObject* sender) {
                     bool success = json["success"].asBool().unwrapOr(false);
                     if (success) {
                         popupRef->showSuccessMessage("Account updated successfully.");
+                        this->onRefreshButton(nullptr);
                     } else {
                         std::string message = rl::getResponseFailMessage(res, "Failed to update account.");
                         popupRef->showFailMessage(message);
@@ -510,6 +511,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
             glow->setColor({255, 215, 0});
+            glow->setOpacity(150);
             rowContainer->addChild(glow, 1);
         } else if (rank == 2) {
             auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
@@ -518,6 +520,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
             glow->setColor({192, 192, 192});
+            glow->setOpacity(150);
             rowContainer->addChild(glow, 1);
         } else if (rank == 3) {
             auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
@@ -526,6 +529,7 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
             glow->setColor({205, 127, 50});
+            glow->setOpacity(150);
             rowContainer->addChild(glow, 1);
         } else if (accountId == currentAccountID) {
             auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
@@ -533,7 +537,8 @@ void RLLeaderboardLayer::populateLeaderboard(
             glow->setRotation(90);
             glow->setAnchorPoint({0.f, 0.5f});
             glow->setScale(5.f);
-            glow->setColor({0, 255, 0});
+            glow->setColor({0, 200, 0});
+            glow->setOpacity(150);
             rowContainer->addChild(glow, 1);
         }
 
