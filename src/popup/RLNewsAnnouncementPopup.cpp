@@ -5,6 +5,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/ui/General.hpp>
 #include <Geode/ui/MDTextArea.hpp>
+#include <Geode/ui/GeodeUI.hpp>
 #include <cue/ListNode.hpp>
 
 using namespace geode::prelude;
@@ -110,7 +111,6 @@ bool RLNewsAnnouncementPopup::init() {
                 ->setAxisAlignment(AxisAlignment::Start)
                 ->setAxisReverse(true));
     }
-
     m_bodyText = MDTextArea::create(
         "<cy>No Announcements</c>",
         {280.f, cs.height - 60.f});
@@ -120,6 +120,13 @@ bool RLNewsAnnouncementPopup::init() {
         m_bodyText->setAnchorPoint({0.5f, 0.5f});
         m_mainLayer->addChild(m_bodyText);
     }
+
+    // changelogs
+    auto changelogSpr = CCSprite::createWithSpriteFrameName("RL_changelogs01.png"_spr);
+    changelogSpr->setScale(0.7f);
+    auto changelogItem = CCMenuItemSpriteExtra::create(changelogSpr, this, menu_selector(RLNewsAnnouncementPopup::onChangelogButton));
+    changelogItem->setPosition({cs.width, cs.height});
+    m_buttonMenu->addChild(changelogItem);
 
     if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
         auto scrollBar = Scrollbar::create(m_listNode->getScrollLayer());
@@ -226,6 +233,10 @@ bool RLNewsAnnouncementPopup::init() {
         });
 
     return true;
+}
+
+void RLNewsAnnouncementPopup::onChangelogButton(CCObject* sender) {
+    openChangelogPopup(getMod());
 }
 
 void RLNewsAnnouncementPopup::addAnnouncementItem(AnnouncementEntry const& entry, int index) {

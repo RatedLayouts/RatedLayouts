@@ -26,6 +26,7 @@ private:
     void addAnnouncementItem(AnnouncementEntry const& entry, int index);
     void onAnnouncementSelected(CCObject* sender);
     void selectAnnouncement(int index);
+    void onChangelogButton(CCObject* sender);
     void updateContent(std::string const& content, std::string const& title);
 
     MDTextArea* m_bodyText = nullptr;
