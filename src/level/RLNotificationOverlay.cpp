@@ -68,10 +68,6 @@ bool RLNotificationOverlay::init() {
     m_alertQueue->retain();
     m_isShowingAlert = false;
 
-    int latestLevelId =
-        Mod::get()->getSettingValue<int>("latestNotifiedRateLevelId");
-    int latestEventId =
-        Mod::get()->getSettingValue<int>("latestNotifiedRateEventId");
     float pollingInterval = Mod::get()->getSettingValue<float>("pollingInterval");
 
     if (pollingInterval <= 0) {
@@ -80,11 +76,6 @@ bool RLNotificationOverlay::init() {
 
     if (Mod::get()->getSettingValue<bool>("disableNewRate")) {
         log::info("notifications are disabled");
-        return true;
-    }
-
-    if (Mod::get()->getSettingValue<bool>("disableNewRateInLevel")) {
-        log::info("notifications are disabled in level");
         return true;
     }
 
@@ -160,20 +151,29 @@ void RLNotificationOverlay::callRateNotification(float dt) {
                 return r;
             };
 
+            int latestLevelId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateLevelId");
+            int latestDailyEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateDailyEventId");
+            int latestWeeklyEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateWeeklyEventId");
+            int latestMonthlyEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateMonthlyEventId");
+
             RateInfo newRate = parseObj(json["newRate"]);
-            RateInfo newEvent = parseObj(json["newEvent"]);
+            RateInfo newDaily = parseObj(json["newDaily"]);
+            RateInfo newWeekly = parseObj(json["newWeekly"]);
+            RateInfo newMonthly = parseObj(json["newMonthly"]);
+            RateInfo newEvent = parseObj(json["newEvent"]);  // fallback for compatibility
 
             // store new rate levelid and event id to avoid duplicate notifications
-            if (!newRate.present && !newEvent.present) {
+            if (!newRate.present && !newDaily.present && !newWeekly.present && !newMonthly.present && !newEvent.present) {
                 log::debug("No new rate or event notifications");
                 return;
             }
-            int currentLatestLevelId =
-                Mod::get()->getSavedValue<int>("latestNotifiedRateLevelId");
-            int currentLatestEventId =
-                Mod::get()->getSavedValue<int>("latestNotifiedRateEventId");
+
             if (newRate.present) {
-                if (newRate.levelId != currentLatestLevelId) {
+                if (newRate.levelId != latestLevelId) {
                     Ref<RLNotificationOverlay> self = this;
                     if (self) {
                         auto alert = RLNotificationAlert::create(
@@ -188,7 +188,82 @@ void RLNotificationOverlay::callRateNotification(float dt) {
                     log::info("No new rate notifications");
                 }
             }
-            if (newEvent.present) {
+
+            if (newDaily.present) {
+                if (newDaily.levelId != latestDailyEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Daily Layout",
+                            newDaily.levelName,
+                            newDaily.difficulty,
+                            newDaily.featured,
+                            newDaily.levelId,
+                            newDaily.accountName,
+                            newDaily.isPlatformer,
+                            newDaily.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateDailyEventId",
+                                newDaily.levelId);
+                        }
+                    }
+                } else {
+                    log::info("No new daily event notifications");
+                }
+            }
+
+            if (newWeekly.present) {
+                if (newWeekly.levelId != latestWeeklyEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Weekly Layout",
+                            newWeekly.levelName,
+                            newWeekly.difficulty,
+                            newWeekly.featured,
+                            newWeekly.levelId,
+                            newWeekly.accountName,
+                            newWeekly.isPlatformer,
+                            newWeekly.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateWeeklyEventId",
+                                newWeekly.levelId);
+                        }
+                    }
+                } else {
+                    log::info("No new weekly event notifications");
+                }
+            }
+
+            if (newMonthly.present) {
+                if (newMonthly.levelId != latestMonthlyEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Monthly Layout",
+                            newMonthly.levelName,
+                            newMonthly.difficulty,
+                            newMonthly.featured,
+                            newMonthly.levelId,
+                            newMonthly.accountName,
+                            newMonthly.isPlatformer,
+                            newMonthly.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateMonthlyEventId",
+                                newMonthly.levelId);
+                        }
+                    }
+                } else {
+                    log::info("No new monthly event notifications");
+                }
+            }
+
+            if (!newDaily.present && !newWeekly.present && !newMonthly.present && newEvent.present) {
+                int currentLatestEventId =
+                    Mod::get()->getSavedValue<int>("latestNotifiedRateEventId");
                 if (newEvent.levelId != currentLatestEventId) {
                     Ref<RLNotificationOverlay> self = this;
                     if (self) {

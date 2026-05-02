@@ -34,8 +34,8 @@ bool RLGuideInfoPopup::init() {
 
     // FAQ menu
     auto faqMenu = CCMenu::create();
-    faqMenu->setPosition(m_mainLayer->getContentSize() / 2.f - CCPoint(0.f, 10.f));
-    faqMenu->setContentSize(m_mainLayer->getContentSize() - CCSize(20.f, 60.f));
+    faqMenu->setPosition(m_mainLayer->getContentSize() / 2.f);
+    faqMenu->setContentSize(m_mainLayer->getContentSize() - CCSize(20.f, 140.f));
     faqMenu->setLayout(RowLayout::create()->setGap(10.f)->setCrossAxisOverflow(false)->setGrowCrossAxis(true));
     m_mainLayer->addChild(faqMenu);
 
@@ -60,12 +60,12 @@ bool RLGuideInfoPopup::init() {
 
     // @geode-ignore(unknown-resource)
     auto noticeBg = NineSlice::createWithSpriteFrameName("geode.loader/tab-bg.png");
-    m_mainLayer->addChildAtPosition(noticeBg, Anchor::Bottom, {0, 30.f});
+    m_mainLayer->addChildAtPosition(noticeBg, Anchor::Bottom, {0, 40.f});
 
     auto noticeLabel = CCLabelBMFont::create("Note: This is not a complete guidebook, but it covers the most essential FAQs and information about Rated Layouts.\nMost, if not all, of these FAQs are related to Classic Layouts; Platformer Layouts may differ.\nFor more detailed info and questions, please refer to our Discord server!", "chatFont.fnt");
     noticeLabel->limitLabelWidth(m_mainLayer->getScaledContentSize().width - 40.f, 0.7f, 0.3f);
     noticeLabel->setAlignment(kCCTextAlignmentCenter);
-    m_mainLayer->addChildAtPosition(noticeLabel, Anchor::Bottom, {0, 30.f});
+    m_mainLayer->addChildAtPosition(noticeLabel, Anchor::Bottom, {0, 40.f});
 
     noticeBg->setContentSize({m_mainLayer->getContentSize().width - 20.f, noticeLabel->getContentSize().height});
     noticeBg->setColor({0, 0, 0});
