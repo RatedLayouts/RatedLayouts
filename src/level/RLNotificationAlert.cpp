@@ -129,15 +129,13 @@ bool RLNotificationAlert::init(std::string const& title,
     // Title label
     auto titleLabel = CCLabelBMFont::create(title.c_str(), "goldFont.fnt");
     titleLabel->setPosition({bg->getContentSize().width / 2 + 20, yPos});
-    titleLabel->setScale(0.5f);
-    titleLabel->limitLabelWidth(200.f, 0.5f, 0.1f);
+    titleLabel->limitLabelWidth(150.f, 0.5f, 0.1f);
     bg->addChild(titleLabel);
     yPos -= 25.f;
 
     // Level name
     auto levelLabel = CCLabelBMFont::create(levelName.c_str(), "bigFont.fnt");
     levelLabel->setPosition({bg->getContentSize().width / 2 + 20, yPos});
-    levelLabel->setScale(0.45f);
     levelLabel->limitLabelWidth(200.f, 0.45f, 0.1f);
     bg->addChild(levelLabel);
     yPos -= 18.f;
@@ -173,7 +171,6 @@ bool RLNotificationAlert::init(std::string const& title,
     auto accountLabel =
         CCLabelBMFont::create(accountText.c_str(), "goldFont.fnt");
     accountLabel->setPosition({bg->getContentSize().width / 2 + 20, yPos});
-    accountLabel->setScale(0.55f);
     accountLabel->limitLabelWidth(200.f, 0.55f, 0.1f);
     bg->addChild(accountLabel);
 

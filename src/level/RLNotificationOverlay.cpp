@@ -153,21 +153,30 @@ void RLNotificationOverlay::callRateNotification(float dt) {
 
             int latestLevelId =
                 Mod::get()->getSavedValue<int>("latestNotifiedRateLevelId");
-            int latestDailyEventId =
-                Mod::get()->getSavedValue<int>("latestNotifiedRateDailyEventId");
-            int latestWeeklyEventId =
-                Mod::get()->getSavedValue<int>("latestNotifiedRateWeeklyEventId");
-            int latestMonthlyEventId =
-                Mod::get()->getSavedValue<int>("latestNotifiedRateMonthlyEventId");
+            int latestDailyClassicEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateDailyClassicEventId");
+            int latestDailyPlatformerEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateDailyPlatformerEventId");
+            int latestWeeklyClassicEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateWeeklyClassicEventId");
+            int latestWeeklyPlatformerEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateWeeklyPlatformerEventId");
+            int latestMonthlyClassicEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateMonthlyClassicEventId");
+            int latestMonthlyPlatformerEventId =
+                Mod::get()->getSavedValue<int>("latestNotifiedRateMonthlyPlatformerEventId");
 
             RateInfo newRate = parseObj(json["newRate"]);
-            RateInfo newDaily = parseObj(json["newDaily"]);
-            RateInfo newWeekly = parseObj(json["newWeekly"]);
-            RateInfo newMonthly = parseObj(json["newMonthly"]);
+            RateInfo newDailyClassic = parseObj(json["newDailyClassic"]);
+            RateInfo newDailyPlatformer = parseObj(json["newDailyPlatformer"]);
+            RateInfo newWeeklyClassic = parseObj(json["newWeeklyClassic"]);
+            RateInfo newWeeklyPlatformer = parseObj(json["newWeeklyPlatformer"]);
+            RateInfo newMonthlyClassic = parseObj(json["newMonthlyClassic"]);
+            RateInfo newMonthlyPlatformer = parseObj(json["newMonthlyPlatformer"]);
             RateInfo newEvent = parseObj(json["newEvent"]);  // fallback for compatibility
 
             // store new rate levelid and event id to avoid duplicate notifications
-            if (!newRate.present && !newDaily.present && !newWeekly.present && !newMonthly.present && !newEvent.present) {
+            if (!newRate.present && !newDailyClassic.present && !newDailyPlatformer.present && !newWeeklyClassic.present && !newWeeklyPlatformer.present && !newMonthlyClassic.present && !newMonthlyPlatformer.present && !newEvent.present) {
                 log::debug("No new rate or event notifications");
                 return;
             }
@@ -185,83 +194,155 @@ void RLNotificationOverlay::callRateNotification(float dt) {
                         }
                     }
                 } else {
-                    log::info("No new rate notifications");
+                    log::debug("No new rate notifications");
                 }
             }
 
-            if (newDaily.present) {
-                if (newDaily.levelId != latestDailyEventId) {
+            if (newDailyClassic.present) {
+                if (newDailyClassic.levelId != latestDailyClassicEventId) {
                     Ref<RLNotificationOverlay> self = this;
                     if (self) {
                         auto alert = RLNotificationAlert::create(
-                            "New Daily Layout",
-                            newDaily.levelName,
-                            newDaily.difficulty,
-                            newDaily.featured,
-                            newDaily.levelId,
-                            newDaily.accountName,
-                            newDaily.isPlatformer,
-                            newDaily.eventType);
+                            "New Daily Classic Layout",
+                            newDailyClassic.levelName,
+                            newDailyClassic.difficulty,
+                            newDailyClassic.featured,
+                            newDailyClassic.levelId,
+                            newDailyClassic.accountName,
+                            newDailyClassic.isPlatformer,
+                            newDailyClassic.eventType);
                         if (alert) {
                             self->pushAlert(alert);
-                            Mod::get()->setSavedValue<int>("latestNotifiedRateDailyEventId",
-                                newDaily.levelId);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateDailyClassicEventId",
+                                newDailyClassic.levelId);
                         }
                     }
                 } else {
-                    log::info("No new daily event notifications");
+                    log::debug("No new daily classic event notifications");
                 }
             }
 
-            if (newWeekly.present) {
-                if (newWeekly.levelId != latestWeeklyEventId) {
+            if (newDailyPlatformer.present) {
+                if (newDailyPlatformer.levelId != latestDailyPlatformerEventId) {
                     Ref<RLNotificationOverlay> self = this;
                     if (self) {
                         auto alert = RLNotificationAlert::create(
-                            "New Weekly Layout",
-                            newWeekly.levelName,
-                            newWeekly.difficulty,
-                            newWeekly.featured,
-                            newWeekly.levelId,
-                            newWeekly.accountName,
-                            newWeekly.isPlatformer,
-                            newWeekly.eventType);
+                            "New Daily Platformer Layout",
+                            newDailyPlatformer.levelName,
+                            newDailyPlatformer.difficulty,
+                            newDailyPlatformer.featured,
+                            newDailyPlatformer.levelId,
+                            newDailyPlatformer.accountName,
+                            newDailyPlatformer.isPlatformer,
+                            newDailyPlatformer.eventType);
                         if (alert) {
                             self->pushAlert(alert);
-                            Mod::get()->setSavedValue<int>("latestNotifiedRateWeeklyEventId",
-                                newWeekly.levelId);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateDailyPlatformerEventId",
+                                newDailyPlatformer.levelId);
                         }
                     }
                 } else {
-                    log::info("No new weekly event notifications");
+                    log::debug("No new daily platformer event notifications");
                 }
             }
 
-            if (newMonthly.present) {
-                if (newMonthly.levelId != latestMonthlyEventId) {
+            if (newWeeklyClassic.present) {
+                if (newWeeklyClassic.levelId != latestWeeklyClassicEventId) {
                     Ref<RLNotificationOverlay> self = this;
                     if (self) {
                         auto alert = RLNotificationAlert::create(
-                            "New Monthly Layout",
-                            newMonthly.levelName,
-                            newMonthly.difficulty,
-                            newMonthly.featured,
-                            newMonthly.levelId,
-                            newMonthly.accountName,
-                            newMonthly.isPlatformer,
-                            newMonthly.eventType);
+                            "New Weekly Classic Layout",
+                            newWeeklyClassic.levelName,
+                            newWeeklyClassic.difficulty,
+                            newWeeklyClassic.featured,
+                            newWeeklyClassic.levelId,
+                            newWeeklyClassic.accountName,
+                            newWeeklyClassic.isPlatformer,
+                            newWeeklyClassic.eventType);
                         if (alert) {
                             self->pushAlert(alert);
-                            Mod::get()->setSavedValue<int>("latestNotifiedRateMonthlyEventId",
-                                newMonthly.levelId);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateWeeklyClassicEventId",
+                                newWeeklyClassic.levelId);
                         }
                     }
                 } else {
-                    log::info("No new monthly event notifications");
+                    log::debug("No new weekly classic event notifications");
                 }
             }
 
-            if (!newDaily.present && !newWeekly.present && !newMonthly.present && newEvent.present) {
+            if (newWeeklyPlatformer.present) {
+                if (newWeeklyPlatformer.levelId != latestWeeklyPlatformerEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Weekly Platformer Layout",
+                            newWeeklyPlatformer.levelName,
+                            newWeeklyPlatformer.difficulty,
+                            newWeeklyPlatformer.featured,
+                            newWeeklyPlatformer.levelId,
+                            newWeeklyPlatformer.accountName,
+                            newWeeklyPlatformer.isPlatformer,
+                            newWeeklyPlatformer.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateWeeklyPlatformerEventId",
+                                newWeeklyPlatformer.levelId);
+                        }
+                    }
+                } else {
+                    log::debug("No new weekly platformer event notifications");
+                }
+            }
+
+            if (newMonthlyClassic.present) {
+                if (newMonthlyClassic.levelId != latestMonthlyClassicEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Monthly Classic Layout",
+                            newMonthlyClassic.levelName,
+                            newMonthlyClassic.difficulty,
+                            newMonthlyClassic.featured,
+                            newMonthlyClassic.levelId,
+                            newMonthlyClassic.accountName,
+                            newMonthlyClassic.isPlatformer,
+                            newMonthlyClassic.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateMonthlyClassicEventId",
+                                newMonthlyClassic.levelId);
+                        }
+                    }
+                } else {
+                    log::debug("No new monthly classic event notifications");
+                }
+            }
+
+            if (newMonthlyPlatformer.present) {
+                if (newMonthlyPlatformer.levelId != latestMonthlyPlatformerEventId) {
+                    Ref<RLNotificationOverlay> self = this;
+                    if (self) {
+                        auto alert = RLNotificationAlert::create(
+                            "New Monthly Platformer Layout",
+                            newMonthlyPlatformer.levelName,
+                            newMonthlyPlatformer.difficulty,
+                            newMonthlyPlatformer.featured,
+                            newMonthlyPlatformer.levelId,
+                            newMonthlyPlatformer.accountName,
+                            newMonthlyPlatformer.isPlatformer,
+                            newMonthlyPlatformer.eventType);
+                        if (alert) {
+                            self->pushAlert(alert);
+                            Mod::get()->setSavedValue<int>("latestNotifiedRateMonthlyPlatformerEventId",
+                                newMonthlyPlatformer.levelId);
+                        }
+                    }
+                } else {
+                    log::info("No new monthly platformer event notifications");
+                }
+            }
+
+            if (!newDailyClassic.present && !newDailyPlatformer.present && !newWeeklyClassic.present && !newWeeklyPlatformer.present && !newMonthlyClassic.present && !newMonthlyPlatformer.present && newEvent.present) {
                 int currentLatestEventId =
                     Mod::get()->getSavedValue<int>("latestNotifiedRateEventId");
                 if (newEvent.levelId != currentLatestEventId) {
