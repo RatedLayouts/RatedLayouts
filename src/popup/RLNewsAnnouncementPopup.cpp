@@ -123,9 +123,9 @@ bool RLNewsAnnouncementPopup::init() {
 
     // changelogs
     auto changelogSpr = CCSprite::createWithSpriteFrameName("RL_changelogs01.png"_spr);
-    changelogSpr->setScale(0.7f);
+    changelogSpr->setScale(0.75f);
     auto changelogItem = CCMenuItemSpriteExtra::create(changelogSpr, this, menu_selector(RLNewsAnnouncementPopup::onChangelogButton));
-    changelogItem->setPosition({cs.width, cs.height});
+    changelogItem->setPosition({cs.width, cs.height - 4.f});
     m_buttonMenu->addChild(changelogItem);
 
     if (!Mod::get()->getSettingValue<bool>("disableScrollbar")) {
