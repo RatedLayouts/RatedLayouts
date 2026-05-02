@@ -505,40 +505,20 @@ void RLLeaderboardLayer::populateLeaderboard(
 
         // glow for top 3
         if (rank == 1) {
-            auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            glow->setPosition({100.f, 40.5f});
-            glow->setRotation(90);
-            glow->setAnchorPoint({0.f, 0.5f});
-            glow->setScale(5.f);
-            glow->setColor({255, 215, 0});
-            glow->setOpacity(150);
+            auto glow = CCLayerGradient::create({255, 215, 0, 255}, {255, 140, 0, 0}, {1.f, 1.f});
+            glow->changeWidthAndHeight(rowContainer->getContentSize().width, rowContainer->getContentSize().height);
             rowContainer->addChild(glow, 1);
         } else if (rank == 2) {
-            auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            glow->setPosition({100.f, 40.5f});
-            glow->setRotation(90);
-            glow->setAnchorPoint({0.f, 0.5f});
-            glow->setScale(5.f);
-            glow->setColor({192, 192, 192});
-            glow->setOpacity(150);
+            auto glow = CCLayerGradient::create({192, 192, 192, 255}, {128, 128, 128, 0}, {1.f, 1.f});
+            glow->changeWidthAndHeight(rowContainer->getContentSize().width, rowContainer->getContentSize().height);
             rowContainer->addChild(glow, 1);
         } else if (rank == 3) {
-            auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            glow->setPosition({100.f, 40.5f});
-            glow->setRotation(90);
-            glow->setAnchorPoint({0.f, 0.5f});
-            glow->setScale(5.f);
-            glow->setColor({205, 127, 50});
-            glow->setOpacity(150);
+            auto glow = CCLayerGradient::create({205, 127, 50, 255}, {139, 69, 19, 0}, {1.f, 1.f});
+            glow->changeWidthAndHeight(rowContainer->getContentSize().width, rowContainer->getContentSize().height);
             rowContainer->addChild(glow, 1);
         } else if (accountId == currentAccountID) {
-            auto glow = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            glow->setPosition({100.f, 40.5f});
-            glow->setRotation(90);
-            glow->setAnchorPoint({0.f, 0.5f});
-            glow->setScale(5.f);
-            glow->setColor({0, 200, 0});
-            glow->setOpacity(150);
+            auto glow = CCLayerGradient::create({0, 255, 0, 255}, {0, 255, 255, 0}, {1.f, 1.f});
+            glow->changeWidthAndHeight(rowContainer->getContentSize().width, rowContainer->getContentSize().height);
             rowContainer->addChild(glow, 1);
         }
 

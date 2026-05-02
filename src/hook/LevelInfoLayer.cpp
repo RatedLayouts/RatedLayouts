@@ -47,8 +47,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         float m_originalCoin3Y = 0.0f;
         int m_difficulty = 0;
         bool m_isRejected = false;
-        bool m_orbsShiftApplied =
-            false;  // true when orbs-icon/label were shifted for ruby UI
+        bool m_previouslyRejected = false;
+        bool m_orbsShiftApplied = false;  // true when orbs-icon/label were shifted for ruby UI
         bool m_isDeletingLevel = false;
         async::TaskHolder<web::WebResponse> m_submitTask;
         async::TaskHolder<web::WebResponse> m_accessTask;
@@ -258,13 +258,16 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     return;
                 }
 
-                bool isRejected = jsonRes.unwrap()["isRejected"].asBool().unwrapOrDefault();
+                auto json = jsonRes.unwrap();
+                bool isRejected = json["isRejected"].asBool().unwrapOrDefault();
+                bool isPreviouslyRejected = json["previouslyRejected"].asBool().unwrapOrDefault();
                 layerRef->m_fields->m_isRejected = isRejected;
-                layerRef->updateRejectedLabel(isRejected);
+                layerRef->m_fields->m_previouslyRejected = isPreviouslyRejected;
+                layerRef->updateRejectedLabel();
             });
     }
 
-    void updateRejectedLabel(bool rejected) {
+    void updateRejectedLabel() {
         CCNode* titleNode = this->getChildByID("title-label");
         if (!titleNode) {
             if (auto difficultySprite = this->getChildByID("difficulty-sprite")) {
@@ -286,10 +289,21 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             return;
         }
 
-        if (rejected && (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) && !Mod::get()->getSettingValue<bool>("disableRejectedLayouts")) {
+        bool shouldShow = (this->m_fields->m_isRejected || this->m_fields->m_previouslyRejected) &&
+                          (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) &&
+                          !Mod::get()->getSettingValue<bool>("disableRejectedLayouts");
+
+        if (shouldShow) {
+            std::string labelText;
+            if (this->m_fields->m_isRejected) {
+                labelText = "RL Rejected";
+            } else if (this->m_fields->m_previouslyRejected) {
+                labelText = "RL Previously Rejected";
+            }
+
             auto label = existingLabel
                              ? static_cast<CCLabelBMFont*>(existingLabel)
-                             : CCLabelBMFont::create("RL Rejected", "bigFont.fnt");
+                             : CCLabelBMFont::create(labelText.c_str(), "bigFont.fnt");
             if (!label) {
                 return;
             }
@@ -298,6 +312,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             label->setScale(0.3f);
             label->setOpacity(200);
             label->setColor({255, 64, 64});
+            label->setString(labelText.c_str());
 
             auto icon = existingIcon
                             ? static_cast<CCSprite*>(existingIcon)
@@ -1111,7 +1126,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 if (!titleNode && difficultySprite2)
                     titleNode = difficultySprite2->getChildByID("title-label");
                 auto titleLabel = typeinfo_cast<CCLabelBMFont*>(titleNode);
-                this->updateRejectedLabel(m_fields->m_isRejected);
+                this->updateRejectedLabel();
                 if (featured == 3) {
                     if (titleLabel) {
                         // stop any existing pulse action

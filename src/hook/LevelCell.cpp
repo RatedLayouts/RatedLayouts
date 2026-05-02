@@ -16,6 +16,7 @@ class $modify(RLLevelCell, LevelCell) {
         std::optional<matjson::Value> m_pendingJson;
         int m_pendingLevelId = 0;
         bool m_isRejected = false;
+        bool m_previouslyRejected = false;
         async::TaskHolder<web::WebResponse> m_fetchTask;
         int m_waitRetries = 0;  // used for waiting for level data to arrive
         bool m_coinOffsetApplied = false;
@@ -28,53 +29,38 @@ class $modify(RLLevelCell, LevelCell) {
             return;
         }
 
-        if (this->m_fields->m_isRejected) {
+        if (this->m_fields->m_isRejected || this->m_fields->m_previouslyRejected) {
             if (auto existingRejectedLabel = m_backgroundLayer->getChildByID("rl-rejected-label")) {
                 existingRejectedLabel->removeFromParent();
             }
             if (auto existingRejectedIcon = m_backgroundLayer->getChildByID("rl-rejected-icon")) {
                 existingRejectedIcon->removeFromParent();
             }
-            if (auto existingRejectedGlow = m_backgroundLayer->getChildByID("rl-rejected-glow-outer")) {
-                existingRejectedGlow->removeFromParent();
-            }
-            if (auto existingRejectedGlow = m_backgroundLayer->getChildByID("rl-rejected-glow-inner")) {
+            if (auto existingRejectedGlow = m_backgroundLayer->getChildByID("rl-rejected-glow")) {
                 existingRejectedGlow->removeFromParent();
             }
 
-            auto rejectedLabel = CCLabelBMFont::create("RL Rejected", "bigFont.fnt");
+            CCLabelBMFont* rejectedLabel = nullptr;
+            if (this->m_fields->m_isRejected && !this->m_fields->m_previouslyRejected) rejectedLabel = CCLabelBMFont::create("RL Rejected", "bigFont.fnt");
+            if (this->m_fields->m_previouslyRejected && !this->m_fields->m_isRejected) rejectedLabel = CCLabelBMFont::create("RL Previously Rejected", "bigFont.fnt");
             auto icon = CCSprite::createWithSpriteFrameName("RL_cross_no_box.png"_spr);
-            auto glowOuter = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            auto glowInner = CCSprite::createWithSpriteFrameName("chest_glow_bg_001.png");
-            if (!Mod::get()->getSettingValue<bool>("disableRejectedLayoutsGlow") && glowOuter && glowInner) {
-                glowOuter->setPosition({150.f, 90.f});
-                glowOuter->setRotation(90);
-                glowOuter->setAnchorPoint({0.f, 0.5f});
-                glowOuter->setScaleX(1.775f);
-                glowOuter->setScaleY(6.f);
-                glowOuter->setID("rl-rejected-glow-outer");
-                glowOuter->setColor({255, 120, 120});
-                glowOuter->setOpacity(100);
-                m_backgroundLayer->addChild(glowOuter, 2);
 
-                glowInner->setPosition({100.f, 90.f});
-                glowInner->setRotation(90);
-                glowInner->setAnchorPoint({0.f, 0.5f});
-                glowInner->setScaleX(1.775f);
-                glowInner->setScaleY(5.f);
-                glowInner->setID("rl-rejected-glow-inner");
-                glowInner->setColor({220, 40, 40});
-                glowInner->setOpacity(180);
-                m_backgroundLayer->addChild(glowInner, 2);
+            if (!Mod::get()->getSettingValue<bool>("disableRejectedLayoutsGlow") && m_fields->m_isRejected) {
+                auto glow = CCLayerGradient::create({255, 40, 40, 80}, {220, 40, 40, 0}, {-1.f, 1.f});
+                glow->setID("rl-rejected-glow");
+                glow->changeWidthAndHeight(m_width, m_height);
+                m_backgroundLayer->addChild(glow, 1);
             }
             if (rejectedLabel) {
                 rejectedLabel->setPosition(
                     {m_backgroundLayer->getContentSize().width - 7.f, 5.f});
-                rejectedLabel->setColor({255, 0, 0});
+                if (this->m_fields->m_isRejected) rejectedLabel->setColor({255, 0, 0});
+                if (this->m_fields->m_previouslyRejected) rejectedLabel->setColor({255, 100, 100});
                 rejectedLabel->setScale(0.25f);
                 rejectedLabel->setOpacity(152);
                 rejectedLabel->setAnchorPoint({1.0f, 0.f});
                 rejectedLabel->setID("rl-rejected-label");
+                m_backgroundLayer->addChild(rejectedLabel, 10);
 
                 // icon to the left of the label
                 if (icon) {
@@ -84,9 +70,8 @@ class $modify(RLLevelCell, LevelCell) {
                     icon->setAnchorPoint({1.f, 0.5f});
                     icon->setPosition({rejectedLabel->getPositionX() - rejectedLabel->getContentSize().width * rejectedLabel->getScale() - 3.f,
                         rejectedLabel->getPositionY() + rejectedLabel->getContentSize().height * rejectedLabel->getScale() / 2.f});
-                    m_backgroundLayer->addChild(icon);
+                    m_backgroundLayer->addChild(icon, 10);
                 }
-                m_backgroundLayer->addChild(rejectedLabel);
 
                 if (m_compactView) {
                     rejectedLabel->setPosition(
@@ -96,16 +81,6 @@ class $modify(RLLevelCell, LevelCell) {
 
                     icon->setPosition({rejectedLabel->getPositionX() - rejectedLabel->getContentSize().width * rejectedLabel->getScale() - 3.f,
                         rejectedLabel->getPositionY() + rejectedLabel->getContentSize().height * rejectedLabel->getScale() / 2.f});
-                    if (glowOuter) {
-                        glowOuter->setPosition({150.f, 50.f});
-                        glowOuter->setScaleX(1.f);
-                        glowOuter->setScaleY(6.f);
-                    }
-                    if (glowInner) {
-                        glowInner->setPosition({100.f, 50.f});
-                        glowInner->setScaleX(1.f);
-                        glowInner->setScaleY(5.f);
-                    }
                 }
             }
         }
@@ -557,10 +532,6 @@ class $modify(RLLevelCell, LevelCell) {
                                                           2.f);
                                     particle->setID("rating-particles"_spr);
                                     particle->update(0.15f);
-                                    particle->update(0.15f);
-                                    particle->update(0.15f);
-                                    particle->update(0.15f);
-                                    particle->update(0.15f);
                                 }
                             }
                         }
@@ -841,11 +812,10 @@ class $modify(RLLevelCell, LevelCell) {
 
                     auto json = jsonRes.unwrap();
                     bool isRejected = json["isRejected"].asBool().unwrapOr(false);
+                    bool isPreviouslyRejected = json["previouslyRejected"].asBool().unwrapOr(false);
                     this->m_fields->m_isRejected = isRejected;
-                    if (isRejected) {
-                        log::debug("Level ID {} is rejected", levelId);
-                    }
-
+                    this->m_fields->m_previouslyRejected = isPreviouslyRejected;
+                    if (isRejected) log::debug("Level ID {} is rejected", levelId);
                     if (this->m_level && this->m_level->m_levelID == levelId) {
                         this->updateRejectedCellLabel();
                         if (this->m_fields->m_pendingJson) {

@@ -1,3 +1,8 @@
+# v1.0.11
+
+- Replaced the old glow to use the CCLayerGradient
+- Added Previously Rejected on levels for Layout Mods and Admins
+
 # v1.0.10
 
 - Removed unnecessary code that affects only a specific user
@@ -7,7 +12,7 @@
 - Added Rejected Indicator for Layout Admins and Moderators in the Level Info Layer
 - Current User on Leaderboard will now show a green glow instead of green text color
 - Added GD Server Status in the RL Menu Layer
-- Added a collapsable mod info in the RL Menu Layer
+- Added a collapsible mod info in the RL Menu Layer
 - Replaced the old Gauntlet Selection to use BoomScrollLayer
 - Added Total Levels on the Gauntlet Selection
 - Fix more typos
