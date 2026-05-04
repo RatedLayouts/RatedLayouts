@@ -741,25 +741,11 @@ class $modify(RLCommentCell, CommentCell) {
         if (!glow)
             return;
 
-        if (m_compactMode) {
+        if (m_backgroundLayer) {
+            auto glow = CCLayerGradient::create({135, 180, 255}, {135, 180, 0, 0}, {1.f, 1.f});
+            glow->changeWidthAndHeight(m_backgroundLayer->getContentSize().width, m_backgroundLayer->getContentSize().height);
             glow->setID(glowId.c_str());
-            glow->setAnchorPoint({0.195f, 0.5f});
-            glow->setPosition({100, 10});
-            glow->setColor({135, 180, 255});
-            glow->setOpacity(100);
-            glow->setRotation(90);
-            glow->setScaleX(0.725f);
-            glow->setScaleY(5.f);
-        } else {
-            glow->setID(glowId.c_str());
-            glow->setAnchorPoint({0.26f, 0.5f});
-            glow->setPosition({80, 4});
-            glow->setColor({135, 180, 255});
-            glow->setOpacity(100);
-            glow->setRotation(90);
-            glow->setScaleX(1.6f);
-            glow->setScaleY(7.f);
+            m_mainLayer->addChild(glow, -2);
         }
-        m_mainLayer->addChild(glow, -2);
     }
 };

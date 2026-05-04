@@ -1,6 +1,7 @@
 # v1.0.12
 
 - Removed credits
+- Replace the old glow from the comment cell to use the CCLayerGradient
 
 # v1.0.11
 

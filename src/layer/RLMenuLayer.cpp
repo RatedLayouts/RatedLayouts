@@ -503,6 +503,8 @@ void RLMenuLayer::onDiscordButton(CCObject* sender) {
                 [](auto, bool yes) {
                     if (!yes)
                         return;
+                    int current = Mod::get()->getSavedValue<int>("rubies", 0);
+                    Mod::get()->setSavedValue<int>("rubies", current - 2000);
                     Notification::create(
                         "Joining Rated Layouts Discord",
                         NotificationIcon::Info)
