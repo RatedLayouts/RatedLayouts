@@ -504,13 +504,16 @@ void RLMenuLayer::onDiscordButton(CCObject* sender) {
                     if (!yes)
                         return;
                     int current = Mod::get()->getSavedValue<int>("rubies", 0);
-                    Mod::get()->setSavedValue<int>("rubies", current - 2000);
+                    Mod::get()->setSavedValue<int>("rubies", current - 5000);
                     Notification::create(
                         "Joining Rated Layouts Discord",
                         NotificationIcon::Info)
                         ->show();
                     utils::web::openLinkInBrowser("https://discord.gg/jBf2wfBgVT");
-                    RLAchievements::onReward("misc_discord");
+
+                    if (current >= 5000) {
+                        RLAchievements::onReward("misc_discord");
+                    }
                 });
         });
 }
