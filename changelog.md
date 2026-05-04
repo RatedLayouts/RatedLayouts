@@ -1,9 +1,13 @@
+# v1.0.12
+
+- Removed credits
+
 # v1.0.11
 
 - Replaced the old glow to use the CCLayerGradient
 - Added Previously Rejected on levels for Layout Mods and Admins
 - Fixed Newly Rated Notification isn't showing outside the level when **Disable Notification in Level** is enabled
-- Improved the Notification System to seperate new events into it's own category (New Daily, Weekly, Monthly etc.)
+- Improved the Notification System to separate new events into it's own category (New Daily, Weekly, Monthly etc.)
 - Added Changelog button on the News Announcement Popup
 
 # v1.0.10
