@@ -741,8 +741,8 @@ class $modify(RLCommentCell, CommentCell) {
         if (!glow)
             return;
 
-        if (m_backgroundLayer) {
-            auto glow = CCLayerGradient::create({135, 180, 255}, {135, 180, 0, 0}, {1.f, 1.f});
+        if (m_backgroundLayer && m_mainLayer) {
+            auto glow = CCLayerGradient::create({135, 180, 255, 180}, {0, 0, 0, 0}, {1.f, 0.f});
             glow->changeWidthAndHeight(m_backgroundLayer->getContentSize().width, m_backgroundLayer->getContentSize().height);
             glow->setID(glowId.c_str());
             m_mainLayer->addChild(glow, -2);
