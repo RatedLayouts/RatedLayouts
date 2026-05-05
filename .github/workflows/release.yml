@@ -43,7 +43,6 @@ jobs:
               uses: BlueWitherer/mod-discord-webhooks/geode@main
               with:
                   webhook-url: ${{ steps.check-discord.outputs.webhook-url }}
-                  content: "-# @everyone"
                   changelog: ${{ steps.publish-release.outputs.changelog }}
 
     publish:
