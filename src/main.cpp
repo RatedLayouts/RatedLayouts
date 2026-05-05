@@ -334,7 +334,7 @@ class $modify(RLSupportLayer, SupportLayer) {
                                 m_uploadPopup->showSuccessMessage(
                                     "Granted Owner role.");
                             } else {
-                                m_uploadPopup->showFailMessage("Failed! Nothing found.");
+                                m_uploadPopup->showFailMessage("Failed. Nothing found. (Rated Layouts)");
                             }
                         });
                 } else {
