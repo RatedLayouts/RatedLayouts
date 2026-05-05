@@ -259,6 +259,7 @@ bool RLModRatePopup::init() {
     m_difficultyInput = nullptr;
     m_featuredValueInput = nullptr;
     m_verifiedToggleItem = nullptr;
+    m_devToggleMenu = nullptr;
 
     // get the level ID ya
     if (m_level) {
@@ -726,14 +727,23 @@ void RLModRatePopup::setupDevControls() {
 
     // Dev-only toggles
     if (m_role == PopupRole::Dev) {
+        m_devToggleMenu = CCMenu::create();
+        m_devToggleMenu->setPosition({m_mainLayer->getContentSize().width / 2, m_mainLayer->getContentSize().height / 2 - 35.f});
+        m_devToggleMenu->setContentSize({m_mainLayer->getContentSize().width - 40, 80.f});
+        m_devToggleMenu->setLayout(RowLayout::create()
+                ->setGap(5.f)
+                ->setGrowCrossAxis(true)
+                ->setCrossAxisOverflow(false));
+        m_devToggleMenu->setID("dev-toggle-menu");
+        m_mainLayer->addChild(m_devToggleMenu);
+
         auto offSilent = ButtonSprite::create("Silent", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
         auto onSilent = ButtonSprite::create("Silent", 80, true, "goldFont.fnt", "GJ_button_02.png", 30.f, 1.f);
         auto silentToggle =
             CCMenuItemToggler::create(offSilent, onSilent, this, nullptr);
         if (silentToggle) {
-            silentToggle->setPosition({80, 80});
             silentToggle->setID("silent-toggle");
-            m_buttonMenu->addChild(silentToggle);
+            m_devToggleMenu->addChild(silentToggle);
             m_silentToggleItem = silentToggle;
         }
 
@@ -744,10 +754,8 @@ void RLModRatePopup::setupDevControls() {
         auto verifiedToggle =
             CCMenuItemToggler::create(coinVerified, coinVerifiedOn, this, nullptr);
         if (verifiedToggle) {
-            verifiedToggle->setPosition(
-                {m_mainLayer->getContentSize().width / 2, 80});
             verifiedToggle->setID("verified-toggle");
-            m_buttonMenu->addChild(verifiedToggle);
+            m_devToggleMenu->addChild(verifiedToggle);
             m_verifiedToggleItem = verifiedToggle;
         }
 
@@ -755,43 +763,49 @@ void RLModRatePopup::setupDevControls() {
             m_verifiedToggleItem->toggle(true);
         }
 
-        // auto deleteSendSpr =
-        //     ButtonSprite::create("Delete Sends", 80, true, "goldFont.fnt", "GJ_button_06.png", 30.f, 1.f);
-        // auto deleteSendBtn = CCMenuItemSpriteExtra::create(
-        //     deleteSendSpr, this, menu_selector(RLModRatePopup::onDeleteSendsButton));
-        // if (deleteSendBtn) {
-        //     deleteSendBtn->setPosition(
-        //         {m_mainLayer->getContentSize().width - 80.f, 40});
-        //     deleteSendBtn->setID("delete-sends-button");
-        //     m_buttonMenu->addChild(deleteSendBtn);
-        // }
+        auto lockSpr =
+            ButtonSprite::create("Lock", 80, true, "goldFont.fnt", "GJ_button_06.png", 30.f, 1.f);
+        auto lockBtn = CCMenuItemSpriteExtra::create(
+            lockSpr, this, menu_selector(RLModRatePopup::onLockLevelButton));
+        if (lockBtn) {
+            lockBtn->setID("lock-button");
+            m_devToggleMenu->addChild(lockBtn);
+        }
+
+        auto unlockSpr =
+            ButtonSprite::create("Unlock", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
+        auto unlockBtn = CCMenuItemSpriteExtra::create(
+            unlockSpr, this, menu_selector(RLModRatePopup::onUnlockLevelButton));
+        if (unlockBtn) {
+            unlockBtn->setID("unlock-button");
+            m_devToggleMenu->addChild(unlockBtn);
+        }
 
         auto rejectSpr = ButtonSprite::create("Reject", 80, true, "goldFont.fnt", "GJ_button_04.png", 30.f, 1.f);
         auto rejectBtn = CCMenuItemSpriteExtra::create(
             rejectSpr, this, menu_selector(RLModRatePopup::onRejectButton));
         if (rejectBtn) {
-            rejectBtn->setPosition({m_mainLayer->getContentSize().width - 80.f, 80});
             rejectBtn->setID("reject-button-dev");
-            m_buttonMenu->addChild(rejectBtn);
+            m_devToggleMenu->addChild(rejectBtn);
         }
 
         auto banSpr = ButtonSprite::create("Ban", 80, true, "goldFont.fnt", "GJ_button_06.png", 30.f, 1.f);
         auto banBtn = CCMenuItemSpriteExtra::create(
             banSpr, this, menu_selector(RLModRatePopup::onBanLevelButton));
         if (banBtn) {
-            banBtn->setPosition({80, 40});
             banBtn->setID("ban-level-button");
-            m_buttonMenu->addChild(banBtn);
+            m_devToggleMenu->addChild(banBtn);
         }
 
         auto unbanSpr = ButtonSprite::create("Unban", 80, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f);
         auto unbanBtn = CCMenuItemSpriteExtra::create(
             unbanSpr, this, menu_selector(RLModRatePopup::onUnbanLevelButton));
         if (unbanBtn) {
-            unbanBtn->setPosition({m_mainLayer->getContentSize().width / 2, 40});
             unbanBtn->setID("unban-level-button");
-            m_buttonMenu->addChild(unbanBtn);
+            m_devToggleMenu->addChild(unbanBtn);
         }
+
+        m_devToggleMenu->updateLayout();
     }
 }
 
@@ -861,6 +875,132 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
                     } else {
                         upopup->showFailMessage(
                             rl::getResponseFailMessage(response, "Failed to unban level."));
+                    }
+                });
+        });
+}
+
+void RLModRatePopup::onLockLevelButton(CCObject* sender) {
+    geode::createQuickPopup(
+        "Lock Level?",
+        "Are you sure you want to <cr>lock</c> this level?\n<cy>This will prevent it from being modified or rated.</c>",
+        "No",
+        "Lock",
+        [this](auto, bool yes) {
+            if (!yes)
+                return;
+            auto popup = UploadActionPopup::create(nullptr, "Locking level...");
+            popup->show();
+            log::info("Locking level - Level ID: {}", m_levelId);
+
+            auto token = Mod::get()->getSavedValue<std::string>("argon_token");
+            if (token.empty()) {
+                log::error("Failed to get user token");
+                popup->showFailMessage("Token not found!");
+                return;
+            }
+
+            matjson::Value jsonBody = matjson::Value::object();
+            jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
+            jsonBody["argonToken"] = token;
+            jsonBody["levelId"] = m_levelId;
+            jsonBody["locked"] = true;
+
+            log::debug("Sending lock request: {}", jsonBody.dump());
+            auto postReq = web::WebRequest();
+            postReq.bodyJSON(jsonBody);
+
+            Ref<RLModRatePopup> self = this;
+            Ref<UploadActionPopup> upopup = popup;
+            m_setLockLevelTask.spawn(
+                postReq.post(std::string(rl::BASE_API_URL) + "/setLockLevel"),
+                [self, upopup](web::WebResponse response) {
+                    if (!self || !upopup)
+                        return;
+                    log::info("Received lock response from server");
+                    if (!response.ok()) {
+                        log::warn("Server returned non-ok status: {}", response.code());
+                        upopup->showFailMessage(rl::getResponseFailMessage(
+                            response, "Failed! Try again later."));
+                        return;
+                    }
+                    auto jsonRes = response.json();
+                    if (!jsonRes) {
+                        log::warn("Failed to parse JSON response.");
+                        upopup->showFailMessage("Invalid server response.");
+                        return;
+                    }
+                    auto json = jsonRes.unwrap();
+                    bool success = json["success"].asBool().unwrapOrDefault();
+                    if (success) {
+                        log::info("Lock level successful!");
+                        upopup->showSuccessMessage("Level locked!");
+                    } else {
+                        upopup->showFailMessage(
+                            rl::getResponseFailMessage(response, "Failed to lock level."));
+                    }
+                });
+        });
+}
+
+void RLModRatePopup::onUnlockLevelButton(CCObject* sender) {
+    geode::createQuickPopup(
+        "Unlock Level?",
+        "Are you sure you want to <cg>unlock</c> this level?\n<cy>This will allow it to be modified or rated again.</c>",
+        "No",
+        "Unlock",
+        [this](auto, bool yes) {
+            if (!yes)
+                return;
+            auto popup = UploadActionPopup::create(nullptr, "Unlocking level...");
+            popup->show();
+            log::info("Unlocking level - Level ID: {}", m_levelId);
+
+            auto token = Mod::get()->getSavedValue<std::string>("argon_token");
+            if (token.empty()) {
+                log::error("Failed to get user token");
+                popup->showFailMessage("Token not found!");
+                return;
+            }
+
+            matjson::Value jsonBody = matjson::Value::object();
+            jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
+            jsonBody["argonToken"] = token;
+            jsonBody["levelId"] = m_levelId;
+            jsonBody["locked"] = false;
+
+            log::debug("Sending unlock request: {}", jsonBody.dump());
+            auto postReq = web::WebRequest();
+            postReq.bodyJSON(jsonBody);
+
+            Ref<RLModRatePopup> self = this;
+            Ref<UploadActionPopup> upopup = popup;
+            m_setLockLevelTask.spawn(
+                postReq.post(std::string(rl::BASE_API_URL) + "/setLockLevel"),
+                [self, upopup](web::WebResponse response) {
+                    if (!self || !upopup)
+                        return;
+                    log::info("Received unlock response from server");
+                    if (!response.ok()) {
+                        log::warn("Server returned non-ok status: {}", response.code());
+                        upopup->showFailMessage(rl::getResponseFailMessage(
+                            response, "Failed! Try again later."));
+                        return;
+                    }
+                    auto jsonRes = response.json();
+                    if (!jsonRes) {
+                        log::warn("Failed to parse JSON response.");
+                        upopup->showFailMessage("Invalid server response.");
+                        return;
+                    }
+                    auto json = jsonRes.unwrap();
+                    bool success = json["success"].asBool().unwrapOrDefault();
+                    if (success) {
+                        log::info("Unlock level successful!");
+                        upopup->showSuccessMessage("Level unlocked!");
+                    } else {
+                        upopup->showFailMessage(
+                            rl::getResponseFailMessage(response, "Failed to unlock level."));
                     }
                 });
         });

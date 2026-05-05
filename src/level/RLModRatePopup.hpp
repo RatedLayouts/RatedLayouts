@@ -23,6 +23,7 @@ public:
         m_setEventTask.cancel();
         m_deleteSendsTask.cancel();
         m_unsendTask.cancel();
+        m_setLockLevelTask.cancel();
     }
 
 private:
@@ -40,6 +41,7 @@ private:
     CCMenuItemToggler* m_silentToggleItem;
     CCMenu* m_normalButtonsContainer;
     CCMenu* m_demonButtonsContainer;
+    CCMenu* m_devToggleMenu;
     CCNode* m_difficultyContainer;
     geode::TextInput* m_featuredScoreInput;
     geode::TextInput* m_featuredValueInput;
@@ -61,6 +63,7 @@ private:
     async::TaskHolder<web::WebResponse> m_unsendTask;
     async::TaskHolder<web::WebResponse> m_banLevelTask;
     async::TaskHolder<web::WebResponse> m_unbanLevelTask;
+    async::TaskHolder<web::WebResponse> m_setLockLevelTask;
     bool init() override;
     void setupBackground();
     void setupRatingButtons();
@@ -83,6 +86,8 @@ private:
     void onInfoButton(CCObject* sender);
     void onDeleteSendsButton(CCObject* sender);
     void onBanLevelButton(CCObject* sender);
+    void onLockLevelButton(CCObject* sender);
+    void onUnlockLevelButton(CCObject* sender);
     void onUnbanLevelButton(CCObject* sender);
     void onUnsendButton(CCObject* sender);
     void onSetEventButton(CCObject* sender);
