@@ -490,14 +490,14 @@ void RLMenuLayer::onSettingsButton(CCObject* sender) {
 
 void RLMenuLayer::onDiscordButton(CCObject* sender) {
     createQuickPopup("Rated Layouts Discord",
-        "You will be redirected to the <cl>Rated Layouts Discord Server</c>\n<cy>Continue?</c>",
+        "You will be redirected to the <cl>Rated Layouts Discord Server</c>",
         "No",
         "Yes",
         [](auto, bool yes) {
             if (!yes)
                 return;
             createQuickPopup("Confirm?",
-                "Are you sure you want to join the discord server?\n<cf>Developer of Rated Layouts does not own the server.</c>\n<cy>Continue?</c>",
+                "Are you sure you want to join the discord server?\n<cf>Developer of Rated Layouts isn't associated with the server.</c>\n<cy>Continue?</c>",
                 "No",
                 "Yes",
                 [](auto, bool yes) {
