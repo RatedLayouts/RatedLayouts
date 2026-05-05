@@ -100,7 +100,6 @@ void RLAchievements::init() {
             {"misc_creator_25", "Layout entrepreneur", "Talk to the Layout Creator 25 times", RLAchievements::Collectable::Misc, 1, "RL_bob.png"_spr},
             {"misc_creator_50", "Nosey Creator", "Talk to the Layout Creator 50 times", RLAchievements::Collectable::Misc, 1, "RL_bob.png"_spr},
             {"misc_creator_100", "Business Layout Creator", "Talk to the Layout Creator 100 times", RLAchievements::Collectable::Misc, 1, "RL_bob.png"_spr},
-            {"misc_discord", "Layout-Cord", "Join the Rated Layouts Discord", RLAchievements::Collectable::Misc, 1, "RL_discord01.png"_spr},
             {"misc_browser", "www.ratedlayouts.com", "Browse the Rated Layouts Website", RLAchievements::Collectable::Misc, 1, "RL_browser01.png"_spr},
             {"misc_salt", "SALT finally rated", "but is it verified?", RLAchievements::Collectable::Misc, 1, "RL_bob.png"_spr},
             {"misc_arcticwoof", "Find the Woof", "Find the Rated Layouts Owner", RLAchievements::Collectable::Misc, 1, "RL_arcticwoof.png"_spr},

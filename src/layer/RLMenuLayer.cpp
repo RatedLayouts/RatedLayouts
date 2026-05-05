@@ -510,10 +510,6 @@ void RLMenuLayer::onDiscordButton(CCObject* sender) {
                         NotificationIcon::Info)
                         ->show();
                     utils::web::openLinkInBrowser("https://discord.gg/jBf2wfBgVT");
-
-                    if (current >= 5000) {
-                        RLAchievements::onReward("misc_discord");
-                    }
                 });
         });
 }
