@@ -1,0 +1,60 @@
+name: Release Geode Mod
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    release:
+        name: Release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Check for Discord webhook URL
+              id: check-discord
+              run: |
+                  if [ -n "${{ secrets.RELEASE_WEBHOOK }}" ]; then
+                  echo "webhook-url=${{ secrets.RELEASE_WEBHOOK }}" >> $GITHUB_OUTPUT
+                  echo "has-webhook=true" >> $GITHUB_OUTPUT
+                  echo "Using RELEASE_WEBHOOK"
+                  elif [ -n "${{ secrets.NIGHTLY_WEBHOOK }}" ]; then
+                  echo "webhook-url=${{ secrets.NIGHTLY_WEBHOOK }}" >> $GITHUB_OUTPUT
+                  echo "has-webhook=true" >> $GITHUB_OUTPUT
+                  echo "Using NIGHTLY_WEBHOOK"
+                  else
+                  echo "has-webhook=false" >> $GITHUB_OUTPUT
+                  echo "No webhook configured"
+                  fi
+
+            - name: Publish release
+              id: publish-release
+              uses: BlueWitherer/release-geode-mod@main
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  workflow: build.yml
+
+            - name: Send Discord webhook
+              if: ${{ steps.check-discord.outputs.has-webhook == 'true' }}
+              uses: BlueWitherer/mod-discord-webhooks/geode@main
+              with:
+                  webhook-url: ${{ steps.check-discord.outputs.webhook-url }}
+                  content: "-# @everyone"
+                  changelog: ${{ steps.publish-release.outputs.changelog }}
+
+    publish:
+        name: Publish to Geode
+        runs-on: ubuntu-latest
+        needs: ["release"]
+
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Publish to Geode
+              uses: hiimjasmine00/release-geode-mod/publish@main
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
