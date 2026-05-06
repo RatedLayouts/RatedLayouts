@@ -54,14 +54,14 @@ bool RLSelectSends::init() {
         m_buttonMenu->addChild(oldBtn);
 
         auto queueBtn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("Queued Layouts", 180, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f),
+            ButtonSprite::create("Queued Layouts", 180, true, "goldFont.fnt", "GJ_button_03.png", 30.f, 1.f),
             this,
             menu_selector(RLSelectSends::onQueueBtn));
         queueBtn->m_scaleMultiplier = 1.05f;
         m_buttonMenu->addChild(queueBtn);
 
         auto threePlusBtn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("3+ Sents", 180, true, "goldFont.fnt", "GJ_button_03.png", 30.f, 1.f),
+            ButtonSprite::create("3+ Sents", 180, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f),
             this,
             menu_selector(RLSelectSends::onThreePlusSends));
         threePlusBtn->m_scaleMultiplier = 1.05f;
