@@ -32,6 +32,7 @@
 #include "RLSpireLayer.hpp"
 #include "RLGuideInfoPopup.hpp"
 #include "../include/RLDialogIcons.hpp"
+#include "../popup/RLQueueLevelPopup.hpp"
 
 struct ModInfo {
     std::string message;
@@ -228,6 +229,17 @@ bool RLMenuLayer::init() {
         infoButtonSpr, this, menu_selector(RLMenuLayer::onInfoButton));
     infoButton->setPosition({25, 25});
     infoMenu->addChild(infoButton);
+
+    // queue button
+    auto queueSpr = rl::isUserSupporter() ? CCSprite::createWithSpriteFrameName("RL_queue01.png"_spr) : CCSpriteGrayscale::createWithSpriteFrameName("RL_queue01.png"_spr);
+    if (queueSpr) {
+        queueSpr->setScale(0.7f);
+        auto queueBtn = CCMenuItemSpriteExtra::create(
+            queueSpr, this, menu_selector(RLMenuLayer::onQueueButton));
+        queueBtn->setPosition(
+            {infoButton->getPositionX() + 40, infoButton->getPositionY()});
+        infoMenu->addChild(queueBtn);
+    }
 
     // discord thingy
     auto discordIconSpr =
@@ -486,6 +498,18 @@ void RLMenuLayer::onCollapseInfoButton(CCObject* sender) {
 
 void RLMenuLayer::onSettingsButton(CCObject* sender) {
     openSettingsPopup(getMod());
+}
+
+void RLMenuLayer::onQueueButton(CCObject* sender) {
+    if (!rl::isUserSupporter()) {
+        FLAlertLayer::create("Feature Unavailable",
+            "This feature is only <cg>available</c> for <cp>Layout Supporters and Boosters</c>.",
+            "OK")
+            ->show();
+        return;
+    }
+    auto queuePopup = RLQueueLevelPopup::create();
+    queuePopup->show();
 }
 
 void RLMenuLayer::onDiscordButton(CCObject* sender) {

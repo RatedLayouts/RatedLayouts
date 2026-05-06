@@ -46,30 +46,24 @@ bool RLSelectSends::init() {
     m_buttonMenu->addChild(showAllBtn);
 
     if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
-        auto mostBtn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("Most Sents", 180, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f),
+        auto oldBtn = CCMenuItemSpriteExtra::create(
+            ButtonSprite::create("Oldest Sents", 180, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f),
             this,
-            menu_selector(RLSelectSends::onMostSents));
-        mostBtn->setPosition({160.f, 80.f});
-        mostBtn->m_scaleMultiplier = 1.05f;
-        m_buttonMenu->addChild(mostBtn);
+            menu_selector(RLSelectSends::onOldestSend));
+        oldBtn->m_scaleMultiplier = 1.05f;
+        m_buttonMenu->addChild(oldBtn);
 
-        // least sents button
-        auto leastBtn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("Least Sents", 180, true, "goldFont.fnt", "GJ_button_01.png", 30.f, 1.f),
+        auto queueBtn = CCMenuItemSpriteExtra::create(
+            ButtonSprite::create("Queued Layouts", 180, true, "goldFont.fnt", "geode.loader/GE_button_02.png", 30.f, 1.f),
             this,
-            menu_selector(RLSelectSends::onLeastSents));
-        leastBtn->setPosition({270.f, 20.f});
-        leastBtn->m_scaleMultiplier = 1.05f;
-        m_buttonMenu->addChild(leastBtn);
-    }
+            menu_selector(RLSelectSends::onQueueBtn));
+        queueBtn->m_scaleMultiplier = 1.05f;
+        m_buttonMenu->addChild(queueBtn);
 
-    if (rl::isUserClassicAdmin() || rl::isUserPlatformerAdmin() || rl::isUserOwner()) {
         auto threePlusBtn = CCMenuItemSpriteExtra::create(
             ButtonSprite::create("3+ Sents", 180, true, "goldFont.fnt", "geode.loader/GE_button_01.png", 30.f, 1.f),
             this,
             menu_selector(RLSelectSends::onThreePlusSends));
-        threePlusBtn->setPosition({160.f, 20.f});
         threePlusBtn->m_scaleMultiplier = 1.05f;
         m_buttonMenu->addChild(threePlusBtn);
 
@@ -77,7 +71,6 @@ bool RLSelectSends::init() {
             ButtonSprite::create("Legendary Sents", 180, true, "goldFont.fnt", "geode.loader/GE_button_01.png", 30.f, 1.f),
             this,
             menu_selector(RLSelectSends::onLegendarySends));
-        legendaryBtn->setPosition({270.f, 50.f});
         legendaryBtn->m_scaleMultiplier = 1.05f;
         m_buttonMenu->addChild(legendaryBtn);
     }
@@ -125,11 +118,11 @@ void RLSelectSends::onLegendarySends(CCObject* sender) {
     this->onClose(sender);
 }
 
-void RLSelectSends::onMostSents(CCObject* sender) {
+void RLSelectSends::onOldestSend(CCObject* sender) {
     RLLevelBrowserLayer::ParamList params;
     params.emplace_back("type", "6");
     auto browserLayer = RLLevelBrowserLayer::create(
-        RLLevelBrowserLayer::Mode::Sent, params, "Most Sent Layouts");
+        RLLevelBrowserLayer::Mode::Sent, params, "Oldest Sent Layouts");
     auto scene = CCScene::create();
     scene->addChild(browserLayer);
     auto transitionFade = CCTransitionFade::create(0.5f, scene);
@@ -137,11 +130,11 @@ void RLSelectSends::onMostSents(CCObject* sender) {
     this->onClose(sender);
 }
 
-void RLSelectSends::onLeastSents(CCObject* sender) {
+void RLSelectSends::onQueueBtn(CCObject* sender) {
     RLLevelBrowserLayer::ParamList params;
     params.emplace_back("type", "7");
     auto browserLayer = RLLevelBrowserLayer::create(
-        RLLevelBrowserLayer::Mode::Sent, params, "Least Sent Layouts");
+        RLLevelBrowserLayer::Mode::Sent, params, "Queued Layouts");
     auto scene = CCScene::create();
     scene->addChild(browserLayer);
     auto transitionFade = CCTransitionFade::create(0.5f, scene);

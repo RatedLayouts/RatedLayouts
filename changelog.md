@@ -1,3 +1,8 @@
+# v1.0.13
+
+- Added QoL features for Layout Moderators and Admins in the Sent Layouts
+- Added **In-Game Queue System** for Layout Supporters to submit their layouts directly into an in-game queue system to be reviewed by Layout Moderators and Admins.
+
 # v1.0.12
 
 - Removed credits

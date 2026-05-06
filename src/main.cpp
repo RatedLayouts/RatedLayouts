@@ -233,7 +233,7 @@ class $modify(RLSupportLayer, SupportLayer) {
                     Mod::get()->setSavedValue("argon_token", token);
 
                     // json body
-                    matjson::Value jsonBody = matjson::Value::object();
+                    matjson::Value jsonBody = matjson::Value::object();                                                 
                     jsonBody["argonToken"] = token;
                     jsonBody["accountId"] = GJAccountManager::get()->m_accountID;
                     auto masterKey = Mod::get()->getSavedValue<std::string>("masterKey");

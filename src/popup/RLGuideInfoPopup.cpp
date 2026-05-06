@@ -90,8 +90,7 @@ void RLGuideInfoPopup::onAbout(CCObject* sender) {
         "- <cl>For Non-Demon Levels:</c> you have at least <cg>50% in Normal Mode</c> or <cf>100% in Practice Mode</c>\n"
         "- <co>For Platformer Levels:</c> you need to have <cy>completed</c> the level\n\n"
         "<cg>**Search Layouts**</c>: Search for rated layouts by their level name/ID.\n\n"
-        "<cg>**Event Layouts**</c>: Showcases time-limited Daily, Weekly and Monthly layouts picked by the <cr>Layout Admins</c>.\n\n"
-        "### Join the <cb>[Rated Layouts Discord](https://discord.gg/jBf2wfBgVT)</c> server for more information and to submit your layouts for rating.\n\n",
+        "<cg>**Event Layouts**</c>: Showcases time-limited Daily, Weekly and Monthly layouts picked by the <cr>Layout Admins</c>.\n\n",
         "OK")
         ->show();
 }

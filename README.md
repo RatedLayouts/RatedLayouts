@@ -40,10 +40,6 @@ This gives <cy>layout and gameplay creators</c> a platform to get their levels r
 
 ---
 
-<cc>![🛠️](frame:GJ_hammerIcon_001.png?scale=0.45) We are actively improving the Layouts Rating System and want to be transparent about it. If you want to learn more, consider joining our [**Discord Server**](https://discord.gg/jBf2wfBgVT)!</c>
-
----
-
 ### Developers
 
 <cf>[Rated Layouts Documentation](https://gdrate.arcticwoof.xyz/docs)</c> is available for anyone who wants to integrate their projects with Rated Layouts

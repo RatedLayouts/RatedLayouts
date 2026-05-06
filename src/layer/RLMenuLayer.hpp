@@ -34,6 +34,7 @@ protected:
     void onBrowserButton(CCObject* sender);
     void onSecretDialogueButton(CCObject* sender);
     void onSupporterButton(CCObject* sender);
+    void onQueueButton(CCObject* sender);
     void showReadGuidePopup();
     bool isGDServerOnline();
 
