@@ -38,6 +38,7 @@ This gives <cy>layout and gameplay creators</c> a platform to get their levels r
 - **<cg>Custom Achievements</c>**: Custom Achievements for completing rated layout levels and achieving milestones and other special interactions.
 - **<cs>QOL Features!</c>**: Various quality of life improvements for both players and creators.
 
+---
 
 ### Developers
 
