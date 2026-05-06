@@ -38,11 +38,6 @@ This gives <cy>layout and gameplay creators</c> a platform to get their levels r
 - **<cg>Custom Achievements</c>**: Custom Achievements for completing rated layout levels and achieving milestones and other special interactions.
 - **<cs>QOL Features!</c>**: Various quality of life improvements for both players and creators.
 
----
-
-<cc>![🛠️](frame:GJ_hammerIcon_001.png?scale=0.45) We are actively improving the Layouts Rating System and want to be transparent about it. If you want to learn more, consider joining our [**Discord Server**](https://discord.gg/jBf2wfBgVT)!</c>
-
----
 
 ### Developers
 
