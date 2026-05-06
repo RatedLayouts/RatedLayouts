@@ -17,6 +17,7 @@ class $modify(RLLevelCell, LevelCell) {
         int m_pendingLevelId = 0;
         bool m_isRejected = false;
         bool m_previouslyRejected = false;
+        int m_difficulty = false;
         async::TaskHolder<web::WebResponse> m_fetchTask;
         int m_waitRetries = 0;  // used for waiting for level data to arrive
         bool m_coinOffsetApplied = false;
@@ -91,6 +92,8 @@ class $modify(RLLevelCell, LevelCell) {
             return;
         }
 
+        if (m_fields->m_difficulty > 0) return;
+
         if (auto existingLabel = m_backgroundLayer->getChildByID("average-difficulty-label")) {
             existingLabel->removeFromParent();
         }
@@ -138,6 +141,7 @@ class $modify(RLLevelCell, LevelCell) {
         bool isRated = json["rated"].asBool().unwrapOrDefault();
 
         log::debug("difficulty: {}, featured: {}, score: {}", difficulty, featured, score);
+        m_fields->m_difficulty = difficulty;
 
         // If no difficulty rating, still show rejected state when applicable
         if (difficulty == 0) {
