@@ -139,7 +139,7 @@ void RLQueueLevelPopup::checkLevelID(CCObject* sender) {
                 creatorButton->setAnchorPoint({0.f, 0.5f});
                 viewButton->removeFromParent();
             }
-            Notification::create("Level loaded", NotificationIcon::Info)->show();
+            Notification::create("Level loaded", NotificationIcon::Success)->show();
             return;
         }
     }
@@ -149,7 +149,6 @@ void RLQueueLevelPopup::checkLevelID(CCObject* sender) {
     }
     glm->m_levelManagerDelegate = this;
     glm->getOnlineLevels(searchObj);
-    Notification::create("Fetching online level...", NotificationIcon::Info)->show();
 }
 
 void RLQueueLevelPopup::submitToQueue(CCObject* sender) {
@@ -237,7 +236,7 @@ void RLQueueLevelPopup::loadLevelsFinished(cocos2d::CCArray* levels, char const*
         creatorButton->setAnchorPoint({0.f, 0.5f});
         viewButton->removeFromParent();
     }
-    Notification::create("Level loaded", NotificationIcon::Info)->show();
+    Notification::create("Level loaded", NotificationIcon::Success)->show();
 }
 
 void RLQueueLevelPopup::loadLevelsFailed(char const* key, int p1) {
