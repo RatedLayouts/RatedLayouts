@@ -1,3 +1,7 @@
+# v1.0.14
+
+- Changed the submission queue button sprite
+
 # v1.0.13
 
 - Added QoL features for Layout Moderators and Admins in the Sent Layouts

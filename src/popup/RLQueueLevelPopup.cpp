@@ -42,7 +42,7 @@ bool RLQueueLevelPopup::init() {
     infoSpr->setScale(0.75f);
     auto infoBtn = CCMenuItemSpriteExtra::create(
         infoSpr, this, menu_selector(RLQueueLevelPopup::onInfo));
-    m_buttonMenu->addChildAtPosition(infoBtn, Anchor::TopRight, {3.f, -3.f});
+    m_buttonMenu->addChildAtPosition(infoBtn, Anchor::TopRight, {-3.f, -3.f});
 
     // level cell
     auto bgLevelCell = NineSlice::create("GJ_square01.png");
