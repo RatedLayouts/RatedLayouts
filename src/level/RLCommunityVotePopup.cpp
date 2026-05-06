@@ -196,6 +196,14 @@ bool RLCommunityVotePopup::init() {
     m_originalityInput->setPosition({rowW / 2.f, rowH - 80.f});
     m_originalityInput->setID("originality-vote-input");
     m_originalityInput->setCommonFilter(CommonFilter::Int);
+    // I check if the input exceeds 10 and reset it if it does
+    m_originalityInput->setCallback([this](std::string const& s) {
+        if (s.empty()) return;
+        auto val = numFromString<int>(s).unwrapOr(0);
+        if (val > 10) {
+            m_originalityInput->setString("10");
+        }
+    });
     originalityRow->addChild(m_originalityInput);
 
     m_originalityVote =
@@ -223,6 +231,14 @@ bool RLCommunityVotePopup::init() {
     m_difficultyInput->setPosition({rowW / 2.f, rowH - 80.f});
     m_difficultyInput->setID("difficulty-vote-input");
     m_difficultyInput->setCommonFilter(CommonFilter::Int);
+    // I check if the input exceeds 30 and reset it if it does
+    m_difficultyInput->setCallback([this](std::string const& s) {
+        if (s.empty()) return;
+        auto val = numFromString<int>(s).unwrapOr(0);
+        if (val > 30) {
+            m_difficultyInput->setString("30");
+        }
+    });
     difficultyRow->addChild(m_difficultyInput);
 
     m_difficultyVote =
@@ -250,6 +266,14 @@ bool RLCommunityVotePopup::init() {
     m_gameplayInput->setPosition({rowW / 2.f, rowH - 80.f});
     m_gameplayInput->setID("gameplay-vote-input");
     m_gameplayInput->setCommonFilter(CommonFilter::Int);
+    // I check if the input exceeds 10 and reset it if it does
+    m_gameplayInput->setCallback([this](std::string const& s) {
+        if (s.empty()) return;
+        auto val = numFromString<int>(s).unwrapOr(0);
+        if (val > 10) {
+            m_gameplayInput->setString("10");
+        }
+    });
     gameplayRow->addChild(m_gameplayInput);
 
     m_gameplayVote = numFromString<int>(m_gameplayInput->getString()).unwrapOr(0);
@@ -316,7 +340,6 @@ bool RLCommunityVotePopup::init() {
 
     return true;
 }
-
 void RLCommunityVotePopup::refreshFromServer() {
     if (!m_forceShowScores) {
         if (m_originalityScoreLabel)
