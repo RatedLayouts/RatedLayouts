@@ -16,7 +16,8 @@ jobs:
                     - name: Windows
                       os: windows-latest
                       build-type: RelWithDebInfo
-                      - name: macOS
+
+                    - name: macOS
                       os: macos-latest
 
                     - name: iOS
