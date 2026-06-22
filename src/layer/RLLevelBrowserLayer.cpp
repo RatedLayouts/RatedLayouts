@@ -390,7 +390,7 @@ bool RLLevelBrowserLayer::init(GJSearchObject* object) {
                     pageMenu->updateLayout();
                 }
 
-                if (rl::isUserClassicAdmin() || rl::isUserOwner()) {
+                if (rl::isUserClassicAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) {
                     auto deleteLevelsIcon =
                         // @geode-ignore(unknown-resource)
                         CCSprite::createWithSpriteFrameName("RL_cross_no_box.png"_spr);
@@ -405,7 +405,7 @@ bool RLLevelBrowserLayer::init(GJSearchObject* object) {
                     }
                 }
 
-                if (rl::isUserPlatformerAdmin() || rl::isUserOwner()) {
+                if (rl::isUserPlatformerAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) {
                     auto deleteLevelsIcon =
                         // @geode-ignore(unknown-resource)
                         CCSprite::createWithSpriteFrameName("RL_cross_no_box.png"_spr);

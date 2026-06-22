@@ -895,7 +895,7 @@ void RLMenuLayer::onFeaturedLayouts(CCObject* sender) {
 }
 
 void RLMenuLayer::onSentLayouts(CCObject* sender) {
-    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
+    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner() || rl::isUserDeveloper()) {
         auto selectPopup = RLSelectSends::create();
         selectPopup->show();
         return;

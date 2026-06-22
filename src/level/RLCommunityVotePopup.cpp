@@ -299,7 +299,7 @@ bool RLCommunityVotePopup::init() {
     m_buttonMenu->addChild(infoBtn, 3);
 
     // single toggle for moderators to show/hide all scores at once
-    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
+    if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner() || rl::isUserDeveloper()) {
         auto allSpr = CCSprite::createWithSpriteFrameName("hideBtn_001.png");
         allSpr->setOpacity(120);
         m_toggleAllBtn = CCMenuItemSpriteExtra::create(

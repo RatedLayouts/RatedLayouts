@@ -601,7 +601,7 @@ class $modify(RLProfilePage, ProfilePage) {
                 // create the user buttons manage
                 if (!Mod::get()->getSettingValue<bool>("disableRLMenu")) {
                     auto rlButtonsMenu = pageRef->getChildByIDRecursive("rl-buttons-menu");
-                    if (rlButtonsMenu && (rl::isUserAdmin() || rl::isUserLeaderboardMod() || rl::isUserOwner())) {
+                    if (rlButtonsMenu && (rl::isUserAdmin() || rl::isUserLeaderboardMod() || rl::isUserOwner() || rl::isUserDeveloper())) {
                         if (!rlButtonsMenu->getChildByID("rl-manage-btn")) {
                             auto modUserSpr = CCSprite::createWithSpriteFrameName(
                                 "RL_userPanel.png"_spr);
@@ -614,7 +614,7 @@ class $modify(RLProfilePage, ProfilePage) {
                             rlButtonsMenu->updateLayout();
                         }
 
-                        if (rlButtonsMenu && (rl::isUserLeaderboardAdmin() || rl::isUserLeaderboardMod() || rl::isUserOwner())) {
+                        if (rlButtonsMenu && (rl::isUserLeaderboardAdmin() || rl::isUserLeaderboardMod() || rl::isUserOwner() || rl::isUserDeveloper())) {
                             if (!rlButtonsMenu->getChildByID("rl-manage-level-btn")) {
                                 auto manageLevelSpr = CCSprite::createWithSpriteFrameName(
                                     "RL_userHammer.png"_spr);
@@ -830,7 +830,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
     void onUserManageLevel(CCObject* sender) {
         // only leaderboard moderators may manage levels
-        if (!(rl::isUserLeaderboardMod() || rl::isUserLeaderboardAdmin() || rl::isUserOwner())) {
+        if (!(rl::isUserLeaderboardMod() || rl::isUserLeaderboardAdmin() || rl::isUserOwner() || rl::isUserDeveloper())) {
             Notification::create("You don't have permission to manage levels.",
                 NotificationIcon::Error)
                 ->show();

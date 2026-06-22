@@ -308,7 +308,7 @@ bool RLUserControl::init() {
 
     // If there's no profile to load (no target account), show dev buttons
     // immediately
-    if (m_targetAccountId <= 0 && rl::isUserOwner()) {
+    if (m_targetAccountId <= 0 && (rl::isUserOwner() || rl::isUserDeveloper())) {
         setPromoBtnState(m_promoteLeaderboardModButton, "Promote to LB Mod", true);
         setPromoBtnState(m_promoteClassicModButton, "Promote to Classic Mod", true);
         setPromoBtnState(m_promoteClassicAdminButton, "Promote to Classic Admin", true);
@@ -430,57 +430,57 @@ bool RLUserControl::init() {
                 }
 
                 if (self->m_wipeButton) {
-                    self->m_wipeButton->setVisible(rl::isUserOwner());
+                    self->m_wipeButton->setVisible(rl::isUserOwner() || rl::isUserDeveloper());
                 }
-                if (!(rl::isUserLeaderboardAdmin() || rl::isUserOwner()) && self->m_promoteLeaderboardModButton) {
+                if (!(rl::isUserLeaderboardAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) && self->m_promoteLeaderboardModButton) {
                     self->m_promoteLeaderboardModButton->removeFromParentAndCleanup(true);
                     self->m_promoteLeaderboardModButton = nullptr;
                 }
-                if (!(rl::isUserClassicAdmin() || rl::isUserOwner()) && self->m_promoteClassicModButton) {
+                if (!(rl::isUserClassicAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) && self->m_promoteClassicModButton) {
                     self->m_promoteClassicModButton->removeFromParentAndCleanup(true);
                     self->m_promoteClassicModButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_promoteClassicAdminButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_promoteClassicAdminButton) {
                     self->m_promoteClassicAdminButton->removeFromParentAndCleanup(true);
                     self->m_promoteClassicAdminButton = nullptr;
                 }
-                if (!(rl::isUserPlatformerAdmin() || rl::isUserOwner()) && self->m_promotePlatModButton) {
+                if (!(rl::isUserPlatformerAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) && self->m_promotePlatModButton) {
                     self->m_promotePlatModButton->removeFromParentAndCleanup(true);
                     self->m_promotePlatModButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_promotePlatAdminButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_promotePlatAdminButton) {
                     self->m_promotePlatAdminButton->removeFromParentAndCleanup(true);
                     self->m_promotePlatAdminButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_promoteLeaderboardAdminButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_promoteLeaderboardAdminButton) {
                     self->m_promoteLeaderboardAdminButton->removeFromParentAndCleanup(true);
                     self->m_promoteLeaderboardAdminButton = nullptr;
                 }
-                if (!(rl::isUserClassicAdmin() || rl::isUserOwner()) && self->m_demoteClassicModButton) {
+                if (!(rl::isUserClassicAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) && self->m_demoteClassicModButton) {
                     self->m_demoteClassicModButton->removeFromParentAndCleanup(true);
                     self->m_demoteClassicModButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_demoteClassicAdminButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_demoteClassicAdminButton) {
                     self->m_demoteClassicAdminButton->removeFromParentAndCleanup(true);
                     self->m_demoteClassicAdminButton = nullptr;
                 }
-                if (!(rl::isUserPlatformerAdmin() || rl::isUserOwner()) && self->m_demotePlatModButton) {
+                if (!(rl::isUserPlatformerAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) && self->m_demotePlatModButton) {
                     self->m_demotePlatModButton->removeFromParentAndCleanup(true);
                     self->m_demotePlatModButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_demotePlatAdminButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_demotePlatAdminButton) {
                     self->m_demotePlatAdminButton->removeFromParentAndCleanup(true);
                     self->m_demotePlatAdminButton = nullptr;
                 }
-                if (!(rl::isUserLeaderboardAdmin() || rl::isUserOwner()) && self->m_demoteLBModButton) {
+                if (!(rl::isUserLeaderboardAdmin() || rl::isUserOwner() || rl::isUserDeveloper()) && self->m_demoteLBModButton) {
                     self->m_demoteLBModButton->removeFromParentAndCleanup(true);
                     self->m_demoteLBModButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_demoteLBAdminButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_demoteLBAdminButton) {
                     self->m_demoteLBAdminButton->removeFromParentAndCleanup(true);
                     self->m_demoteLBAdminButton = nullptr;
                 }
-                if (!rl::isUserOwner() && self->m_wipeButton) {
+                if (!(rl::isUserOwner() || rl::isUserDeveloper()) && self->m_wipeButton) {
                     self->m_wipeButton->removeFromParentAndCleanup(true);
                     self->m_wipeButton = nullptr;
                 } else {
