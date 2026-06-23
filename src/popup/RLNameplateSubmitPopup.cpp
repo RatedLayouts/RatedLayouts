@@ -3,6 +3,7 @@
 #include <Geode/modify/CommentCell.hpp>
 #include <Geode/utils/file.hpp>
 #include <algorithm>
+#include "Geode/ui/General.hpp"
 #include "Geode/ui/TextInput.hpp"
 #include "Geode/utils/general.hpp"
 #include "../include/RLConstants.hpp"
@@ -107,6 +108,7 @@ bool RLNameplateSubmitPopup::init() {
         return false;
 
     this->setTitle("Nameplate Submission");
+    addSideArt(m_mainLayer, SideArt::Bottom, SideArtStyle::PopupBlue);
 
     m_leaderboardListNode = cue::ListNode::create({355.f, 40.f});
     m_leaderboardListNode->setPosition({m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height / 2.f + 35.f});
@@ -228,33 +230,36 @@ void RLNameplateSubmitPopup::onPickImage(CCObject* sender) {
 }
 
 void RLNameplateSubmitPopup::onSubmit(CCObject* sender) {
+    auto upopup = UploadActionPopup::create(nullptr, "Submitting Nameplate...");
+    upopup->show();
+    Ref<UploadActionPopup> popupRef = upopup;
     if (m_pickedPath.empty()) {
-        Notification::create("Please pick an image first!", NotificationIcon::Warning)->show();
+        popupRef->showFailMessage("Please pick an image first!");
         return;
     }
 
     auto priceStr = m_priceInput->getString();
     if (priceStr.empty()) {
-        Notification::create("Please enter a price!", NotificationIcon::Warning)->show();
+        popupRef->showFailMessage("Please set a base price!");
         return;
     }
 
     auto priceRes = geode::utils::numFromString<int>(priceStr);
     if (!priceRes) {
-        Notification::create("Invalid price!", NotificationIcon::Warning)->show();
+        popupRef->showFailMessage("Invalid price!");
         return;
     }
     int price = priceRes.unwrap();
 
     if (price < 10000) {
-        Notification::create("Price must be at least 10000 rubies", NotificationIcon::Warning)->show();
+        popupRef->showFailMessage("Price must be at least 10000 rubies");
         return;
     }
 
     auto accountId = GJAccountManager::get()->m_accountID;
     auto token = Mod::get()->getSavedValue<std::string>("argon_token");
     if (token.empty()) {
-        Notification::create("Argon token missing!", NotificationIcon::Warning)->show();
+        popupRef->showFailMessage("Argon token missing!");
         return;
     }
 
@@ -266,26 +271,23 @@ void RLNameplateSubmitPopup::onSubmit(CCObject* sender) {
 
     auto res = form.file("banner", m_pickedPath, "image/png");
     if (!res) {
-        Notification::create("Failed to attach file", NotificationIcon::Error)->show();
+        popupRef->showFailMessage("Failed to attach file");
         return;
     }
     req.bodyMultipart(std::move(form));
 
-    auto upopup = UploadActionPopup::create(nullptr, "Submitting Nameplate...");
-    upopup->show();
-
     Ref<RLNameplateSubmitPopup> self = this;
     m_fetchTask.spawn(
         req.post(std::string(rl::BASE_API_URL) + "/submitNameplate"),
-        [self, upopup](geode::utils::web::WebResponse response) {
-            if (!self || !upopup) return;
+        [self, popupRef](geode::utils::web::WebResponse response) {
+            if (!self || !popupRef) return;
 
             if (response.ok()) {
-                upopup->showSuccessMessage("Nameplate submitted!");
+                popupRef->showSuccessMessage("Nameplate submitted!");
                 self->onClose(nullptr);
             } else {
                 auto msg = response.string().unwrapOr("Unknown error");
-                upopup->showFailMessage("Failed to submit");
+                popupRef->showFailMessage("Failed to submit");
                 log::warn("submitNameplate error {}: {}", response.code(), msg);
             }
         });

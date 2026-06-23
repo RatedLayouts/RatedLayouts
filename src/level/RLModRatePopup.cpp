@@ -844,17 +844,17 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
             m_unbanLevelTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/setUnban"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received response from server");
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -862,7 +862,7 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
 
@@ -871,9 +871,9 @@ void RLModRatePopup::onUnbanLevelButton(CCObject* sender) {
 
                     if (success) {
                         log::info("Unban level successful!");
-                        upopup->showSuccessMessage("Level unbanned!");
+                        popupRef->showSuccessMessage("Level unbanned!");
                     } else {
-                        upopup->showFailMessage(
+                        popupRef->showFailMessage(
                             rl::getResponseFailMessage(response, "Failed to unban level."));
                     }
                 });
@@ -911,32 +911,32 @@ void RLModRatePopup::onLockLevelButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
             m_setLockLevelTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/setLockLevel"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received lock response from server");
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response.");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
                     auto json = jsonRes.unwrap();
                     bool success = json["success"].asBool().unwrapOrDefault();
                     if (success) {
                         log::info("Lock level successful!");
-                        upopup->showSuccessMessage("Level locked!");
+                        popupRef->showSuccessMessage("Level locked!");
                     } else {
-                        upopup->showFailMessage(
+                        popupRef->showFailMessage(
                             rl::getResponseFailMessage(response, "Failed to lock level."));
                     }
                 });
@@ -974,32 +974,32 @@ void RLModRatePopup::onUnlockLevelButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
             m_setLockLevelTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/setLockLevel"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received unlock response from server");
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response.");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
                     auto json = jsonRes.unwrap();
                     bool success = json["success"].asBool().unwrapOrDefault();
                     if (success) {
                         log::info("Unlock level successful!");
-                        upopup->showSuccessMessage("Level unlocked!");
+                        popupRef->showSuccessMessage("Level unlocked!");
                     } else {
-                        upopup->showFailMessage(
+                        popupRef->showFailMessage(
                             rl::getResponseFailMessage(response, "Failed to unlock level."));
                     }
                 });
@@ -1042,17 +1042,17 @@ void RLModRatePopup::onBanLevelButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
             m_banLevelTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/setBan"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received response from server");
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -1060,7 +1060,7 @@ void RLModRatePopup::onBanLevelButton(CCObject* sender) {
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
 
@@ -1069,9 +1069,9 @@ void RLModRatePopup::onBanLevelButton(CCObject* sender) {
 
                     if (success) {
                         log::info("Ban level successful!");
-                        upopup->showSuccessMessage("Level banned!");
+                        popupRef->showSuccessMessage("Level banned!");
                     } else {
-                        upopup->showFailMessage(
+                        popupRef->showFailMessage(
                             rl::getResponseFailMessage(response, "Failed to ban level."));
                     }
                 });
@@ -1112,17 +1112,17 @@ void RLModRatePopup::onDeleteSendsButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
             m_deleteSendsTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/deleteSends"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received response from server");
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -1130,7 +1130,7 @@ void RLModRatePopup::onDeleteSendsButton(CCObject* sender) {
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
 
@@ -1139,9 +1139,9 @@ void RLModRatePopup::onDeleteSendsButton(CCObject* sender) {
 
                     if (success) {
                         log::info("Delete sends successful!");
-                        upopup->showSuccessMessage("Sends deleted!");
+                        popupRef->showSuccessMessage("Sends deleted!");
                     } else {
-                        upopup->showFailMessage("Failed to delete sends.");
+                        popupRef->showFailMessage("Failed to delete sends.");
                     }
                 });
         });
@@ -1167,32 +1167,32 @@ void RLModRatePopup::onUnsendButton(CCObject* sender) {
     auto postReq = web::WebRequest();
     postReq.bodyJSON(jsonBody);
     Ref<RLModRatePopup> self = this;
-    Ref<UploadActionPopup> upopup = popup;
+    Ref<UploadActionPopup> popupRef = popup;
     m_unsendTask.spawn(
         postReq.post(std::string(rl::BASE_API_URL) + "/setUnsend"),
-        [self, upopup](web::WebResponse response) {
-            if (!self || !upopup)
+        [self, popupRef](web::WebResponse response) {
+            if (!self || !popupRef)
                 return;
             log::info("Received response from server");
             if (!response.ok()) {
                 log::warn("Server returned non-ok status: {}", response.code());
-                upopup->showFailMessage(
+                popupRef->showFailMessage(
                     rl::getResponseFailMessage(response, "Failed! Try again later."));
                 return;
             }
             auto jsonRes = response.json();
             if (!jsonRes) {
                 log::warn("Failed to parse JSON response");
-                upopup->showFailMessage("Invalid server response.");
+                popupRef->showFailMessage("Invalid server response.");
                 return;
             }
             auto json = jsonRes.unwrap();
             bool success = json["success"].asBool().unwrapOrDefault();
             if (success) {
                 log::info("Unsend successful!");
-                upopup->showSuccessMessage("Layout unsent!");
+                popupRef->showSuccessMessage("Layout unsent!");
             } else {
-                upopup->showFailMessage("Failed to unsend layout.");
+                popupRef->showFailMessage("Failed to unsend layout.");
             }
         });
 }
@@ -1218,17 +1218,17 @@ void RLModRatePopup::onRateButton(CCObject* sender) {
     postReq.bodyJSON(jsonBody);
 
     Ref<RLModRatePopup> self = this;
-    Ref<UploadActionPopup> upopup = popup;
+    Ref<UploadActionPopup> popupRef = popup;
     m_setRateTask.spawn(
         postReq.post(std::string(rl::BASE_API_URL) + "/setRate"),
-        [self, upopup](web::WebResponse response) {
-            if (!self || !upopup)
+        [self, popupRef](web::WebResponse response) {
+            if (!self || !popupRef)
                 return;
             log::info("Received response from server");
 
             if (!response.ok()) {
                 log::warn("Server returned non-ok status: {}", response.code());
-                upopup->showFailMessage(
+                popupRef->showFailMessage(
                     rl::getResponseFailMessage(response, "Failed! Try again later."));
                 return;
             }
@@ -1236,7 +1236,7 @@ void RLModRatePopup::onRateButton(CCObject* sender) {
             auto jsonRes = response.json();
             if (!jsonRes) {
                 log::warn("Failed to parse JSON response");
-                upopup->showFailMessage("Invalid server response.");
+                popupRef->showFailMessage("Invalid server response.");
                 return;
             }
 
@@ -1266,10 +1266,10 @@ void RLModRatePopup::onRateButton(CCObject* sender) {
                     }
                 }
 
-                upopup->showSuccessMessage("Submitted successfully!");
+                popupRef->showSuccessMessage("Submitted successfully!");
             } else {
                 log::warn("Rate submission failed: success is false");
-                upopup->showFailMessage("Failed! Try again later.");
+                popupRef->showFailMessage("Failed! Try again later.");
             }
         });
 }
@@ -1320,17 +1320,17 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
             m_setUnrateTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/setUnrate"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received response from server");
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
@@ -1338,7 +1338,7 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
 
@@ -1369,10 +1369,10 @@ void RLModRatePopup::onUnrateButton(CCObject* sender) {
                             }
                         }
 
-                        upopup->showSuccessMessage("Layout unrated successfully!");
+                        popupRef->showSuccessMessage("Layout unrated successfully!");
                     } else {
                         log::warn("Unrate submission failed: success is false");
-                        upopup->showFailMessage("Failed! Try again later.");
+                        popupRef->showFailMessage("Failed! Try again later.");
                     }
                 });
         });
@@ -1453,17 +1453,17 @@ void RLModRatePopup::onSuggestButton(CCObject* sender) {
     postReq.bodyJSON(jsonBody);
 
     Ref<RLModRatePopup> self = this;
-    Ref<UploadActionPopup> upopup = popup;
+    Ref<UploadActionPopup> popupRef = popup;
     m_setRateTask.spawn(
         postReq.post(std::string(rl::BASE_API_URL) + "/setSuggest"),
-        [self, upopup](web::WebResponse response) {
-            if (!self || !upopup)
+        [self, popupRef](web::WebResponse response) {
+            if (!self || !popupRef)
                 return;
             log::info("Received response from server");
 
             if (!response.ok()) {
                 log::warn("Server returned non-ok status: {}", response.code());
-                upopup->showFailMessage(
+                popupRef->showFailMessage(
                     rl::getResponseFailMessage(response, "Failed! Try again later."));
                 return;
             }
@@ -1471,7 +1471,7 @@ void RLModRatePopup::onSuggestButton(CCObject* sender) {
             auto jsonRes = response.json();
             if (!jsonRes) {
                 log::warn("Failed to parse JSON response");
-                upopup->showFailMessage("Invalid server response.");
+                popupRef->showFailMessage("Invalid server response.");
                 return;
             }
 
@@ -1501,10 +1501,10 @@ void RLModRatePopup::onSuggestButton(CCObject* sender) {
                     }
                 }
 
-                upopup->showSuccessMessage("Suggested successfully!");
+                popupRef->showSuccessMessage("Suggested successfully!");
             } else {
                 log::warn("Suggest submission failed: success is false");
-                upopup->showFailMessage("Failed! Try again later.");
+                popupRef->showFailMessage("Failed! Try again later.");
             }
         });
 }
@@ -2025,24 +2025,24 @@ void RLModRatePopup::onSetEventButton(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLModRatePopup> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
 
             self->m_setEventTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/setEvent"),
-                [self, type, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, type, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
                     log::info("Received setEvent response for type: {}", type);
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage(rl::getResponseFailMessage(
+                        popupRef->showFailMessage(rl::getResponseFailMessage(
                             response, "Failed! Try again later."));
                         return;
                     }
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse setEvent JSON response");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
                     auto json = jsonRes.unwrap();
@@ -2050,9 +2050,9 @@ void RLModRatePopup::onSetEventButton(CCObject* sender) {
                     std::string message =
                         json["message"].asString().unwrapOrDefault();
                     if (success || message == "Event set successfully") {
-                        upopup->showSuccessMessage(std::string("Event set: ") + type);
+                        popupRef->showSuccessMessage(std::string("Event set: ") + type);
                     } else {
-                        upopup->showFailMessage("Failed to set event.");
+                        popupRef->showFailMessage("Failed to set event.");
                     }
                 });
         });

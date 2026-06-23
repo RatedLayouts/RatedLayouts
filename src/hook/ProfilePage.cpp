@@ -644,6 +644,24 @@ class $modify(RLProfilePage, ProfilePage) {
                         usernameMenu->addChild(btn);
                     };
 
+                    // if user is owner
+                    if (pageRef->m_fields->isOwner) {
+                        if (!usernameMenu->getChildByID("rl-profile-owner-badge:1")) {
+                            auto ownerBadgeSprite = CCSprite::createWithSpriteFrameName(
+                                "RL_badgeOwner.png"_spr);
+                            addBadgeItem(ownerBadgeSprite, 10, "rl-profile-owner-badge:1");
+                        }
+                    }
+
+                    // if user is developer
+                    if (pageRef->m_fields->isDeveloper) {
+                        if (!usernameMenu->getChildByID("rl-profile-developer-badge:1")) {
+                            auto developerBadgeSprite = CCSprite::createWithSpriteFrameName(
+                                "RL_badgeDeveloper.png"_spr);
+                            addBadgeItem(developerBadgeSprite, 12, "rl-profile-developer-badge:1");
+                        }
+                    }
+
                     if (!usernameMenu->getChildByID(
                             "rl-profile-classic-admin-badge:2") &&
                         pageRef->m_fields->isClassicAdmin) {
@@ -651,29 +669,18 @@ class $modify(RLProfilePage, ProfilePage) {
                             "RL_badgeAdmin01.png"_spr);
                         addBadgeItem(adminBadgeSprite, 5, "rl-profile-classic-admin-badge:2");
                     }
-                    if (!usernameMenu->getChildByID("rl-profile-classic-mod-badge:3") &&
-                        pageRef->m_fields->isClassicMod) {
-                        auto modBadgeSprite =
-                            CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr);
-                        addBadgeItem(modBadgeSprite, 6, "rl-profile-classic-mod-badge:3");
-                    }
-                    if (!usernameMenu->getChildByID("rl-profile-lb-mod-badge:3") &&
-                        pageRef->m_fields->isLeaderboardMod) {
-                        auto modBadgeSprite = CCSprite::createWithSpriteFrameName(
-                            "RL_badgelbMod01.png"_spr);
-                        addBadgeItem(modBadgeSprite, 9, "rl-profile-lb-mod-badge:3");
-                    }
-                    if (!usernameMenu->getChildByID("rl-profile-lb-admin-badge:2") &&
-                        pageRef->m_fields->isLeaderboardAdmin) {
-                        auto adminBadgeSprite = CCSprite::createWithSpriteFrameName(
-                            "RL_badgelbAdmin01.png"_spr);
-                        addBadgeItem(adminBadgeSprite, 11, "rl-profile-lb-admin-badge:2");
-                    }
                     if (!usernameMenu->getChildByID("rl-profile-plat-admin-badge:2") &&
                         pageRef->m_fields->isPlatAdmin) {
                         auto adminBadgeSprite = CCSprite::createWithSpriteFrameName(
                             "RL_badgePlatAdmin01.png"_spr);
                         addBadgeItem(adminBadgeSprite, 7, "rl-profile-plat-admin-badge:2");
+                    }
+
+                    if (!usernameMenu->getChildByID("rl-profile-classic-mod-badge:3") &&
+                        pageRef->m_fields->isClassicMod) {
+                        auto modBadgeSprite =
+                            CCSprite::createWithSpriteFrameName("RL_badgeMod01.png"_spr);
+                        addBadgeItem(modBadgeSprite, 6, "rl-profile-classic-mod-badge:3");
                     }
                     if (!usernameMenu->getChildByID("rl-profile-plat-mod-badge:3") &&
                         pageRef->m_fields->isPlatMod) {
@@ -681,6 +688,20 @@ class $modify(RLProfilePage, ProfilePage) {
                             "RL_badgePlatMod01.png"_spr);
                         addBadgeItem(modBadgeSprite, 8, "rl-profile-plat-mod-badge:3");
                     }
+
+                    if (!usernameMenu->getChildByID("rl-profile-lb-admin-badge:2") &&
+                        pageRef->m_fields->isLeaderboardAdmin) {
+                        auto adminBadgeSprite = CCSprite::createWithSpriteFrameName(
+                            "RL_badgelbAdmin01.png"_spr);
+                        addBadgeItem(adminBadgeSprite, 11, "rl-profile-lb-admin-badge:2");
+                    }
+                    if (!usernameMenu->getChildByID("rl-profile-lb-mod-badge:3") &&
+                        pageRef->m_fields->isLeaderboardMod) {
+                        auto modBadgeSprite = CCSprite::createWithSpriteFrameName(
+                            "RL_badgelbMod01.png"_spr);
+                        addBadgeItem(modBadgeSprite, 9, "rl-profile-lb-mod-badge:3");
+                    }
+
                     // if user is supporter
                     if (pageRef->m_fields->isSupporter &&
                         !usernameMenu->getChildByID("rl-profile-supporter-badge:4")) {
@@ -695,24 +716,6 @@ class $modify(RLProfilePage, ProfilePage) {
                         auto boosterSprite = CCSprite::createWithSpriteFrameName(
                             "RL_badgeBooster.png"_spr);
                         addBadgeItem(boosterSprite, 4, "rl-profile-booster-badge:4");
-                    }
-
-                    // if user is developer
-                    if (pageRef->m_fields->isDeveloper) {
-                        if (!usernameMenu->getChildByID("rl-profile-developer-badge:2")) {
-                            auto developerBadgeSprite = CCSprite::createWithSpriteFrameName(
-                                "RL_badgeDeveloper.png"_spr);
-                            addBadgeItem(developerBadgeSprite, 12, "rl-profile-developer-badge:2");
-                        }
-                    }
-
-                    // if user is owner
-                    if (pageRef->m_fields->isOwner) {
-                        if (!usernameMenu->getChildByID("rl-profile-owner-badge:1")) {
-                            auto ownerBadgeSprite = CCSprite::createWithSpriteFrameName(
-                                "RL_badgeOwner.png"_spr);
-                            addBadgeItem(ownerBadgeSprite, 10, "rl-profile-owner-badge:1");
-                        }
                     }
                     usernameMenu->updateLayout();
                 }

@@ -85,20 +85,21 @@ void RLBadgeRequestPopup::onSubmit(CCObject* sender) {
     auto req = web::WebRequest();
     req.bodyJSON(body);
     Ref<RLBadgeRequestPopup> self = this;
+    Ref<UploadActionPopup> popupRef = upopup;
     self->m_getSupporterTask.spawn(
         req.post(std::string(rl::BASE_API_URL) + "/getSupporter"),
-        [self, upopup](web::WebResponse res) {
-            if (!self)
+        [self, popupRef](web::WebResponse res) {
+            if (!self || !popupRef)
                 return;
             if (!res.ok()) {
-                upopup->showFailMessage(rl::getResponseFailMessage(res, "Email address doesn't exist."));
+                popupRef->showFailMessage(rl::getResponseFailMessage(res, "Email address doesn't exist."));
                 return;
             }
 
             auto str = res.string().unwrapOrDefault();
             if (!str.empty()) {
                 if (!res.ok()) {
-                    upopup->showFailMessage(str);
+                    popupRef->showFailMessage(str);
                     return;
                 }
                 Notification::create(str, NotificationIcon::Success)->show();
@@ -108,12 +109,12 @@ void RLBadgeRequestPopup::onSubmit(CCObject* sender) {
 
             if (!res.ok()) {
                 // show status code
-                upopup->showFailMessage(
+                popupRef->showFailMessage(
                     fmt::format("Failed to submit request (code {})", res.code()));
                 return;
             }
 
-            upopup->showSuccessMessage("Supporter Badge acquired!");
+            popupRef->showSuccessMessage("Supporter Badge acquired!");
             self->removeFromParent();
         });
 }

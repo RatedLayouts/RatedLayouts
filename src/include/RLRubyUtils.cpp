@@ -114,8 +114,8 @@ namespace rl {
     int getPlayerRubies() noexcept {
         int current = Mod::get()->getSavedValue<int>("rubies", 0);
         if (current < 0) {
-            Mod::get()->setSavedValue<int>("rubies", 0);
-            current = 0;
+            current = std::abs(current);  // make negative rubies to positive
+            Mod::get()->setSavedValue<int>("rubies", std::max(0, current));
         }
         return current;
     }

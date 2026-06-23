@@ -66,18 +66,20 @@ class $modify(RLSupportLayer, SupportLayer) {
         m_uploadPopup = UploadActionPopup::create(nullptr, "Obtaining Token...");
         m_uploadPopup->show();
         auto accountData = argon::getGameAccountData();
+        Ref<UploadActionPopup> popupRef = m_uploadPopup;
         m_fields->m_authTask.spawn(
             argon::startAuth(std::move(accountData)),
-            [this](Result<std::string> res) {
+            [this, popupRef](Result<std::string> res) {
+                if (!popupRef) return;
                 if (res.isOk()) {
                     auto token = std::move(res).unwrap();
                     utils::clipboard::write(token);
-                    m_uploadPopup->showSuccessMessage(
+                    popupRef->showSuccessMessage(
                         "Token copied to clipboard.");
                 } else {
                     auto err = res.unwrapErr();
                     log::warn("Auth failed: {}", err);
-                    m_uploadPopup->showFailMessage(err);
+                    popupRef->showFailMessage(err);
                     argon::clearToken();
                 }
             });
@@ -88,8 +90,9 @@ class $modify(RLSupportLayer, SupportLayer) {
         m_uploadPopup->show();
 
         Ref<RLSupportLayer> self = this;
-        async::spawn([self]() -> arc::Future<void> {
-            if (!self) {
+        Ref<UploadActionPopup> popupRef = m_uploadPopup;
+        async::spawn([self, popupRef]() -> arc::Future<void> {
+            if (!self || !popupRef) {
                 co_return;
             }
 
@@ -103,9 +106,9 @@ class $modify(RLSupportLayer, SupportLayer) {
             if (!self)
                 co_return;
             if (!result) {
-                Loader::get()->queueInMainThread([self]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage("Failed to open file picker");
+                Loader::get()->queueInMainThread([self, popupRef]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage("Failed to open file picker");
                     }
                 });
                 co_return;
@@ -113,9 +116,9 @@ class $modify(RLSupportLayer, SupportLayer) {
 
             auto maybePath = result.unwrap();
             if (!maybePath) {
-                Loader::get()->queueInMainThread([self]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage("No file selected");
+                Loader::get()->queueInMainThread([self, popupRef]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage("No file selected");
                     }
                 });
                 co_return;
@@ -124,9 +127,9 @@ class $modify(RLSupportLayer, SupportLayer) {
             auto path = *maybePath;
             auto textRes = utils::file::readString(utils::string::pathToString(path));
             if (!textRes) {
-                Loader::get()->queueInMainThread([self]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage("Failed to read key file");
+                Loader::get()->queueInMainThread([self, popupRef]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage("Failed to read key file");
                     }
                 });
                 co_return;
@@ -134,9 +137,9 @@ class $modify(RLSupportLayer, SupportLayer) {
 
             auto key = textRes.unwrap();
             if (key.empty()) {
-                Loader::get()->queueInMainThread([self]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage("Selected key file is empty");
+                Loader::get()->queueInMainThread([self, popupRef]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage("Selected key file is empty");
                     }
                 });
                 co_return;
@@ -155,9 +158,9 @@ class $modify(RLSupportLayer, SupportLayer) {
 
             if (!response.ok()) {
                 std::string errorMsg = rl::getResponseFailMessage(response, "Failed to upload private key.");
-                Loader::get()->queueInMainThread([self, errorMsg]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage(errorMsg);
+                Loader::get()->queueInMainThread([self, popupRef, errorMsg]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage(errorMsg);
                     }
                 });
                 co_return;
@@ -165,9 +168,9 @@ class $modify(RLSupportLayer, SupportLayer) {
 
             auto jsonRes = response.json();
             if (!jsonRes) {
-                Loader::get()->queueInMainThread([self]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage("Invalid server response.");
+                Loader::get()->queueInMainThread([self, popupRef]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage("Invalid server response.");
                     }
                 });
                 co_return;
@@ -177,9 +180,9 @@ class $modify(RLSupportLayer, SupportLayer) {
             bool success = !json["masterKey"].asString().unwrapOr("").empty();
             if (!success) {
                 std::string message = json["message"].asString().unwrapOr("Private key rejected");
-                Loader::get()->queueInMainThread([self, message]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage(message);
+                Loader::get()->queueInMainThread([self, popupRef, message]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage(message);
                     }
                 });
                 co_return;
@@ -187,20 +190,20 @@ class $modify(RLSupportLayer, SupportLayer) {
 
             std::string returnedKey = json["masterKey"].asString().unwrapOr("");
             if (returnedKey.empty()) {
-                Loader::get()->queueInMainThread([self]() {
-                    if (self && self->m_uploadPopup) {
-                        self->m_uploadPopup->showFailMessage("Missing master key.");
+                Loader::get()->queueInMainThread([self, popupRef]() {
+                    if (self && popupRef) {
+                        popupRef->showFailMessage("Missing master key.");
                     }
                 });
                 co_return;
             }
 
-            Loader::get()->queueInMainThread([self, returnedKey = std::move(returnedKey)]() {
+            Loader::get()->queueInMainThread([self, popupRef, returnedKey = std::move(returnedKey)]() {
                 if (!self)
                     return;
                 Mod::get()->setSavedValue("masterKey", returnedKey);
-                if (self->m_uploadPopup) {
-                    self->m_uploadPopup->showSuccessMessage("Private key accepted.");
+                if (popupRef) {
+                    popupRef->showSuccessMessage("Private key accepted.");
                     clipboard::write(returnedKey);
                 }
             });
@@ -220,11 +223,12 @@ class $modify(RLSupportLayer, SupportLayer) {
         auto accountData = argon::getGameAccountData();
 
         Ref<RLSupportLayer> self = this;
+        Ref<UploadActionPopup> popupRef = m_uploadPopup;
 
         m_fields->m_authTask.spawn(
             argon::startAuth(std::move(accountData)),
-            [self, this](Result<std::string> res) {
-                if (!self)
+            [self, this, popupRef](Result<std::string> res) {
+                if (!self || !popupRef)
                     return;
 
                 if (res.isOk()) {
@@ -247,14 +251,14 @@ class $modify(RLSupportLayer, SupportLayer) {
 
                     m_fields->m_getAccessTask.spawn(
                         postReq.post(std::string(rl::BASE_API_URL) + "/getAccess"),
-                        [self, this](web::WebResponse response) {
-                            if (!self)
+                        [self, this, popupRef](web::WebResponse response) {
+                            if (!self || !popupRef)
                                 return;
                             log::info("Received response from server");
                             if (!response.ok()) {
                                 log::warn("Server returned non-ok status: {}",
                                     response.code());
-                                m_uploadPopup->showFailMessage(rl::getResponseFailMessage(
+                                popupRef->showFailMessage(rl::getResponseFailMessage(
                                     response, "Failed! Try again later."));
                                 return;
                             }
@@ -262,7 +266,7 @@ class $modify(RLSupportLayer, SupportLayer) {
                             auto jsonRes = response.json();
                             if (!jsonRes) {
                                 log::warn("Failed to parse JSON response");
-                                m_uploadPopup->showFailMessage(
+                                popupRef->showFailMessage(
                                     "Failed to parse JSON response");
                                 return;
                             }
@@ -306,42 +310,42 @@ class $modify(RLSupportLayer, SupportLayer) {
 
                             if (roleCount > 1) {
                                 log::info("Granted Multiple roles");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Layout roles.");
                             } else if (isClassicMod) {
                                 log::info("Granted Layout Mod role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Classic Layout Mod.");
                             } else if (isClassicAdmin) {
                                 log::info("Granted Layout Admin role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Classic Layout Admin.");
                             } else if (isLeaderboardMod) {
                                 log::info("Granted Leaderboard Layout Mod role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Leaderboard Layout Mod.");
                             } else if (isLeaderboardAdmin) {
                                 log::info("Granted Leaderboard Layout Admin role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Leaderboard Layout Admin.");
                             } else if (isPlatMod) {
                                 log::info("Granted Platformer Layout Mod role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Platformer Layout Mod.");
                             } else if (isPlatAdmin) {
                                 log::info("Granted Platformer Admin role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Platformer Layout Admin.");
                             } else if (isOwner) {
                                 log::info("Granted Owner role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Owner role.");
                             } else if (isDeveloper) {
                                 log::info("Granted Developer role");
-                                m_uploadPopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "Granted Developer role.");
                             } else {
-                                m_uploadPopup->showFailMessage("Failed! Nothing found.");
+                                popupRef->showFailMessage("Failed! Nothing found.");
                             }
                         });
                 } else {

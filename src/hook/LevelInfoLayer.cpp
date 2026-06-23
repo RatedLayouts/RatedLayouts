@@ -98,7 +98,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                     leftMenu->addChild(roleButtonItem);
                 }
             } else {
-                if ((rl::isUserClassicRole() || rl::isUserOwner()) && !isPlatformer) {
+                if ((rl::isUserClassicRole() || rl::isUserOwner() || rl::isUserDeveloper()) && !isPlatformer) {
                     modButtonSprite =
                         CCSprite::createWithSpriteFrameName("RL_starBig.png"_spr);
                     auto roleButtonSpr = CircleButtonSprite::create(
@@ -1377,7 +1377,6 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 commBtnItem->setNormalImage(coloredBtnSpr);
             }
             commBtnItem->setEnabled(true);
-            commBtnItem->setOpacity(255);
         }
     }
 
@@ -1393,11 +1392,11 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
         if (!existing)
             return;
 
-        auto menuItem = static_cast<CCMenuItemSpriteExtra*>(existing);
-        if (menuItem) {
-            menuItem->setEnabled(!shouldDisable);
-            menuItem->setOpacity(shouldDisable ? 100 : 255);
-        }
+        //auto menuItem = static_cast<CCMenuItemSpriteExtra*>(existing);
+        //if (menuItem) {
+        //    menuItem->setEnabled(!shouldDisable);
+        //    menuItem->setOpacity(shouldDisable ? 100 : 255);
+        //}
     }
 
     bool isDemonDifficulty(int difficulty) {
@@ -1498,10 +1497,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 }
 
                 // Mods/Admins can always vote regardless of percentages
-                if ((rl::isUserClassicRole() || rl::isUserOwner()) && !this->m_level->isPlatformer()) {
+                if ((rl::isUserClassicRole() || rl::isUserOwner() || rl::isUserDeveloper()) && !this->m_level->isPlatformer()) {
                     shouldDisable = false;
                 }
-                if (rl::isUserPlatformerRole() || rl::isUserOwner() && this->m_level->isPlatformer()) {
+                if (rl::isUserPlatformerRole() || rl::isUserOwner() || rl::isUserDeveloper() && this->m_level->isPlatformer()) {
                     shouldDisable = false;
                 }
 
@@ -1875,7 +1874,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             shouldDisable = !(normalPct >= 50 || practicePct >= 100);
         }
 
-        if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
+        if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner() || rl::isUserDeveloper()) {
             shouldDisable = false;
             log::debug("Community vote enabled due to role override (classic/plat)");
         }
@@ -2345,7 +2344,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                 layerRef->processLevelRating(json, layerRef);
             }
 
-            if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
+            if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner() || rl::isUserDeveloper()) {
                 this->requestRejectedStatus(levelId, layerRef);
             }
 

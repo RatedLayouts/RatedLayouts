@@ -1016,17 +1016,17 @@ void RLLevelBrowserLayer::onDeleteFilter(CCObject* sender) {
         fmt::format("Are you sure you want to <cr>delete all</c> <cg>sent levels</c> for <co>{}</c> levels?\n<cy>This action cannot be undone.</c>", typeStr),
         "Cancel",
         "Delete",
-        [this, type](auto, bool yes) {
+        [this, type](FLAlertLayer*, bool yes) {
             if (!yes)
                 return;
 
-            auto popup = UploadActionPopup::create(nullptr, "Deleting all sends...");
-            popup->show();
+            auto upopup = UploadActionPopup::create(nullptr, "Deleting all sends...");
+            upopup->show();
 
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
             if (token.empty()) {
                 log::error("Failed to get user token");
-                popup->showFailMessage("Token not found!");
+                upopup->showFailMessage("Token not found!");
                 return;
             }
 
@@ -1039,33 +1039,33 @@ void RLLevelBrowserLayer::onDeleteFilter(CCObject* sender) {
             postReq.bodyJSON(jsonBody);
 
             Ref<RLLevelBrowserLayer> self = this;
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = upopup;
             self->m_deleteAllSendsTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/deleteAllSends"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
 
                     if (!response.ok()) {
                         log::warn("Server returned non-ok status: {}", response.code());
-                        upopup->showFailMessage("Failed to delete sends.");
+                        popupRef->showFailMessage("Failed to delete sends.");
                         return;
                     }
 
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse JSON response");
-                        upopup->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
 
                     auto json = jsonRes.unwrap();
                     bool success = json["success"].asBool().unwrapOrDefault();
                     if (success) {
-                        upopup->showSuccessMessage("All sends deleted!");
+                        popupRef->showSuccessMessage("All sends deleted!");
                         self->refreshLevels(true);
                     } else {
-                        upopup->showFailMessage("Failed to delete sends.");
+                        popupRef->showFailMessage("Failed to delete sends.");
                     }
                 });
         });

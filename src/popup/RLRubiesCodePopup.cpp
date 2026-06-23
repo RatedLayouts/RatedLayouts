@@ -294,20 +294,21 @@ void RLRubiesCodePopup::onDeleteCode(CCObject* sender) {
             body["argonToken"] = token;
             body["id"] = item.id;
 
+            Ref<UploadActionPopup> popupRef = upopup;
             self->m_deleteTask.spawn(
                 web::WebRequest().bodyJSON(body).post(std::string(rl::BASE_API_URL) + "/deleteRubiesCode"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
 
                     if (!response.ok()) {
-                        upopup->showFailMessage("Failed to delete code");
+                        popupRef->showFailMessage("Failed to delete code");
                         return;
                     }
 
                     auto jsonRes = response.json();
                     if (!jsonRes) {
-                        upopup->showFailMessage("Invalid server response");
+                        popupRef->showFailMessage("Invalid server response");
                         return;
                     }
 
@@ -317,11 +318,11 @@ void RLRubiesCodePopup::onDeleteCode(CCObject* sender) {
                         auto msg = json["message"].asString().unwrapOrDefault();
                         if (msg.empty())
                             msg = "Failed to delete code";
-                        upopup->showFailMessage(msg);
+                        popupRef->showFailMessage(msg);
                         return;
                     }
 
-                    upopup->showSuccessMessage("Code deleted");
+                    popupRef->showSuccessMessage("Code deleted");
                     if (self)
                         self->refreshCodes();
                 });

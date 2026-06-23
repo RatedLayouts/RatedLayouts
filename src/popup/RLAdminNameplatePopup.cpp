@@ -197,15 +197,16 @@ void RLAdminNameplatePopup::onApprove(CCObject* sender) {
     upopup->show();
 
     Ref<RLAdminNameplatePopup> self = this;
+    Ref<UploadActionPopup> popupRef = upopup;
     m_actionTask.spawn(
         web::WebRequest().bodyJSON(body).post(std::string(rl::BASE_API_URL) + "/approveNameplate"),
-        [self, upopup](web::WebResponse response) {
-            if (!self || !upopup) return;
+        [self, popupRef](web::WebResponse response) {
+            if (!self || !popupRef) return;
             if (response.ok()) {
-                upopup->showSuccessMessage("Nameplate Approved!");
+                popupRef->showSuccessMessage("Nameplate Approved!");
                 self->fetchPending();
             } else {
-                upopup->showFailMessage("Failed to approve");
+                popupRef->showFailMessage("Failed to approve");
             }
         });
 }
@@ -227,15 +228,16 @@ void RLAdminNameplatePopup::onReject(CCObject* sender) {
     upopup->show();
 
     Ref<RLAdminNameplatePopup> self = this;
+    Ref<UploadActionPopup> popupRef = upopup;
     m_actionTask.spawn(
         web::WebRequest().bodyJSON(body).post(std::string(rl::BASE_API_URL) + "/approveNameplate"),
-        [self, upopup](web::WebResponse response) {
-            if (!self || !upopup) return;
+        [self, popupRef](web::WebResponse response) {
+            if (!self || !popupRef) return;
             if (response.ok()) {
-                upopup->showSuccessMessage("Nameplate Denied.");
+                popupRef->showSuccessMessage("Nameplate Denied.");
                 self->fetchPending();
             } else {
-                upopup->showFailMessage("Failed to deny");
+                popupRef->showFailMessage("Failed to deny");
             }
         });
 }

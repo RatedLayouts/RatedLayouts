@@ -145,33 +145,34 @@ void RLUserLevelControl::removeLevel(int levelId) {
             auto req = web::WebRequest();
             req.bodyJSON(body);
             Ref<RLUserLevelControl> self = this;
+            Ref<UploadActionPopup> popupRef = upopup;
             self->m_removeLevelTask.spawn(
                 req.post(std::string(rl::BASE_API_URL) + "/deleteCompletionLevel"),
-                [self, upopup](web::WebResponse res) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse res) {
+                    if (!self || !popupRef)
                         return;
 
                     if (!res.ok()) {
-                        upopup->showFailMessage(
+                        popupRef->showFailMessage(
                             rl::getResponseFailMessage(res, "Failed to remove level"));
                         return;
                     }
 
                     auto jsonRes = res.json();
                     if (!jsonRes) {
-                        upopup->showFailMessage("Invalid server response");
+                        popupRef->showFailMessage("Invalid server response");
                         return;
                     }
 
                     auto json = jsonRes.unwrap();
                     bool success = json["success"].asBool().unwrapOrDefault();
                     if (success) {
-                        upopup->showSuccessMessage("Level removed!");
+                        popupRef->showSuccessMessage("Level removed!");
                         if (self) {
                             self->fetchCompletionList(self->m_page);
                         }
                     } else {
-                        upopup->showFailMessage("Failed to remove level");
+                        popupRef->showFailMessage("Failed to remove level");
                     }
                 });
         });

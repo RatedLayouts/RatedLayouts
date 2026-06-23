@@ -626,6 +626,16 @@ class $modify(RLCommentCell, CommentCell) {
             userNameMenu->addChild(btn);
         };
 
+        if (m_fields->isOwner) {
+            addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr),
+                10,
+                "rl-comment-owner-badge:1");
+        }
+        if (m_fields->isDeveloper) {
+            addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeDeveloper.png"_spr),
+                12,
+                "rl-comment-developer-badge:1");
+        }
         // admins
         if (m_fields->isClassicAdmin) {
             addBadgeItem(
@@ -646,14 +656,14 @@ class $modify(RLCommentCell, CommentCell) {
                 CCSprite::createWithSpriteFrameName("RL_badgePlatMod01.png"_spr), 8, "rl-comment-plat-mod-badge:3");
         }
 
+        if (m_fields->isLeaderboardAdmin) {
+            addBadgeItem(
+                CCSprite::createWithSpriteFrameName("RL_badgelbAdmin01.png"_spr), 11, "rl-comment-lb-admin-badge:2");
+        }
         // leaderboard mod badge
         if (m_fields->isLeaderboardMod) {
             addBadgeItem(
                 CCSprite::createWithSpriteFrameName("RL_badgelbMod01.png"_spr), 9, "rl-comment-lb-mod-badge:3");
-        }
-        if (m_fields->isLeaderboardAdmin) {
-            addBadgeItem(
-                CCSprite::createWithSpriteFrameName("RL_badgelbAdmin01.png"_spr), 11, "rl-comment-lb-admin-badge:2");
         }
         // supporter badge
         if (m_fields->supporter) {
@@ -665,17 +675,6 @@ class $modify(RLCommentCell, CommentCell) {
         if (m_fields->booster) {
             addBadgeItem(
                 CCSprite::createWithSpriteFrameName("RL_badgeBooster.png"_spr), 4, "rl-comment-booster-badge:4");
-        }
-
-        if (m_fields->isOwner) {
-            addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeOwner.png"_spr),
-                10,
-                "rl-comment-owner-badge:1");
-        }
-        if (m_fields->isDeveloper) {
-            addBadgeItem(CCSprite::createWithSpriteFrameName("RL_badgeDeveloper.png"_spr),
-                12,
-                "rl-comment-developer-badge:1");
         }
         userNameMenu->updateLayout();
         applyCommentTextColor(accountId);

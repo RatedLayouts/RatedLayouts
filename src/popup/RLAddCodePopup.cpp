@@ -101,18 +101,19 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
     }
 
     Ref<RLAddCodePopup> self = this;
+    Ref<UploadActionPopup> popupRef = upopup;
     m_submitTask.spawn(
         web::WebRequest().bodyJSON(body).post(endpoint),
-        [self, upopup](web::WebResponse response) {
-            if (!self || !upopup)
+        [self, popupRef](web::WebResponse response) {
+            if (!self || !popupRef)
                 return;
             if (!response.ok()) {
-                upopup->showFailMessage(rl::getResponseFailMessage(response, "Failed to save code"));
+                popupRef->showFailMessage(rl::getResponseFailMessage(response, "Failed to save code"));
                 return;
             }
             auto jsonRes = response.json();
             if (!jsonRes) {
-                upopup->showFailMessage("Invalid server response");
+                popupRef->showFailMessage("Invalid server response");
                 return;
             }
             auto json = jsonRes.unwrap();
@@ -121,10 +122,10 @@ void RLAddCodePopup::onAdd(CCObject* sender) {
                 auto msg = json["message"].asString().unwrapOrDefault();
                 if (msg.empty())
                     msg = "Failed to save code";
-                upopup->showFailMessage(msg);
+                popupRef->showFailMessage(msg);
                 return;
             }
-            upopup->showSuccessMessage("Code saved");
+            popupRef->showSuccessMessage("Code saved");
             if (self && self->m_onSuccess) {
                 self->m_onSuccess();
             }

@@ -176,19 +176,20 @@ void RLQueueLevelPopup::submitToQueue(CCObject* sender) {
             req.bodyJSON(jsonBody);
 
             Ref<RLQueueLevelPopup> self = this;
+            Ref<UploadActionPopup> popupRef = upopup;
             async::spawn(req.post(std::string(rl::BASE_API_URL) + "/submitQueue"),
-                [self, upopup](web::WebResponse const& response) {
-                    if (!self) {
+                [self, popupRef](web::WebResponse const& response) {
+                    if (!self || !popupRef) {
                         return;
                     }
 
                     if (!response.ok()) {
                         auto message = rl::getResponseFailMessage(response, "Failed to submit queue");
-                        upopup->showFailMessage(message);
+                        popupRef->showFailMessage(message);
                         return;
                     }
 
-                    upopup->showSuccessMessage("Level submitted successfully!");
+                    popupRef->showSuccessMessage("Level submitted successfully!");
                     self->onClose(nullptr);
                 });
         });

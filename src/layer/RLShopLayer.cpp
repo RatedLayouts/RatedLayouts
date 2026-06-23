@@ -257,7 +257,7 @@ void RLShopLayer::initDropdownMenu() {
     m_dropdownMenu->addCell(unequipBtn);
     unequipBtn->setPositionX(15.f);
 
-    auto nameplateTestBtn = CCLabelBMFont::create("Nameplate Submission", "bigFont.fnt");
+    auto nameplateTestBtn = CCLabelBMFont::create("Submission", "bigFont.fnt");
     nameplateTestBtn->limitLabelWidth(100, .7, .3);
     m_dropdownMenu->addCell(nameplateTestBtn);
     nameplateTestBtn->setPositionX(15.f);
@@ -455,19 +455,18 @@ void RLShopLayer::onUnequipNameplate() {
         "re-equip it later from this shop page.</c>",
         "No",
         "Yes",
-        [this](auto, bool yes) {
+        [this](FLAlertLayer*, bool yes) {
             if (!yes)
                 return;
 
             // show a spinner/popup while we call the backend
-            auto popupRef =
-                UploadActionPopup::create(nullptr, "Unequipping nameplate...");
-            popupRef->show();
+            auto upopup = UploadActionPopup::create(nullptr, "Unequipping nameplate...");
+            upopup->show();
 
             // validate token
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
             if (token.empty()) {
-                popupRef->showFailMessage("Argon auth missing");
+                upopup->showFailMessage("Argon auth missing");
                 return;
             }
 
@@ -480,35 +479,35 @@ void RLShopLayer::onUnequipNameplate() {
             auto req = web::WebRequest();
             req.bodyJSON(jsonBody);
 
-            Ref<UploadActionPopup> upRef = popupRef;
+            Ref<UploadActionPopup> popupRef = upopup;
             Ref<RLShopLayer> self = this;
             async::spawn(
                 req.post(std::string(rl::BASE_API_URL) + "/setNameplate"),
-                [self, upRef](web::WebResponse res) {
-                    if (!upRef)
+                [self, popupRef](web::WebResponse res) {
+                    if (!popupRef)
                         return;
                     if (!res.ok()) {
                         log::warn("Failed to unequip nameplate on server: {}",
                             res.code());
-                        upRef->showFailMessage(
+                        popupRef->showFailMessage(
                             "Failed to unequip nameplate on server.");
                         return;
                     }
                     auto jsonRes = res.json();
                     if (!jsonRes) {
-                        upRef->showFailMessage("Invalid server response.");
+                        popupRef->showFailMessage("Invalid server response.");
                         return;
                     }
                     auto json = jsonRes.unwrap();
                     bool success = json["success"].asBool().unwrapOrDefault();
                     if (!success) {
-                        upRef->showFailMessage(json["message"].asString().unwrapOr(
+                        popupRef->showFailMessage(json["message"].asString().unwrapOr(
                             "Failed to unequip nameplate."));
                         return;
                     }
 
                     Mod::get()->setSavedValue<int>("selected_nameplate", 0);
-                    upRef->showSuccessMessage("Nameplate unequipped!");
+                    popupRef->showSuccessMessage("Nameplate unequipped!");
 
                     if (self) {
                         self->updateShopPage();
@@ -671,7 +670,7 @@ void RLShopLayer::onResetRubies() {
         "from any completed rated layouts.</c>",
         "No",
         "Yes",
-        [this](auto, bool yes) {
+        [this](FLAlertLayer*, bool yes) {
             if (!yes)
                 return;
             // clear the data from rubies

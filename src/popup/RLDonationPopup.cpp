@@ -254,14 +254,17 @@ void RLDonationPopup::onAccessBadge(CCObject* sender) {
                 auto postReq = web::WebRequest();
                 postReq.bodyJSON(jsonBody);
 
+                Ref<RLDonationPopup> self = this;
+                Ref<UploadActionPopup> popupRef = m_uploadPopup;
                 m_getAccessTask.spawn(
                     postReq.post(std::string(rl::BASE_API_URL) + "/getAccessSupporter"),
-                    [this](web::WebResponse response) {
+                    [self, popupRef](web::WebResponse response) {
+                        if (!self || !popupRef) return;
                         log::info("Received response from server");
                         if (!response.ok()) {
                             log::warn("Server returned non-ok status: {}",
                                 response.code());
-                            m_uploadPopup->showFailMessage(rl::getResponseFailMessage(
+                            popupRef->showFailMessage(rl::getResponseFailMessage(
                                 response, "Failed! Try again later."));
                             return;
                         }
@@ -269,7 +272,7 @@ void RLDonationPopup::onAccessBadge(CCObject* sender) {
                         auto jsonRes = response.json();
                         if (!jsonRes) {
                             log::warn("Failed to parse JSON response");
-                            m_uploadPopup->showFailMessage(
+                            popupRef->showFailMessage(
                                 "Failed to parse JSON response");
                             return;
                         }
@@ -285,10 +288,9 @@ void RLDonationPopup::onAccessBadge(CCObject* sender) {
 
                         if (isSupporter || isBooster) {
                             log::info("Granted Supporter Features");
-                            m_uploadPopup->showSuccessMessage(
-                                "Granted Supporter Features.");
+                            popupRef->showSuccessMessage("Granted Supporter Features.");
                         } else {
-                            m_uploadPopup->showFailMessage("You are not a Supporter or Booster.");
+                            popupRef->showFailMessage("You are not a Supporter or Booster.");
                         }
                     });
             } else {

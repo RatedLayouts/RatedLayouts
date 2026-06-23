@@ -1,7 +1,12 @@
 # v1.0.15
 
+#### Hotfix in regards to how negative rubies is fixed.
+
 - Properly fixed the negative rubies.
   - Completely forgot to actually save the rubies when it reverted.
+- Fixed issue where closing the Upload Popup crashes your game.
+- Added **NoMin**, **NoMax** and **Mid** scores for the Community Votes for each scores.
+- Average Score will now exclude Min and Max votes. _<cy>(This is done in the server internal but why just announce it here anyway)</c>_
 
 # v1.0.14
 

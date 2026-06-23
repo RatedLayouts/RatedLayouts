@@ -36,10 +36,11 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                 auto upopup =
                     UploadActionPopup::create(nullptr, "Submitting your vote...");
                 upopup->show();
+                Ref<UploadActionPopup> popupRef = upopup;
                 auto argonToken =
                     Mod::get()->getSavedValue<std::string>("argon_token");
                 if (argonToken.empty()) {
-                    upopup->showFailMessage("Auth required to submit vote");
+                    popupRef->showFailMessage("Auth required to submit vote");
                     return;
                 }
                 int gameplayVote = 0;
@@ -76,7 +77,7 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                 }
 
                 if (!includeGameplay && !includeOriginality && !includeDifficulty) {
-                    upopup->showFailMessage("No votes provided");
+                    popupRef->showFailMessage("No votes provided");
                     return;
                 }
 
@@ -96,17 +97,17 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                 Ref<RLCommunityVotePopup> self = this;
                 self->m_submitVoteTask.spawn(
                     req.post(std::string(rl::BASE_API_URL) + "/submitScore"),
-                    [self, upopup, gameplayVote, originalityVote, difficultyVote](web::WebResponse res) {
-                        if (!self)
+                    [self, popupRef, gameplayVote, originalityVote, difficultyVote](web::WebResponse res) {
+                        if (!self || !popupRef)
                             return;
                         if (!res.ok()) {
-                            upopup->showFailMessage(
+                            popupRef->showFailMessage(
                                 "Failed to submit vote!");
                             return;
                         }
                         auto jsonRes = res.json();
                         if (!jsonRes) {
-                            upopup->showFailMessage("Invalid response from server.");
+                            popupRef->showFailMessage("Invalid response from server.");
                             return;
                         }
                         auto json = jsonRes.unwrap();
@@ -115,7 +116,7 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                             json["message"].asString().unwrapOrDefault();
                         if (success) {
                             if (!self->m_mainLayer || !self->getParent()) {
-                                upopup->showSuccessMessage("Vote submitted!");
+                                popupRef->showSuccessMessage("Vote submitted!");
                                 // increment community vote achievements progress and notify
                                 // achievements system
                                 int oldVotes =
@@ -128,7 +129,7 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                                 return;
                             }
 
-                            upopup->showSuccessMessage("Vote submitted!");
+                            popupRef->showSuccessMessage("Vote submitted!");
                             // increment community vote achievements progress and notify
                             // achievements system
                             int oldVotes =
@@ -157,7 +158,7 @@ void RLCommunityVotePopup::onSubmit(CCObject*) {
                             // Refresh UI by re-fetching data
                             self->refreshFromServer();
                         } else {
-                            upopup->showFailMessage(message);
+                            popupRef->showFailMessage(message);
                         }
                     });
             }
@@ -171,92 +172,110 @@ bool RLCommunityVotePopup::init() {
     addSideArt(m_mainLayer, SideArt::All, SideArtStyle::PopupBlue, false);
     // Use taller vertical rows so label, score and input stack vertically
     float rowW = 100.f;
-    float rowH = 120.f;
+    float rowH = 130.f;
     float rowSpacing = 8.f;
 
-    // originality row (vertical layout: label top, score under label, input under
-    // score)
-    auto originalityRow = CCLayer::create();
+    // originality row (vertical layout)
+    auto originalityRow = CCNode::create();
     originalityRow->setContentSize({rowW, rowH});
-    originalityRow->setPosition({10.f, 55.f});
+    originalityRow->setAnchorPoint({0.5f, 0.5f});
+    originalityRow->setPosition({10.f + rowW / 2.f, 55.f + rowH / 2.f});
     m_mainLayer->addChild(originalityRow);
 
     auto originalityLabel = CCLabelBMFont::create("Originality", "chatFont.fnt");
-    originalityLabel->setPosition({rowW / 2.f, rowH - 10.f});
     originalityRow->addChild(originalityLabel);
 
     m_originalityScoreLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-    m_originalityScoreLabel->setAnchorPoint({0.5f, 0.5f});
-    m_originalityScoreLabel->setPosition({rowW / 2.f, rowH - 40.f});
-    m_originalityScoreLabel->setScale(0.7f);
+    m_originalityScoreLabel->limitLabelWidth(80.f, 0.6f, 0.3f);
     originalityRow->addChild(m_originalityScoreLabel);
 
     // numeric text input below score
     m_originalityInput = TextInput::create(80.f, "1-10");
-    m_originalityInput->setPosition({rowW / 2.f, rowH - 80.f});
     m_originalityInput->setID("originality-vote-input");
     m_originalityInput->setCommonFilter(CommonFilter::Int);
     originalityRow->addChild(m_originalityInput);
+
+    m_originalityStatsLabel = CCLabelBMFont::create("-", "bigFont.fnt");
+    m_originalityStatsLabel->setScale(0.3f);
+    m_originalityStatsLabel->setAlignment(kCCTextAlignmentCenter);
+    m_originalityStatsLabel->setColor({200, 200, 200});
+    originalityRow->addChild(m_originalityStatsLabel);
+
+    originalityRow->setLayout(ColumnLayout::create()->setGap(5.f)->setAxisReverse(true)->setAutoScale(false));
+    originalityRow->updateLayout();
 
     m_originalityVote =
         numFromString<int>(m_originalityInput->getString()).unwrapOr(0);
 
     // difficulty row (vertical layout)
-    auto difficultyRow = CCLayer::create();
+    auto difficultyRow = CCNode::create();
     difficultyRow->setContentSize({rowW, rowH});
+    difficultyRow->setAnchorPoint({0.5f, 0.5f});
     difficultyRow->setPosition(
         {originalityRow->getPositionX() + 100.f, originalityRow->getPositionY()});
     m_mainLayer->addChild(difficultyRow);
 
     auto diffLabel = CCLabelBMFont::create("Difficulty", "chatFont.fnt");
-    diffLabel->setPosition({rowW / 2.f, rowH - 10.f});
     difficultyRow->addChild(diffLabel);
 
     m_difficultyScoreLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-    m_difficultyScoreLabel->setAnchorPoint({0.5f, 0.5f});
-    m_difficultyScoreLabel->setPosition({rowW / 2.f, rowH - 40.f});
-    m_difficultyScoreLabel->setScale(0.7f);
+    m_difficultyScoreLabel->limitLabelWidth(80.f, 0.6f, 0.3f);
     difficultyRow->addChild(m_difficultyScoreLabel);
 
     // numeric input for difficulty vote
     m_difficultyInput = TextInput::create(80.f, "1-30");
-    m_difficultyInput->setPosition({rowW / 2.f, rowH - 80.f});
     m_difficultyInput->setID("difficulty-vote-input");
     m_difficultyInput->setCommonFilter(CommonFilter::Int);
     difficultyRow->addChild(m_difficultyInput);
+
+    m_difficultyStatsLabel = CCLabelBMFont::create("-", "bigFont.fnt");
+    m_difficultyStatsLabel->setScale(0.3f);
+    m_difficultyStatsLabel->setAlignment(kCCTextAlignmentCenter);
+    m_difficultyStatsLabel->setColor({200, 200, 200});
+    difficultyRow->addChild(m_difficultyStatsLabel);
+
+    difficultyRow->setLayout(ColumnLayout::create()->setGap(5.f)->setAxisReverse(true)->setAutoScale(false));
+    difficultyRow->updateLayout();
 
     m_difficultyVote =
         numFromString<int>(m_difficultyInput->getString()).unwrapOr(0);
 
     // gameplay row (vertical layout)
-    auto gameplayRow = CCLayer::create();
+    auto gameplayRow = CCNode::create();
     gameplayRow->setContentSize({rowW, rowH});
+    gameplayRow->setAnchorPoint({0.5f, 0.5f});
     gameplayRow->setPosition(
         {difficultyRow->getPositionX() + 100.f, originalityRow->getPositionY()});
     m_mainLayer->addChild(gameplayRow);
 
     auto gpLabel = CCLabelBMFont::create("Gameplay", "chatFont.fnt");
-    gpLabel->setPosition({rowW / 2.f, rowH - 10.f});
     gameplayRow->addChild(gpLabel);
 
     m_gameplayScoreLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-    m_gameplayScoreLabel->setAnchorPoint({0.5f, 0.5f});
-    m_gameplayScoreLabel->setPosition({rowW / 2.f, rowH - 40.f});
-    m_gameplayScoreLabel->setScale(0.7f);
+    m_gameplayScoreLabel->limitLabelWidth(80.f, 0.6f, 0.3f);
     gameplayRow->addChild(m_gameplayScoreLabel);
 
     // numeric input for gameplay vote
     m_gameplayInput = TextInput::create(80.f, "1-10");
-    m_gameplayInput->setPosition({rowW / 2.f, rowH - 80.f});
     m_gameplayInput->setID("gameplay-vote-input");
     m_gameplayInput->setCommonFilter(CommonFilter::Int);
     gameplayRow->addChild(m_gameplayInput);
 
+    m_gameplayStatsLabel = CCLabelBMFont::create("-", "bigFont.fnt");
+    m_gameplayStatsLabel->setScale(0.3f);
+    m_gameplayStatsLabel->setAlignment(kCCTextAlignmentCenter);
+    m_gameplayStatsLabel->setColor({200, 200, 200});
+    gameplayRow->addChild(m_gameplayStatsLabel);
+
+    gameplayRow->setLayout(ColumnLayout::create()->setGap(5.f)->setAxisReverse(true)->setAutoScale(false));
+    gameplayRow->updateLayout();
+
     m_gameplayVote = numFromString<int>(m_gameplayInput->getString()).unwrapOr(0);
 
     // moderators' average difficulty (vertical layout)
-    auto modRow = CCLayer::create();
+    auto modRow = CCNode::create();
     modRow->setContentSize({rowW, rowH});
+    modRow->setAnchorPoint({0.5f, 0.5f});
     modRow->setPosition(
         {gameplayRow->getPositionX() + 100.f, originalityRow->getPositionY()});
     m_mainLayer->addChild(modRow);
@@ -264,14 +283,15 @@ bool RLCommunityVotePopup::init() {
     auto modLabel =
         CCLabelBMFont::create("Layout Mods'\nAverage Difficulty", "chatFont.fnt");
     modLabel->setAlignment(kCCTextAlignmentCenter);
-    modLabel->setPosition({rowW / 2.f, rowH - 5.f});
     modLabel->setScale(0.8f);
     modRow->addChild(modLabel);
 
     m_modDifficultyLabel = CCLabelBMFont::create("-", "bigFont.fnt");
-    m_modDifficultyLabel->setPosition({rowW / 2.f, rowH - 40.f});
-    m_modDifficultyLabel->setScale(0.7f);
+    m_modDifficultyLabel->limitLabelWidth(80.f, 0.6f, 0.3f);
     modRow->addChild(m_modDifficultyLabel);
+
+    modRow->setLayout(ColumnLayout::create()->setGap(5.f)->setAxisReverse(true)->setAutoScale(false));
+    modRow->updateLayout();
 
     // submit button
     auto submitSpr =
@@ -412,6 +432,45 @@ void RLCommunityVotePopup::refreshFromServer() {
                 }
             }
 
+            auto updateStatsLabel = [&](CCLabelBMFont* label, std::string prefix) {
+                if (!label) return;
+                double minVal = -1.0, maxVal = -1.0, midVal = -1.0, noMinVal = -1.0, noMaxVal = -1.0;
+                if (vjson.contains(prefix + "Min") && vjson[prefix + "Min"].asDouble())
+                    minVal = vjson[prefix + "Min"].asDouble().unwrap();
+                if (vjson.contains(prefix + "Max") && vjson[prefix + "Max"].asDouble())
+                    maxVal = vjson[prefix + "Max"].asDouble().unwrap();
+                if (vjson.contains(prefix + "Mid") && vjson[prefix + "Mid"].asDouble())
+                    midVal = vjson[prefix + "Mid"].asDouble().unwrap();
+                if (vjson.contains(prefix + "NoMin") && vjson[prefix + "NoMin"].asDouble())
+                    noMinVal = vjson[prefix + "NoMin"].asDouble().unwrap();
+                if (vjson.contains(prefix + "NoMax") && vjson[prefix + "NoMax"].asDouble())
+                    noMaxVal = vjson[prefix + "NoMax"].asDouble().unwrap();
+
+                auto formatVal = [](double val, bool isInt) -> std::string {
+                    if (val < 0) return "-";
+                    if (isInt) return fmt::format("{:.0f}", val);
+                    return fmt::format("{:.1f}", val);
+                };
+
+                std::string statsStr = fmt::format("Min: {}\nMax: {}\nMid: {}\nNo Min: {}\nNo Max: {}",
+                    formatVal(minVal, true),
+                    formatVal(maxVal, true),
+                    formatVal(midVal, false),
+                    formatVal(noMinVal, false),
+                    formatVal(noMaxVal, false));
+                label->setString(statsStr.c_str());
+
+                if (auto row = typeinfo_cast<CCNode*>(label->getParent())) {
+                    if (auto layout = typeinfo_cast<ColumnLayout*>(row->getLayout())) {
+                        row->updateLayout();
+                    }
+                }
+            };
+
+            updateStatsLabel(self->m_originalityStatsLabel, "originality");
+            updateStatsLabel(self->m_difficultyStatsLabel, "difficulty");
+            updateStatsLabel(self->m_gameplayStatsLabel, "gameplay");
+
             // moderator difficulty (read-only) - prefer averageDifficulty from
             // getVote
             double avg = -1.0;
@@ -438,25 +497,14 @@ void RLCommunityVotePopup::refreshFromServer() {
             // If moderators forced show, keep labels visible regardless of 'hasX'
             // vote state
             if (self->m_forceShowScores) {
-                if (self->m_gameplayInput) {
-                    // do not overwrite moderator's ability to see scores
-                    // but keep VOTED status if applicable
-                    if (hasGameplay) {
-                        self->m_gameplayInput->setString("VOTED");
-                        self->m_gameplayInput->setEnabled(false);
-                    }
+                if (self->m_gameplayInput && hasGameplay) {
+                    self->m_gameplayInput->setVisible(false);
                 }
-                if (self->m_originalityInput) {
-                    if (hasOriginality) {
-                        self->m_originalityInput->setString("VOTED");
-                        self->m_originalityInput->setEnabled(false);
-                    }
+                if (self->m_originalityInput && hasOriginality) {
+                    self->m_originalityInput->setVisible(false);
                 }
-                if (self->m_difficultyInput) {
-                    if (hasDifficulty) {
-                        self->m_difficultyInput->setString("VOTED");
-                        self->m_difficultyInput->setEnabled(false);
-                    }
+                if (self->m_difficultyInput && hasDifficulty) {
+                    self->m_difficultyInput->setVisible(false);
                 }
 
                 if (self->m_gameplayScoreLabel)
@@ -465,46 +513,76 @@ void RLCommunityVotePopup::refreshFromServer() {
                     self->m_originalityScoreLabel->setVisible(true);
                 if (self->m_difficultyScoreLabel)
                     self->m_difficultyScoreLabel->setVisible(true);
+
+                if (self->m_gameplayStatsLabel) self->m_gameplayStatsLabel->setVisible(true);
+                if (self->m_originalityStatsLabel) self->m_originalityStatsLabel->setVisible(true);
+                if (self->m_difficultyStatsLabel) self->m_difficultyStatsLabel->setVisible(true);
             } else {
                 if (hasGameplay) {
                     if (self->m_gameplayInput) {
-                        self->m_gameplayInput->setString("VOTED");
-                        self->m_gameplayInput->setEnabled(false);
+                        self->m_gameplayInput->setVisible(false);
                     }
                     if (self->m_gameplayScoreLabel)
                         self->m_gameplayScoreLabel->setVisible(true);
+                    if (self->m_gameplayStatsLabel)
+                        self->m_gameplayStatsLabel->setVisible(true);
                 } else {
                     if (self->m_gameplayScoreLabel)
                         self->m_gameplayScoreLabel->setVisible(false);
+                    if (self->m_gameplayStatsLabel)
+                        self->m_gameplayStatsLabel->setVisible(false);
                 }
 
                 if (hasOriginality) {
                     if (self->m_originalityInput) {
-                        self->m_originalityInput->setString("VOTED");
-                        self->m_originalityInput->setEnabled(false);
+                        self->m_originalityInput->setVisible(false);
                     }
                     if (self->m_originalityScoreLabel)
                         self->m_originalityScoreLabel->setVisible(true);
+                    if (self->m_originalityStatsLabel)
+                        self->m_originalityStatsLabel->setVisible(true);
                 } else {
                     if (self->m_originalityScoreLabel)
                         self->m_originalityScoreLabel->setVisible(false);
+                    if (self->m_originalityStatsLabel)
+                        self->m_originalityStatsLabel->setVisible(false);
                 }
 
                 if (hasDifficulty) {
                     if (self->m_difficultyInput) {
-                        self->m_difficultyInput->setString("VOTED");
-                        self->m_difficultyInput->setEnabled(false);
+                        self->m_difficultyInput->setVisible(false);
                     }
                     if (self->m_difficultyScoreLabel)
                         self->m_difficultyScoreLabel->setVisible(true);
+                    if (self->m_difficultyStatsLabel)
+                        self->m_difficultyStatsLabel->setVisible(true);
                 } else {
                     if (self->m_difficultyScoreLabel)
                         self->m_difficultyScoreLabel->setVisible(false);
+                    if (self->m_difficultyStatsLabel)
+                        self->m_difficultyStatsLabel->setVisible(false);
+                }
+            }
+
+            // Update layout for columns to account for hidden TextInputs
+            if (self->m_originalityScoreLabel && self->m_originalityScoreLabel->getParent()) {
+                if (auto row = typeinfo_cast<CCNode*>(self->m_originalityScoreLabel->getParent())) {
+                    row->updateLayout();
+                }
+            }
+            if (self->m_difficultyScoreLabel && self->m_difficultyScoreLabel->getParent()) {
+                if (auto row = typeinfo_cast<CCNode*>(self->m_difficultyScoreLabel->getParent())) {
+                    row->updateLayout();
+                }
+            }
+            if (self->m_gameplayScoreLabel && self->m_gameplayScoreLabel->getParent()) {
+                if (auto row = typeinfo_cast<CCNode*>(self->m_gameplayScoreLabel->getParent())) {
+                    row->updateLayout();
                 }
             }
 
             // Ensure toggle buttons reflect current visibility state for moderators
-            if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner()) {
+            if (rl::isUserClassicRole() || rl::isUserPlatformerRole() || rl::isUserOwner() || rl::isUserDeveloper()) {
                 if (self->m_toggleAllBtn)
                     self->m_toggleAllBtn->setVisible(true);
             } else {
@@ -588,6 +666,10 @@ void RLCommunityVotePopup::onToggleAll(CCObject* sender) {
     m_difficultyScoreLabel->setVisible(newVis);
     m_gameplayScoreLabel->setVisible(newVis);
 
+    if (m_originalityStatsLabel) m_originalityStatsLabel->setVisible(newVis);
+    if (m_difficultyStatsLabel) m_difficultyStatsLabel->setVisible(newVis);
+    if (m_gameplayStatsLabel) m_gameplayStatsLabel->setVisible(newVis);
+
     // update toggle visual state if possible
     if (m_toggleAllBtn) {
         auto normal = m_toggleAllBtn->getNormalImage();
@@ -599,5 +681,22 @@ void RLCommunityVotePopup::onToggleAll(CCObject* sender) {
     if (newVis) {
         // refresh scores when showing
         refreshFromServer();
+    }
+
+    // Update layout for columns
+    if (m_originalityScoreLabel && m_originalityScoreLabel->getParent()) {
+        if (auto row = typeinfo_cast<CCNode*>(m_originalityScoreLabel->getParent())) {
+            row->updateLayout();
+        }
+    }
+    if (m_difficultyScoreLabel && m_difficultyScoreLabel->getParent()) {
+        if (auto row = typeinfo_cast<CCNode*>(m_difficultyScoreLabel->getParent())) {
+            row->updateLayout();
+        }
+    }
+    if (m_gameplayScoreLabel && m_gameplayScoreLabel->getParent()) {
+        if (auto row = typeinfo_cast<CCNode*>(m_gameplayScoreLabel->getParent())) {
+            row->updateLayout();
+        }
     }
 }

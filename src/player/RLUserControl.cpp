@@ -546,12 +546,12 @@ void RLUserControl::onWipeAction(CCObject* sender) {
 
             auto popup = UploadActionPopup::create(nullptr, "Wiping user data...");
             popup->show();
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
 
             // Get token
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
             if (token.empty()) {
-                upopup->showFailMessage("Authentication token not found");
+                popupRef->showFailMessage("Authentication token not found");
                 return;
             }
 
@@ -574,8 +574,8 @@ void RLUserControl::onWipeAction(CCObject* sender) {
             Ref<RLUserControl> self = this;
             self->m_deleteUserTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/deleteUser"),
-                [self, upopup](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
 
                     // re-enable UI
@@ -586,7 +586,7 @@ void RLUserControl::onWipeAction(CCObject* sender) {
                     if (!response.ok()) {
                         log::warn("deleteUser returned non-ok status: {}",
                             response.code());
-                        upopup->showFailMessage(
+                        popupRef->showFailMessage(
                             rl::getResponseFailMessage(response, "Failed to delete user"));
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
@@ -596,7 +596,7 @@ void RLUserControl::onWipeAction(CCObject* sender) {
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse deleteUser response");
-                        upopup->showFailMessage("Invalid server response");
+                        popupRef->showFailMessage("Invalid server response");
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
                         return;
@@ -607,9 +607,9 @@ void RLUserControl::onWipeAction(CCObject* sender) {
                     if (success) {
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
-                        upopup->showSuccessMessage("User data wiped!");
+                        popupRef->showSuccessMessage("User data wiped!");
                     } else {
-                        upopup->showFailMessage("Failed to delete user");
+                        popupRef->showFailMessage("Failed to delete user");
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
                     }
@@ -716,12 +716,12 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
 
             auto popup = UploadActionPopup::create(nullptr, actionText.c_str());
             popup->show();
-            Ref<UploadActionPopup> upopup = popup;
+            Ref<UploadActionPopup> popupRef = popup;
 
             // Get token
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
             if (token.empty()) {
-                upopup->showFailMessage("Authentication token not found");
+                popupRef->showFailMessage("Authentication token not found");
                 return;
             }
 
@@ -790,8 +790,8 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
             Ref<RLUserControl> self = this;
             self->m_promoteUserTask.spawn(
                 postReq.post(std::string(rl::BASE_API_URL) + "/promoteUser"),
-                [self, upopup, setLBMod, setLBAdmin, setClassicMod, setClassicAdmin, setPlatMod, setPlatAdmin, demoteClassicMod, demoteClassicAdmin, demotePlatMod, demotePlatAdmin, demoteLBMod, demoteLBAdmin, targetHasClassic, targetHasPlat, targetHasLB](web::WebResponse response) {
-                    if (!self || !upopup)
+                [self, popupRef, setLBMod, setLBAdmin, setClassicMod, setClassicAdmin, setPlatMod, setPlatAdmin, demoteClassicMod, demoteClassicAdmin, demotePlatMod, demotePlatAdmin, demoteLBMod, demoteLBAdmin, targetHasClassic, targetHasPlat, targetHasLB](web::WebResponse response) {
+                    if (!self || !popupRef)
                         return;
 
                     // re-enable UI
@@ -821,7 +821,7 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
                             response.code());
 
                         if (response.code() == 403) {
-                            upopup->showFailMessage(rl::getResponseFailMessage(
+                            popupRef->showFailMessage(rl::getResponseFailMessage(
                                 response, "Permission denied"));
                         }
 
@@ -838,7 +838,7 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
                     auto jsonRes = response.json();
                     if (!jsonRes) {
                         log::warn("Failed to parse promoteUser response");
-                        upopup->showFailMessage("Invalid server response");
+                        popupRef->showFailMessage("Invalid server response");
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
                         return;
@@ -853,47 +853,47 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
                         // update local state based on which action was taken
                         if (demoteClassicMod) {
                             self->m_targetIsClassicMod = false;
-                            upopup->showSuccessMessage("User demoted from Classic mod!");
+                            popupRef->showSuccessMessage("User demoted from Classic mod!");
                         } else if (demoteClassicAdmin) {
                             self->m_targetIsClassicAdmin = false;
-                            upopup->showSuccessMessage("User demoted from Classic admin!");
+                            popupRef->showSuccessMessage("User demoted from Classic admin!");
                         } else if (demotePlatMod) {
                             self->m_targetIsPlatMod = false;
-                            upopup->showSuccessMessage("User demoted from Platformer mod!");
+                            popupRef->showSuccessMessage("User demoted from Platformer mod!");
                         } else if (demotePlatAdmin) {
                             self->m_targetIsPlatAdmin = false;
-                            upopup->showSuccessMessage("User demoted from Platformer admin!");
+                            popupRef->showSuccessMessage("User demoted from Platformer admin!");
                         } else if (demoteLBMod) {
                             self->m_targetIsLeaderboardMod = false;
-                            upopup->showSuccessMessage("User demoted from LB mod!");
+                            popupRef->showSuccessMessage("User demoted from LB mod!");
                         } else if (demoteLBAdmin) {
                             self->m_targetIsLeaderboardAdmin = false;
-                            upopup->showSuccessMessage("User demoted from LB admin!");
+                            popupRef->showSuccessMessage("User demoted from LB admin!");
                         } else {
                             if (setLBMod) {
                                 self->m_targetIsLeaderboardMod = true;
-                                upopup->showSuccessMessage("User promoted to LB Mod!");
+                                popupRef->showSuccessMessage("User promoted to LB Mod!");
                             }
                             if (setLBAdmin) {
                                 self->m_targetIsLeaderboardAdmin = true;
-                                upopup->showSuccessMessage("User promoted to LB Admin!");
+                                popupRef->showSuccessMessage("User promoted to LB Admin!");
                             }
                             if (setClassicMod) {
                                 self->m_targetIsClassicMod = true;
-                                upopup->showSuccessMessage("User promoted to Classic Mod!");
+                                popupRef->showSuccessMessage("User promoted to Classic Mod!");
                             }
                             if (setClassicAdmin) {
                                 self->m_targetIsClassicAdmin = true;
-                                upopup->showSuccessMessage(
+                                popupRef->showSuccessMessage(
                                     "User promoted to Classic Admin!");
                             }
                             if (setPlatMod) {
                                 self->m_targetIsPlatMod = true;
-                                upopup->showSuccessMessage("User promoted to Plat Mod!");
+                                popupRef->showSuccessMessage("User promoted to Plat Mod!");
                             }
                             if (setPlatAdmin) {
                                 self->m_targetIsPlatAdmin = true;
-                                upopup->showSuccessMessage("User promoted to Plat Admin!");
+                                popupRef->showSuccessMessage("User promoted to Plat Admin!");
                             }
                         }
 
@@ -923,7 +923,7 @@ void RLUserControl::onPromoteAction(CCObject* sender) {
                         setPromoBtnState(self->m_demoteLBModButton, "Demote LB Mod", self->m_targetIsLeaderboardMod);
                         setPromoBtnState(self->m_demoteLBAdminButton, "Demote LB Admin", self->m_targetIsLeaderboardAdmin);
                     } else {
-                        upopup->showFailMessage("Failed to update user role");
+                        popupRef->showFailMessage("Failed to update user role");
                         if (self->m_spinner)
                             self->m_spinner->setVisible(false);
                     }
@@ -1163,12 +1163,12 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
     auto popup =
         UploadActionPopup::create(nullptr, fmt::format("Applying {}...", key));
     popup->show();
-    Ref<UploadActionPopup> upopup = popup;
+    Ref<UploadActionPopup> popupRef = popup;
 
     // get token
     auto token = Mod::get()->getSavedValue<std::string>("argon_token");
     if (token.empty()) {
-        upopup->showFailMessage("Authentication token not found");
+        popupRef->showFailMessage("Authentication token not found");
         // revert visual to persisted
         setOptionState(key, opt->persisted, true);
         return;
@@ -1192,15 +1192,15 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
     Ref<RLUserControl> self = this;
     m_setUserTask.spawn(
         postReq.post(std::string(rl::BASE_API_URL) + "/setUser"),
-        [self, key, value, upopup](web::WebResponse response) {
-            if (!self || !upopup)
+        [self, key, value, popupRef](web::WebResponse response) {
+            if (!self || !popupRef)
                 return;
             // re-enable buttons
             self->setOptionEnabled(key, true);
 
             if (!response.ok()) {
                 log::warn("setUser returned non-ok status: {}", response.code());
-                upopup->showFailMessage(
+                popupRef->showFailMessage(
                     rl::getResponseFailMessage(response, "Failed to update user"));
                 // revert visual to persisted
                 auto currentOpt = self->getOptionByKey(key);
@@ -1218,7 +1218,7 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
             auto jsonRes = response.json();
             if (!jsonRes) {
                 log::warn("Failed to parse setUser response");
-                upopup->showFailMessage("Invalid server response");
+                popupRef->showFailMessage("Invalid server response");
                 auto currentOpt = self->getOptionByKey(key);
                 if (currentOpt) {
                     self->m_isInitializing = true;
@@ -1245,9 +1245,9 @@ void RLUserControl::applySingleOption(const std::string& key, bool value) {
                 if (self->m_spinner)
                     self->m_spinner->setVisible(false);
                 self->setOptionEnabled(key, true);
-                upopup->showSuccessMessage("User has been updated!");
+                popupRef->showSuccessMessage("User has been updated!");
             } else {
-                upopup->showFailMessage(
+                popupRef->showFailMessage(
                     rl::getResponseFailMessage(response, "Failed to update user"));
                 auto currentOpt = self->getOptionByKey(key);
                 if (currentOpt) {

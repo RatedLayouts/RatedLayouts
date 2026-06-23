@@ -88,13 +88,14 @@ void RLAddDialogue::onSubmit(CCObject* sender) {
     if (!m_dialogueInput) return;
     auto upopup = UploadActionPopup::create(nullptr, "Submitting Dialogue...");
     upopup->show();
+    Ref<UploadActionPopup> popupRef = upopup;
     std::string dialogueText = m_dialogueInput->getString();
     if (dialogueText.empty()) {
-        upopup->showFailMessage("Dialogue cannot be empty!");
+        popupRef->showFailMessage("Dialogue cannot be empty!");
         return;
     }
     if (dialogueText.length() > 500) {
-        upopup->showFailMessage("Dialogue cannot exceed 500 characters!");
+        popupRef->showFailMessage("Dialogue cannot exceed 500 characters!");
         return;
     }
 
@@ -109,13 +110,13 @@ void RLAddDialogue::onSubmit(CCObject* sender) {
     Ref<RLAddDialogue> self = this;
     self->m_setDialogueTask.spawn(
         req.post(std::string(rl::BASE_API_URL) + "/setDialogue"),
-        [self, upopup](web::WebResponse res) {
-            if (!self) return;
+        [self, popupRef](web::WebResponse res) {
+            if (!self || !popupRef) return;
             if (!res.ok()) {
-                upopup->showFailMessage(rl::getResponseFailMessage(res, "Failed to submit dialogue!"));
+                popupRef->showFailMessage(rl::getResponseFailMessage(res, "Failed to submit dialogue!"));
                 return;
             }
-            upopup->showSuccessMessage("Dialogue submitted successfully!");
+            popupRef->showSuccessMessage("Dialogue submitted successfully!");
             self->m_dialogueInput->setString("");
         });
 }

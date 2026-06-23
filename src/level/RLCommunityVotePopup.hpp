@@ -22,6 +22,9 @@ private:
     CCLabelBMFont* m_originalityScoreLabel = nullptr;
     CCLabelBMFont* m_difficultyScoreLabel = nullptr;
     CCLabelBMFont* m_gameplayScoreLabel = nullptr;
+    CCLabelBMFont* m_originalityStatsLabel = nullptr;
+    CCLabelBMFont* m_difficultyStatsLabel = nullptr;
+    CCLabelBMFont* m_gameplayStatsLabel = nullptr;
     CCLabelBMFont* m_modDifficultyLabel = nullptr;
 
     geode::TextInput* m_originalityInput = nullptr;

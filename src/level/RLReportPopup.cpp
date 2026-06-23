@@ -233,23 +233,24 @@ void RLReportPopup::onSubmit(CCObject* sender) {
             auto req = web::WebRequest();
             req.bodyJSON(body);
             Ref<RLReportPopup> self = this;
+            Ref<UploadActionPopup> popupRef = uploadPopup;
             self->m_reportTask.spawn(
                 req.post(std::string(rl::BASE_API_URL) + "/setReport"),
-                [self, uploadPopup](web::WebResponse res) {
-                    if (!self) return;
+                [self, popupRef](web::WebResponse res) {
+                    if (!self || !popupRef) return;
                     if (!res.ok()) {
-                        uploadPopup->showFailMessage(rl::getResponseFailMessage(res, "Failed to submit report"));
+                        popupRef->showFailMessage(rl::getResponseFailMessage(res, "Failed to submit report"));
                         return;
                     }
                     auto j = res.json();
                     if (!j) {
-                        uploadPopup->showFailMessage("Invalid server response");
+                        popupRef->showFailMessage("Invalid server response");
                         return;
                     }
                     auto json = j.unwrap();
                     bool success = json["success"].asBool().unwrapOrDefault();
                     if (success) {
-                        uploadPopup->showSuccessMessage("Report submitted!");
+                        popupRef->showSuccessMessage("Report submitted!");
                         self->removeFromParent();
                         // disable inputs
                         if (self->m_reasonInput) {
@@ -265,7 +266,7 @@ void RLReportPopup::onSubmit(CCObject* sender) {
                         if (self->m_decoratedToggle) self->m_decoratedToggle->setEnabled(false);
                         if (self->m_otherToggle) self->m_otherToggle->setEnabled(false);
                     } else {
-                        uploadPopup->showFailMessage("Failed to submit report");
+                        popupRef->showFailMessage("Failed to submit report");
                     }
                 });
         });

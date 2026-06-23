@@ -197,21 +197,24 @@ void RLLeaderboardLayer::onAccountRefreshButton(CCObject* sender) {
         "Are you sure you want to <cg>update your account information</c> to <cl>Rated Layouts</c>?\n<cy>Only use this if you changed your username or icons recently and need to show the updated information.</c>",
         "No",
         "Yes",
-        [this](auto, bool yes) {
+        [this](FLAlertLayer*, bool yes) {
             if (!yes)
                 return;
 
-            auto popup = UploadActionPopup::create(nullptr, "Updating Account...");
-            popup->show();
+            auto upopup = UploadActionPopup::create(nullptr, "Updating Account...");
+            upopup->show();
+            Ref<UploadActionPopup> popupRef = upopup;
+
+            if (!popupRef) return;
 
             if (GJAccountManager::get()->m_accountID == 0) {
-                popup->showFailMessage("You are not logged in.");
+                popupRef->showFailMessage("You are not logged in.");
                 return;
             }
 
             auto token = Mod::get()->getSavedValue<std::string>("argon_token");
             if (token.empty()) {
-                popup->showFailMessage("Argon token missing.");
+                popupRef->showFailMessage("Argon token missing.");
                 return;
             }
 
@@ -222,7 +225,6 @@ void RLLeaderboardLayer::onAccountRefreshButton(CCObject* sender) {
             auto req = web::WebRequest();
             req.bodyJSON(jsonBody);
 
-            Ref<UploadActionPopup> popupRef = popup;
             async::spawn(req.post(std::string(rl::BASE_API_URL) + "/resetAccountInfo"),
                 [this, popupRef](web::WebResponse res) {
                     if (!popupRef)
