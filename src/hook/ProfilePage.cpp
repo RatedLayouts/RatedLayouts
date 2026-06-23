@@ -820,7 +820,7 @@ class $modify(RLProfilePage, ProfilePage) {
 
     void onUserManage(CCObject* sender) {
         // only leaderboard moderators may manage users
-        if (!(rl::isUserHasPerms() || rl::isUserOwner())) {
+        if (!(rl::isUserHasPerms() || rl::isUserOwner() || rl::isUserDeveloper())) {
             Notification::create("You don't have permission to manage users.",
                 NotificationIcon::Error)
                 ->show();
